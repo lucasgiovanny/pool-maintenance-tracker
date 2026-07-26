@@ -535,6 +535,19 @@ function renderReport(){
         S.tiles[task.key] || S.report.values[task.key] || task.key);
       row.appendChild(label);
       const value = el("span", "v");
+      /* Merge the related declared value into the task row */
+      if (task.key === "salt_added" && report.values
+          && report.values.salt_added !== undefined && task.last) {
+        value.appendChild(document.createTextNode(
+          formatValue("salt_added", report.values.salt_added) + " · "));
+      }
+      if (task.key === "acid_refill" && report.values
+          && report.values.acid_tank_level !== undefined) {
+        const level = report.values.acid_tank_level;
+        const cls = level === "quarter" ? "due" : level === "full" ? "ok" : "info";
+        value.appendChild(el("span", "badge " + cls, S.acid_levels[level] || level));
+        value.appendChild(document.createTextNode(" "));
+      }
       value.appendChild(document.createTextNode(daysAgoText(task.last) + " "));
       if (task.interval_days) {
         const badge = el("span", "badge " + (task.due ? "due" : "ok"),
@@ -550,8 +563,9 @@ function renderReport(){
     });
   }
 
-  /* Equipment: our declared equipment states first, then external entities */
-  const EQUIP_KEYS = ["chlorinator_mode", "chlorinator_output", "acid_tank_level"];
+  /* Equipment: our declared equipment states first, then external entities.
+     The acid tank level lives on its task row, merged with the refill date. */
+  const EQUIP_KEYS = ["chlorinator_mode", "chlorinator_output"];
   const extraBody = document.getElementById("report-extra-body");
   let equipAny = false;
   EQUIP_KEYS.forEach(key => {

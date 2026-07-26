@@ -225,12 +225,28 @@ def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str,
     return live
 
 
-async def _true_last_changed(hass: HomeAssistant, entity_id: str, fallback: str) -> str:
-    """Last *recorded* state change — survives HA restarts.
+def _state_began(rows: list[tuple[str, Any]], current: str) -> Any | None:
+    """When the current state actually began, ignoring unavailable gaps.
 
-    The state machine's last_changed resets to the startup time after a
-    restart; the recorder keeps the real moment of the last change.
+    A restart records unavailable -> <state>, which would make everything
+    look like it "changed just now". Walk backwards through the recorded
+    rows (ascending order), skipping unavailable/unknown, until a state
+    different from the current one appears.
     """
+    began = None
+    for state, changed in reversed(rows):
+        if state in ("unavailable", "unknown"):
+            continue
+        if state != current:
+            break
+        began = changed
+    return began
+
+
+async def _true_last_changed(
+    hass: HomeAssistant, entity_id: str, current_state: str, fallback: str
+) -> str:
+    """When the entity's current state really began — survives HA restarts."""
     if not _recorder_ready(hass):
         return fallback
     from functools import partial
@@ -240,14 +256,16 @@ async def _true_last_changed(hass: HomeAssistant, entity_id: str, fallback: str)
 
     try:
         states = await get_instance(hass).async_add_executor_job(
-            partial(get_last_state_changes, hass, 1, entity_id)
+            partial(get_last_state_changes, hass, 25, entity_id)
         )
     except Exception:
         return fallback
-    rows = states.get(entity_id) or []
-    if rows:
-        return rows[-1].last_changed.isoformat()
-    return fallback
+    rows = sorted(
+        ((row.state, row.last_changed) for row in states.get(entity_id) or []),
+        key=lambda item: item[1],
+    )
+    began = _state_began(rows, current_state)
+    return began.isoformat() if began else fallback
 
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
@@ -367,7 +385,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
                 "next_change": next_change,
                 "week": week,
                 "last_changed": await _true_last_changed(
-                    hass, entity_id, state.last_changed.isoformat()
+                    hass, entity_id, state.state, state.last_changed.isoformat()
                 ),
             }
         )

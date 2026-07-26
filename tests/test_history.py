@@ -30,6 +30,27 @@ def test_ontime_buckets_splits_days():
     assert points[1]["v"] == 2.0
 
 
+def test_state_began_skips_unavailable_gaps():
+    from custom_components.pool_maintenance_tracker.http import _state_began
+
+    now = dt_util.utcnow()
+    rows = [
+        ("on", now - timedelta(days=3)),
+        ("off", now - timedelta(days=2)),
+        ("unavailable", now - timedelta(hours=10)),  # restart gap
+        ("off", now - timedelta(hours=9, minutes=59)),
+        ("unavailable", now - timedelta(minutes=2)),  # another restart
+        ("off", now - timedelta(minutes=1)),
+    ]
+    # "off" really began 2 days ago, not at the last restart
+    assert _state_began(rows, "off") == now - timedelta(days=2)
+    # a state never present falls back to None
+    assert _state_began(rows, "heat") is None
+    # rows ending in a different state -> current state began at newest run
+    rows.append(("on", now))
+    assert _state_began(rows, "on") == now
+
+
 def test_ontime_buckets_all_off():
     now = dt_util.utcnow()
     start = now - timedelta(days=1)
