@@ -128,7 +128,8 @@
     "ago_minutes": "hace {n} min",
     "ago_hours": "hace {n} h",
     "next_due": "próxima {date}",
-    "next_change": "cambia {date}"
+    "schedule_off": "se apaga {date} a las {time}",
+    "schedule_on": "se enciende {date} a las {time}"
   },
   "notes": {
     "title": "Notas",

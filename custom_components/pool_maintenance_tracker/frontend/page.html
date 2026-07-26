@@ -59,6 +59,9 @@
   }
   .tabs button:last-child{border-right:none}
   .tabs button.on{background:var(--deep);color:var(--white)}
+  .tabs.periods{border-width:1px;border-radius:10px;max-width:300px;margin-left:auto;margin-right:auto}
+  .tabs.periods button{padding:8px 6px;font-size:.78rem;font-weight:600}
+  .tabs.periods button.on{background:var(--aqua)}
 
   .card{
     background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
@@ -206,6 +209,12 @@
     padding:12px 22px;font-size:.92rem;font-weight:700;font-family:inherit;cursor:pointer;
   }
   .note-save:disabled{background:var(--muted)}
+
+  .week{margin:6px 0 10px}
+  .week .day{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .week .day span{flex:none;width:22px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+  .week .track{flex:1;position:relative;height:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .week .block{position:absolute;top:0;bottom:0;background:var(--aqua);border-radius:5px}
 
   .bar{
     position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
@@ -511,9 +520,18 @@ function renderReport(){
       if (onOff || item.domain === "schedule") {
         holder.appendChild(document.createTextNode(
           (item.state === "on" ? S.report.state_on : S.report.state_off) + " "));
-        const detail = item.next_change
-          ? S.report.next_change.replace("{date}", formatStamp(item.next_change))
-          : relTime(item.last_changed);
+        let detail;
+        if (item.next_change) {
+          const when = new Date(item.next_change);
+          const template = item.state === "on"
+            ? S.report.schedule_off : S.report.schedule_on;
+          detail = template
+            .replace("{date}", when.toLocaleDateString(LOCALE))
+            .replace("{time}", when.toLocaleTimeString(LOCALE,
+              { hour: "2-digit", minute: "2-digit" }));
+        } else {
+          detail = relTime(item.last_changed);
+        }
         holder.appendChild(el("small", null, detail));
       } else if (!isNaN(parseFloat(item.state))) {
         holder.appendChild(document.createTextNode(
@@ -524,6 +542,7 @@ function renderReport(){
       }
       row.appendChild(holder);
       extraBody.appendChild(row);
+      if (item.week) extraBody.appendChild(weekGrid(item.week));
     });
   }
 
@@ -536,6 +555,33 @@ function renderReport(){
     return;
   }
   records.forEach(record => historyBody.appendChild(recordElement(record)));
+}
+
+/* Weekly on-blocks of a schedule helper: 7 rows (Mon..Sun), 0-24h tracks */
+function weekGrid(week){
+  const grid = el("div", "week");
+  week.forEach((blocks, index) => {
+    const row = el("div", "day");
+    // 2024-01-01 is a Monday; derive localized short weekday labels from it
+    const label = new Date(Date.UTC(2024, 0, 1 + index)).toLocaleDateString(
+      LOCALE, { weekday: "short", timeZone: "UTC" }).slice(0, 2);
+    row.appendChild(el("span", null, label));
+    const track = el("div", "track");
+    blocks.forEach(([from, to]) => {
+      const toMinutes = time => {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + (minutes || 0);
+      };
+      const start = toMinutes(from), end = Math.max(toMinutes(to), start + 10);
+      const block = el("div", "block");
+      block.style.left = (start / 1440 * 100) + "%";
+      block.style.width = ((end - start) / 1440 * 100) + "%";
+      track.appendChild(block);
+    });
+    row.appendChild(track);
+    grid.appendChild(row);
+  });
+  return grid;
 }
 
 function initials(name){

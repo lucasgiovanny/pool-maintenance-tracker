@@ -52,9 +52,10 @@ append-only.
 Under **Configure → Linked sensors → Extra entities on the report tab**, pick
 any entities from other integrations (heat pump switch, power sensor, …). The
 report shows their current state formatted automatically — measurements with
-units, on/off with "since when", and `schedule` helpers with their next
-on/off change (schedules are configuration, so they are kept out of the
-history charts).
+units, on/off with "since when", and `schedule` helpers with *turns on/off at
+…* plus their real weekly grid (read from HA's storage for UI-created
+schedules; schedules are configuration, so they are kept out of the history
+charts).
 
 ### History tab
 
@@ -186,7 +187,12 @@ Created per pool (depending on enabled modules):
   the right day
 - **Binary sensors**: filter wash due, cell cleaning due, probe calibration due
 - **`sensor.<pool>_last_record`**: `who · date · what` summary, with the last
-  20 records as attributes
+  20 records (including their ids) as attributes
+
+Made a mistake? Call the **`pool_maintenance_tracker.delete_record`** action
+(Developer tools → Actions): pick the pool and optionally a `record_id` from
+the last-record sensor attributes — without an id it deletes the most recent
+record. Task timestamps are rebuilt from the remaining records.
 - **`event.<pool>_maintenance_logged`**: fires on every submission
 
 ## Automations

@@ -240,8 +240,6 @@ async def test_schedule_entity_in_report_not_history(hass, salt_entry, hass_clie
 
     from homeassistant.util import dt as dt_util
 
-    from custom_components.pool_maintenance_tracker.const import URL_HISTORY
-
     next_event = dt_util.utcnow() + timedelta(hours=3)
     hass.states.async_set(
         "schedule.filtracao",
@@ -262,6 +260,53 @@ async def test_schedule_entity_in_report_not_history(hass, salt_entry, hass_clie
     assert item["domain"] == "schedule"
     assert item["state"] == "on"
     assert item["next_change"] == next_event.isoformat()
+    assert item["week"] is None  # not a UI-created schedule in this test
+
+
+async def test_schedule_week_from_storage(hass, salt_entry, hass_client_no_auth, hass_storage):
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.pool_maintenance_tracker.const import URL_HISTORY
+
+    hass_storage["schedule"] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "schedule",
+        "data": {
+            "items": [
+                {
+                    "id": "abc123",
+                    "name": "Filtração",
+                    "monday": [{"from": "08:00:00", "to": "12:00:00"}],
+                    "saturday": [
+                        {"from": "09:00:00", "to": "11:00:00"},
+                        {"from": "15:00:00", "to": "18:00:00"},
+                    ],
+                }
+            ]
+        },
+    }
+    registry = er.async_get(hass)
+    reg_entry = registry.async_get_or_create(
+        "schedule", "schedule", "abc123", suggested_object_id="filtracao"
+    )
+    hass.states.async_set(reg_entry.entity_id, "on", {"friendly_name": "Filtração"})
+
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={**salt_entry.options, "report_sensors": [reg_entry.entity_id]},
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    item = config["report"]["extra"][0]
+    week = item["week"]
+    assert week[0] == [["08:00", "12:00"]]  # Monday
+    assert week[5] == [["09:00", "11:00"], ["15:00", "18:00"]]  # Saturday
+    assert week[6] == []  # Sunday
 
     response = await client.get(URL_HISTORY.format(token=TEST_TOKEN) + "?days=7")
     assert response.status == 200

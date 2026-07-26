@@ -128,7 +128,8 @@
     "ago_minutes": "há {n} min",
     "ago_hours": "há {n} h",
     "next_due": "próxima {date}",
-    "next_change": "muda {date}"
+    "schedule_off": "desliga {date} às {time}",
+    "schedule_on": "liga {date} às {time}"
   },
   "notes": {
     "title": "Notas",

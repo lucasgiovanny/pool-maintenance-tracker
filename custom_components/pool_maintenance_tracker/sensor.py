@@ -87,6 +87,7 @@ class PoolLastRecordSensor(PoolBaseEntity, SensorEntity):
         record = self.tracker.last_record or {}
         recent = [
             {
+                "id": item.get("id"),
                 "person": item.get("person"),
                 "logged_at": item.get("logged_at"),
                 "categories": item.get("categories", []),

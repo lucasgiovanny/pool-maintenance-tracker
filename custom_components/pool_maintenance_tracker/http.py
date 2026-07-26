@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from aiohttp import web
 from homeassistant.components.http import KEY_HASS, HomeAssistantView
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -226,6 +227,43 @@ def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str,
     return live
 
 
+WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+
+
+async def _schedule_week(hass: HomeAssistant, entity_id: str) -> list[list[list[str]]] | None:
+    """Weekly on-blocks of a UI-created schedule helper, read from HA storage.
+
+    Returns 7 lists (Monday..Sunday) of [from, to] HH:MM pairs, or None when
+    the schedule is not in storage (e.g. YAML-defined).
+    """
+    registry = er.async_get(hass)
+    reg_entry = registry.async_get(entity_id)
+    if reg_entry is None or reg_entry.platform != "schedule":
+        return None
+
+    from homeassistant.helpers.storage import Store
+
+    data = await Store(hass, 1, "schedule").async_load()
+    if not data:
+        return None
+    item = next(
+        (it for it in data.get("items", []) if it.get("id") == reg_entry.unique_id),
+        None,
+    )
+    if item is None:
+        return None
+    week = []
+    for day in WEEKDAYS:
+        blocks = []
+        for block in item.get(day) or []:
+            start = str(block.get("from", ""))[:5]
+            end = str(block.get("to", ""))[:5]
+            if start and end:
+                blocks.append([start, end])
+        week.append(blocks)
+    return week
+
+
 # Task order on the report tab
 REPORT_TASK_ORDER = (
     "water_test",
@@ -238,8 +276,7 @@ REPORT_TASK_ORDER = (
 )
 
 
-@callback
-def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
+async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
     """Snapshot of the pool state for the page's report tab."""
     runtime = entry.runtime_data
     tracker = runtime.tracker
@@ -289,10 +326,13 @@ def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
             continue
         domain = entity_id.split(".")[0]
         next_change = None
-        if domain == "schedule" and (next_event := state.attributes.get("next_event")):
-            next_change = (
-                next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
-            )
+        week = None
+        if domain == "schedule":
+            if next_event := state.attributes.get("next_event"):
+                next_change = (
+                    next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
+                )
+            week = await _schedule_week(hass, entity_id)
         extra.append(
             {
                 "entity_id": entity_id,
@@ -301,6 +341,7 @@ def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
                 "unit": state.attributes.get("unit_of_measurement") or "",
                 "domain": domain,
                 "next_change": next_change,
+                "week": week,
                 "last_changed": state.last_changed.isoformat(),
             }
         )
@@ -486,7 +527,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "manual_endpoint": URL_MANUAL.format(token=token),
         "history_periods": list(HISTORY_PERIODS),
         "report": (
-            _build_report(hass, entry)
+            await _build_report(hass, entry)
             if entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED)
             else None
         ),

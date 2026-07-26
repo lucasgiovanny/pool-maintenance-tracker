@@ -232,5 +232,21 @@
         "name": "QR-Code der Seite"
       }
     }
+  },
+  "services": {
+    "delete_record": {
+      "name": "Eintrag löschen",
+      "description": "Löscht einen Wartungseintrag (den neuesten, wenn keine Id angegeben ist) und berechnet die Aufgabendaten aus den verbleibenden Einträgen neu.",
+      "fields": {
+        "config_entry": {
+          "name": "Pool",
+          "description": "Der Pool, aus dem der Eintrag gelöscht wird."
+        },
+        "record_id": {
+          "name": "Eintrags-Id",
+          "description": "Id des zu löschenden Eintrags (siehe Attribut recent_records des Letzter-Eintrag-Sensors). Leer löscht den neuesten."
+        }
+      }
+    }
   }
 }

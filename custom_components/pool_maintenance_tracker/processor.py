@@ -68,6 +68,32 @@ class PayloadError(Exception):
     """Raised when a payload contains nothing valid."""
 
 
+def record_timestamps(
+    categories: list[str], data: Mapping[str, Any], logged_at_iso: str
+) -> dict[str, str]:
+    """Timestamps a record updates: its categories plus data presence.
+
+    Data presence also refreshes the matching timestamps even when the
+    corresponding category chip was not selected on the page. Also used to
+    rebuild the timestamp table when a record is deleted.
+    """
+    timestamps: dict[str, str] = {TS_ANY: logged_at_iso}
+    for category in categories:
+        if (ts_key := CATEGORY_TIMESTAMPS.get(category)) is not None:
+            timestamps[ts_key] = logged_at_iso
+    if any(
+        key in data for key in (KEY_PH, KEY_FREE_CHLORINE, KEY_SALT_LEVEL, KEY_WATER_TEMPERATURE)
+    ):
+        timestamps[TS_WATER_TEST] = logged_at_iso
+    if KEY_SALT_ADDED in data:
+        timestamps[TS_SALT_ADDED] = logged_at_iso
+    if KEY_ACID_TANK_LEVEL in data:
+        timestamps[TS_ACID_REFILL] = logged_at_iso
+    if "cleaning_types" in data:
+        timestamps[TS_CLEANING] = logged_at_iso
+    return timestamps
+
+
 @dataclass
 class ProcessResult:
     """Validated outcome of one submitted payload."""
@@ -216,22 +242,7 @@ def process_payload(
     if not categories and not data:
         raise PayloadError("nothing valid to record")
 
-    timestamps: dict[str, str] = {TS_ANY: logged_at_iso}
-    for category in categories:
-        if (ts_key := CATEGORY_TIMESTAMPS.get(category)) is not None:
-            timestamps[ts_key] = logged_at_iso
-    # Data presence also refreshes the matching timestamps, even when the
-    # corresponding category chip was not selected on the page.
-    if any(
-        key in data for key in (KEY_PH, KEY_FREE_CHLORINE, KEY_SALT_LEVEL, KEY_WATER_TEMPERATURE)
-    ):
-        timestamps[TS_WATER_TEST] = logged_at_iso
-    if KEY_SALT_ADDED in data:
-        timestamps[TS_SALT_ADDED] = logged_at_iso
-    if KEY_ACID_TANK_LEVEL in data:
-        timestamps[TS_ACID_REFILL] = logged_at_iso
-    if "cleaning_types" in data:
-        timestamps[TS_CLEANING] = logged_at_iso
+    timestamps = record_timestamps(categories, data, logged_at_iso)
 
     record = {
         "id": ulid_util.ulid_now(),

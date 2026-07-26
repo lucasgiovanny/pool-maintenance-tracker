@@ -232,5 +232,21 @@
         "name": "Code QR de la page"
       }
     }
+  },
+  "services": {
+    "delete_record": {
+      "name": "Supprimer une saisie",
+      "description": "Supprime une saisie d'entretien (la plus récente si aucun id) et recalcule les dates des tâches à partir des saisies restantes.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscine",
+          "description": "La piscine dont supprimer la saisie."
+        },
+        "record_id": {
+          "name": "Id de la saisie",
+          "description": "Id de la saisie à supprimer (voir l'attribut recent_records du capteur de dernière saisie). Vide supprime la plus récente."
+        }
+      }
+    }
   }
 }

@@ -232,5 +232,21 @@
         "name": "Código QR de la página"
       }
     }
+  },
+  "services": {
+    "delete_record": {
+      "name": "Eliminar registro",
+      "description": "Elimina un registro de mantenimiento (el más reciente si no se indica id) y recalcula las fechas de las tareas con los registros restantes.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "La piscina de la que eliminar el registro."
+        },
+        "record_id": {
+          "name": "Id del registro",
+          "description": "Id del registro a eliminar (ver el atributo recent_records del sensor de último registro). Vacío elimina el más reciente."
+        }
+      }
+    }
   }
 }

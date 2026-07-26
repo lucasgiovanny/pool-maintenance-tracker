@@ -232,5 +232,21 @@
         "name": "QR code da página"
       }
     }
+  },
+  "services": {
+    "delete_record": {
+      "name": "Apagar registo",
+      "description": "Apaga um registo de manutenção (o mais recente se não indicares id) e recalcula as datas das tarefas a partir dos registos restantes.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "A piscina de onde apagar o registo."
+        },
+        "record_id": {
+          "name": "Id do registo",
+          "description": "Id do registo a apagar (vê o atributo recent_records do sensor de último registo). Deixa vazio para apagar o mais recente."
+        }
+      }
+    }
   }
 }

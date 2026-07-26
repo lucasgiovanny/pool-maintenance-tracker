@@ -232,5 +232,21 @@
         "name": "Page QR code"
       }
     }
+  },
+  "services": {
+    "delete_record": {
+      "name": "Delete record",
+      "description": "Deletes a maintenance record (the most recent one when no id is given) and rebuilds the task timestamps from the remaining records.",
+      "fields": {
+        "config_entry": {
+          "name": "Pool",
+          "description": "The pool to delete the record from."
+        },
+        "record_id": {
+          "name": "Record id",
+          "description": "Id of the record to delete (see the recent_records attribute of the last-record sensor). Leave empty to delete the most recent record."
+        }
+      }
+    }
   }
 }

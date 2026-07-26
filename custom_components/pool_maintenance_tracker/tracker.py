@@ -119,6 +119,43 @@ class PoolTracker:
         self.async_save()
 
     @callback
+    def async_delete_record(self, record_id: str | None = None) -> bool:
+        """Delete a record (the most recent one when no id is given).
+
+        Timestamps are rebuilt by replaying the remaining records, so a
+        mistaken "filter washed" entry no longer counts. Declared values
+        are left untouched — they are directly editable as entities.
+        """
+        from .processor import record_timestamps
+
+        if not self.records:
+            return False
+        if record_id is None:
+            self.records.pop()
+        else:
+            index = next(
+                (i for i, record in enumerate(self.records) if record.get("id") == record_id),
+                None,
+            )
+            if index is None:
+                return False
+            self.records.pop(index)
+
+        self.timestamps = {}
+        for record in sorted(self.records, key=lambda item: item.get("logged_at") or ""):
+            self.timestamps.update(
+                record_timestamps(
+                    record.get("categories", []),
+                    record.get("data", {}),
+                    record["logged_at"],
+                )
+            )
+        self.last_record = self.records[-1] if self.records else None
+        self.async_update_listeners()
+        self.async_save()
+        return True
+
+    @callback
     def async_add_note(
         self, person: str, text: str, created_at: str | None = None
     ) -> dict[str, Any]:

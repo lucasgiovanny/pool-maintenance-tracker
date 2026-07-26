@@ -232,5 +232,21 @@
         "name": "Codice QR della pagina"
       }
     }
+  },
+  "services": {
+    "delete_record": {
+      "name": "Elimina registrazione",
+      "description": "Elimina una registrazione di manutenzione (la più recente se non indichi l'id) e ricalcola le date delle attività dalle registrazioni rimanenti.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "La piscina da cui eliminare la registrazione."
+        },
+        "record_id": {
+          "name": "Id della registrazione",
+          "description": "Id della registrazione da eliminare (vedi l'attributo recent_records del sensore ultima registrazione). Vuoto elimina la più recente."
+        }
+      }
+    }
   }
 }
