@@ -75,8 +75,6 @@ class PoolModule:
 MODULE_WATER_TESTING = PoolModule(
     key="water_testing",
     tiles=("water_test",),
-    # water_temperature is entity/API-only: the page deliberately has no
-    # stepper for it (it is usually covered by a linked probe).
     value_keys=(KEY_PH, KEY_FREE_CHLORINE, KEY_WATER_TEMPERATURE),
     timestamp_keys=(TS_WATER_TEST,),
     categories=(CATEGORY_WATER_TEST,),

@@ -24,6 +24,7 @@
       "ph": "pH mesuré (bandelette ou kit)",
       "free_chlorine": "Chlore libre",
       "salt": "Sel (mesure manuelle)",
+      "temperature": "Température de l'eau",
       "hint": "Remplissez uniquement ce que vous avez mesuré. Les champs vides ne changent rien."
     },
     "chlorinator": {
@@ -77,7 +78,8 @@
     "free_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
-    "chlorinator_output": "g/h"
+    "chlorinator_output": "g/h",
+    "water_temperature": "°C"
   },
   "save": "Enregistrer",
   "saving": "Enregistrement…",

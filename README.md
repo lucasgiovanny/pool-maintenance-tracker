@@ -132,8 +132,7 @@ the token in the integration options and rewrite the tag.
 Created per pool (depending on enabled modules):
 
 - **Numbers** (manually declared values): pH, free chlorine (ppm), water
-  temperature (°C — entity/API only, not on the page), salt (g/L), salt added
-  (kg), chlorinator output (g/h)
+  temperature (°C), salt (g/L), salt added (kg), chlorinator output (g/h)
 - **Selects**: chlorinator mode (smart/manual/boost), acid tank level (full…¼)
 - **Timestamps**: last water test, salt added, filter wash, cell cleaning,
   probe calibration, acid refill, cleaning, and last maintenance of any kind —

@@ -240,7 +240,7 @@ const ICONS = {
 
 const PLACEHOLDERS = {
   ph: "7.2", free_chlorine: "1.5", salt_level: "3.0",
-  salt_added: "25", chlorinator_output: "10"
+  salt_added: "25", chlorinator_output: "10", water_temperature: "27.0"
 };
 
 document.documentElement.lang = CFG.language;
@@ -394,6 +394,7 @@ function buildPanel(tile){
     parts.push(stepperField(p.ph, "ph"));
     parts.push(stepperField(p.free_chlorine, "free_chlorine"));
     parts.push(stepperField(p.salt, "salt_level"));
+    parts.push(stepperField(p.temperature, "water_temperature"));
     parts.push(hintOnly(p.hint));
   } else if (tile === "chlorinator") {
     parts.push(segmentsField(p.mode, "chlorinator_mode", ["smart", "manual", "boost"], S.modes, false));
@@ -466,7 +467,8 @@ sendButton.addEventListener("click", async () => {
     readings: {
       ph: stepperValue("ph"),
       free_chlorine: stepperValue("free_chlorine"),
-      salt: stepperValue("salt_level")
+      salt: stepperValue("salt_level"),
+      temperature: stepperValue("water_temperature")
     },
     chlorinator: {
       output: stepperValue("chlorinator_output"),
@@ -505,6 +507,7 @@ function summaryFor(payload, selected){
   if (payload.readings.ph !== null) fragments.push(S.panels.water_test.ph + ": " + payload.readings.ph);
   if (payload.readings.free_chlorine !== null) fragments.push(S.panels.water_test.free_chlorine + ": " + payload.readings.free_chlorine + " " + S.units.free_chlorine);
   if (payload.readings.salt !== null) fragments.push(S.panels.water_test.salt + ": " + payload.readings.salt + " " + S.units.salt_level);
+  if (payload.readings.temperature !== null) fragments.push(S.panels.water_test.temperature + ": " + payload.readings.temperature + " " + S.units.water_temperature);
   if (payload.salt.added_kg !== null) fragments.push(S.tiles.salt + ": " + payload.salt.added_kg + " " + S.units.salt_added);
   if (payload.chlorinator.output !== null) fragments.push(S.panels.chlorinator.output + ": " + payload.chlorinator.output + " " + S.units.chlorinator_output);
   if (payload.chlorinator.mode) fragments.push(S.panels.chlorinator.mode + ": " + S.modes[payload.chlorinator.mode]);

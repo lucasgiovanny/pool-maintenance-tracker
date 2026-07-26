@@ -24,6 +24,7 @@
       "ph": "pH gemessen (Streifen oder Kit)",
       "free_chlorine": "Freies Chlor",
       "salt": "Salz (manuelle Messung)",
+      "temperature": "Wassertemperatur",
       "hint": "Trage nur ein, was du gemessen hast. Leere Felder ändern nichts."
     },
     "chlorinator": {
@@ -77,7 +78,8 @@
     "free_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
-    "chlorinator_output": "g/h"
+    "chlorinator_output": "g/h",
+    "water_temperature": "°C"
   },
   "save": "Eintrag speichern",
   "saving": "Speichern…",

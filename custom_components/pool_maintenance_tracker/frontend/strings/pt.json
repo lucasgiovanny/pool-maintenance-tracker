@@ -24,6 +24,7 @@
       "ph": "pH medido (fita ou kit)",
       "free_chlorine": "Cloro livre",
       "salt": "Sal (medição manual)",
+      "temperature": "Temperatura da água",
       "hint": "Preenche só o que mediste. Campos vazios não alteram nada no sistema."
     },
     "chlorinator": {
@@ -77,7 +78,8 @@
     "free_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
-    "chlorinator_output": "g/h"
+    "chlorinator_output": "g/h",
+    "water_temperature": "°C"
   },
   "save": "Guardar registo",
   "saving": "A guardar…",

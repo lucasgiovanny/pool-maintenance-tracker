@@ -24,6 +24,7 @@
       "ph": "pH (strip or kit)",
       "free_chlorine": "Free chlorine",
       "salt": "Salt (manual reading)",
+      "temperature": "Water temperature",
       "hint": "Only fill in what you measured. Empty fields don't change anything."
     },
     "chlorinator": {
@@ -77,7 +78,8 @@
     "free_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
-    "chlorinator_output": "g/h"
+    "chlorinator_output": "g/h",
+    "water_temperature": "°C"
   },
   "save": "Save record",
   "saving": "Saving…",
