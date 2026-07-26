@@ -86,10 +86,12 @@
         "title": "Seite und Benachrichtigungen",
         "data": {
           "language": "Sprache der Seite",
-          "notify_service": "Benachrichtigungsdienst (optional)"
+          "notify_service": "Benachrichtigungsdienst (optional)",
+          "report_enabled": "Bericht-Tab auf der Seite"
         },
         "data_description": {
-          "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung."
+          "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung.",
+          "report_enabled": "Fügt der öffentlichen Seite einen schreibgeschützten Bericht-Tab hinzu: aktuelle Werte, Aufgabenstatus und letzte Einträge. Sichtbar für alle mit der Seiten-URL."
         }
       },
       "security": {

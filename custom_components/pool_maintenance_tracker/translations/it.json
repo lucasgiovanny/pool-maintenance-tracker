@@ -86,10 +86,12 @@
         "title": "Pagina e notifiche",
         "data": {
           "language": "Lingua della pagina",
-          "notify_service": "Servizio di notifica (facoltativo)"
+          "notify_service": "Servizio di notifica (facoltativo)",
+          "report_enabled": "Scheda rapporto nella pagina"
         },
         "data_description": {
-          "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni."
+          "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni.",
+          "report_enabled": "Aggiunge una scheda rapporto (sola lettura) alla pagina pubblica: valori attuali, stato delle attività e registrazioni recenti. Visibile a chiunque abbia l'URL."
         }
       },
       "security": {

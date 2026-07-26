@@ -89,5 +89,32 @@
   "success_text": "Das Haussystem hat diese Wartung erhalten.",
   "error_title": "Speichern fehlgeschlagen",
   "error_text": "Prüfe die Internetverbindung und versuche es erneut.",
-  "again": "Neuer Eintrag"
+  "again": "Neuer Eintrag",
+  "tabs": {
+    "log": "Eintragen",
+    "report": "Bericht"
+  },
+  "report": {
+    "current": "Aktueller Zustand",
+    "tasks": "Regelmäßige Aufgaben",
+    "history": "Letzte Einträge",
+    "overdue": "Überfällig",
+    "never": "Nie erfasst",
+    "today": "Heute",
+    "day_ago": "vor 1 Tag",
+    "days_ago": "vor {days} Tagen",
+    "every_days": "alle {days} Tage",
+    "empty_history": "Noch keine Einträge.",
+    "values": {
+      "ph": "pH",
+      "free_chlorine": "Freies Chlor",
+      "salt_level": "Salz",
+      "water_temperature": "Wassertemperatur",
+      "salt_added": "Salz nachgefüllt",
+      "chlorinator_output": "Leistung des Elektrolyseurs",
+      "chlorinator_mode": "Modus des Elektrolyseurs",
+      "acid_tank_level": "Säuretank",
+      "cleaning_types": "Reinigung"
+    }
+  }
 }

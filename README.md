@@ -34,6 +34,10 @@ periodic tasks are overdue.
 4. The integration validates the submission, updates the entities, fires an
    event for your automations, appends to the log, and sends notifications
    when something needs attention.
+5. A **Report** tab on the same page (optional, on by default) gives whoever
+   maintains the pool — even without HA access — a read-only overview:
+   current values, periodic task status with overdue badges, and the recent
+   maintenance history. Toggle it under **Configure → Page and notifications**.
 
 The page adapts to your pool: tiles and entities are created only for the
 equipment you actually have.
@@ -199,8 +203,10 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page) and `POST` (log); they are write-only
-  declarative state — nothing can command your equipment.
+- Endpoints accept only `GET` (page) and `POST` (log); nothing can command
+  your equipment. With the report tab enabled, anyone holding the page URL can
+  also *read* the declared pool state and recent records — disable the tab in
+  the options if you don't want that.
 - Non-guessable 256-bit token in the path, compared in constant time.
 - Rate limits: 10 posts/min per IP, 30 posts/5 min per token, and repeated
   invalid-token attempts get an IP timeout.

@@ -129,6 +129,50 @@ async def test_no_linked_sensors_means_empty_live(hass, salt_entry, hass_client_
     assert config["live"] == {}
 
 
+async def test_report_tab_data(hass, salt_entry, hass_client_no_auth):
+    from custom_components.pool_maintenance_tracker.const import URL_LOG
+
+    await setup_entry(hass, salt_entry)
+    client = await hass_client_no_auth()
+
+    response = await client.post(
+        URL_LOG.format(token=TEST_TOKEN),
+        json={
+            "person": "Lucas",
+            "categories": ["filter_wash"],
+            "readings": {"ph": 7.3},
+        },
+    )
+    assert response.status == 200
+    await hass.async_block_till_done()
+
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    report = config["report"]
+    assert report["values"]["ph"] == 7.3
+    task_keys = [task["key"] for task in report["tasks"]]
+    assert "filter_wash" in task_keys
+    filter_task = next(task for task in report["tasks"] if task["key"] == "filter_wash")
+    assert filter_task["last"] is not None
+    assert filter_task["interval_days"] == 30
+    assert filter_task["due"] is False
+    assert report["records"][0]["person"] == "Lucas"
+    assert report["records"][0]["categories"] == ["filter_wash"]
+    assert report["last_maintenance"] is not None
+
+
+async def test_report_disabled_by_option(hass, salt_entry, hass_client_no_auth):
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry, options={**salt_entry.options, "report_enabled": False}
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    assert config["report"] is None
+
+
 async def test_page_unknown_token_404(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()

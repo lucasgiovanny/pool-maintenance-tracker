@@ -20,16 +20,19 @@ from typing import TYPE_CHECKING, Any
 from aiohttp import web
 from homeassistant.components.http import KEY_HASS, HomeAssistantView
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_PEOPLE,
+    CONF_REPORT_ENABLED,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
     DATA_TOKENS,
     DATA_VIEWS_REGISTERED,
     DEFAULT_LANGUAGE,
+    DEFAULT_REPORT_ENABLED,
     DOMAIN,
     KEY_ACID_TANK_LEVEL,
     LINKED_MODE_MANUAL,
@@ -38,10 +41,17 @@ from .const import (
     LINKED_VALUE_KEYS,
     MAX_BODY_SIZE,
     NUMBER_RANGES,
+    RECENT_RECORDS_ATTR_COUNT,
+    TS_ANY,
     URL_LOG,
     URL_PAGE,
 )
-from .modules import enabled_tiles, enabled_value_keys
+from .modules import (
+    enabled_reminders,
+    enabled_tiles,
+    enabled_timestamp_keys,
+    enabled_value_keys,
+)
 from .processor import PayloadError, process_payload
 
 if TYPE_CHECKING:
@@ -184,6 +194,64 @@ def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str,
     return live
 
 
+# Task order on the report tab
+REPORT_TASK_ORDER = (
+    "water_test",
+    "salt_added",
+    "filter_wash",
+    "cell_clean",
+    "probe_calibration",
+    "acid_refill",
+    "cleaning",
+)
+
+
+@callback
+def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
+    """Snapshot of the pool state for the page's report tab."""
+    runtime = entry.runtime_data
+    tracker = runtime.tracker
+    now = dt_util.utcnow()
+
+    reminders_by_key = {spec.timestamp_key: spec for spec in enabled_reminders(entry.options)}
+    tasks = []
+    enabled_ts = enabled_timestamp_keys(entry.options)
+    for ts_key in REPORT_TASK_ORDER:
+        if ts_key not in enabled_ts:
+            continue
+        spec = reminders_by_key.get(ts_key)
+        interval = int(entry.options.get(spec.conf_key, spec.default_days)) if spec else None
+        tasks.append(
+            {
+                "key": ts_key,
+                "last": tracker.timestamps.get(ts_key),
+                "interval_days": interval,
+                "due": (runtime.reminders.is_overdue(ts_key, interval, now) if spec else False),
+            }
+        )
+
+    allowed = enabled_value_keys(entry.options)
+    values = {key: value for key, value in tracker.values.items() if key in allowed}
+
+    records = [
+        {
+            "person": item.get("person"),
+            "logged_at": item.get("logged_at"),
+            "categories": item.get("categories", []),
+            "data": item.get("data", {}),
+            "snapshot": item.get("snapshot", {}),
+        }
+        for item in reversed(tracker.records[-RECENT_RECORDS_ATTR_COUNT:])
+    ]
+
+    return {
+        "values": values,
+        "tasks": tasks,
+        "last_maintenance": tracker.timestamps.get(TS_ANY),
+        "records": records,
+    }
+
+
 async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str) -> dict[str, Any]:
     language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
     strings = await _load_strings(hass, language)
@@ -198,6 +266,11 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "strings": strings,
         "live": _live_values(hass, entry),
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
+        "report": (
+            _build_report(hass, entry)
+            if entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED)
+            else None
+        ),
         # Only enabled value keys — the page uses presence here to decide
         # which steppers to render (e.g. the salt reading field).
         "limits": {

@@ -30,6 +30,10 @@ LINKED_SOURCES: Final[dict[str, str]] = {
     "temperature": CONF_TEMPERATURE_SOURCE,
 }
 
+# Whether the public page shows the read-only report tab
+CONF_REPORT_ENABLED: Final = "report_enabled"
+DEFAULT_REPORT_ENABLED: Final = True
+
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"
 LINKED_MODE_MANUAL: Final = "manual_only"

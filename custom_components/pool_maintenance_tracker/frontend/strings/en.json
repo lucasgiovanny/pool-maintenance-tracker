@@ -89,5 +89,32 @@
   "success_text": "The home system has received this maintenance.",
   "error_title": "Could not save",
   "error_text": "Check the internet connection and try again.",
-  "again": "New record"
+  "again": "New record",
+  "tabs": {
+    "log": "Log",
+    "report": "Report"
+  },
+  "report": {
+    "current": "Current status",
+    "tasks": "Periodic tasks",
+    "history": "Recent records",
+    "overdue": "Overdue",
+    "never": "Never recorded",
+    "today": "Today",
+    "day_ago": "1 day ago",
+    "days_ago": "{days} days ago",
+    "every_days": "every {days} days",
+    "empty_history": "No records yet.",
+    "values": {
+      "ph": "pH",
+      "free_chlorine": "Free chlorine",
+      "salt_level": "Salt",
+      "water_temperature": "Water temperature",
+      "salt_added": "Salt added",
+      "chlorinator_output": "Chlorinator output",
+      "chlorinator_mode": "Chlorinator mode",
+      "acid_tank_level": "Acid tank",
+      "cleaning_types": "Cleaning"
+    }
+  }
 }

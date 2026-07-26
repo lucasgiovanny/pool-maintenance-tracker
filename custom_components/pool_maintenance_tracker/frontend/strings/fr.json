@@ -89,5 +89,32 @@
   "success_text": "Le système de la maison a bien reçu cet entretien.",
   "error_title": "Échec de l'enregistrement",
   "error_text": "Vérifiez la connexion internet et réessayez.",
-  "again": "Nouvel enregistrement"
+  "again": "Nouvel enregistrement",
+  "tabs": {
+    "log": "Enregistrer",
+    "report": "Rapport"
+  },
+  "report": {
+    "current": "État actuel",
+    "tasks": "Tâches périodiques",
+    "history": "Dernières saisies",
+    "overdue": "En retard",
+    "never": "Jamais enregistré",
+    "today": "Aujourd'hui",
+    "day_ago": "il y a 1 jour",
+    "days_ago": "il y a {days} jours",
+    "every_days": "tous les {days} jours",
+    "empty_history": "Aucune saisie pour l'instant.",
+    "values": {
+      "ph": "pH",
+      "free_chlorine": "Chlore libre",
+      "salt_level": "Sel",
+      "water_temperature": "Température de l'eau",
+      "salt_added": "Sel ajouté",
+      "chlorinator_output": "Production de l'électrolyseur",
+      "chlorinator_mode": "Mode de l'électrolyseur",
+      "acid_tank_level": "Réservoir d'acide",
+      "cleaning_types": "Nettoyage"
+    }
+  }
 }

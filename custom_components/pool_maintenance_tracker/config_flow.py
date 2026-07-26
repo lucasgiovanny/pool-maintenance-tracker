@@ -39,12 +39,14 @@ from .const import (
     CONF_POOL_TYPE,
     CONF_PROBE_DAYS,
     CONF_REMINDER_TIME,
+    CONF_REPORT_ENABLED,
     CONF_TOKEN,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
     DEFAULT_LANGUAGE,
     DEFAULT_PROBE_DAYS,
     DEFAULT_REMINDER_TIME,
+    DEFAULT_REPORT_ENABLED,
     DOMAIN,
     LANGUAGES,
     LINKED_MODE_MANUAL,
@@ -331,6 +333,7 @@ class PoolOptionsFlow(OptionsFlow):
             else:
                 options[CONF_LANGUAGE] = user_input[CONF_LANGUAGE]
                 options[CONF_NOTIFY_SERVICE] = notify_service
+                options[CONF_REPORT_ENABLED] = user_input[CONF_REPORT_ENABLED]
                 return self.async_create_entry(data=options)
 
         return self.async_show_form(
@@ -345,6 +348,10 @@ class PoolOptionsFlow(OptionsFlow):
                         CONF_NOTIFY_SERVICE,
                         default=options.get(CONF_NOTIFY_SERVICE, ""),
                     ): TextSelector(),
+                    vol.Required(
+                        CONF_REPORT_ENABLED,
+                        default=options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED),
+                    ): BooleanSelector(),
                 }
             ),
             errors=errors,

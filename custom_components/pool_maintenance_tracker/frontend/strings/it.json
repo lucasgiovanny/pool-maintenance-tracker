@@ -89,5 +89,32 @@
   "success_text": "Il sistema di casa ha ricevuto questa manutenzione.",
   "error_title": "Impossibile salvare",
   "error_text": "Controlla la connessione a internet e riprova.",
-  "again": "Nuova registrazione"
+  "again": "Nuova registrazione",
+  "tabs": {
+    "log": "Registra",
+    "report": "Rapporto"
+  },
+  "report": {
+    "current": "Stato attuale",
+    "tasks": "Attività periodiche",
+    "history": "Registrazioni recenti",
+    "overdue": "In ritardo",
+    "never": "Mai registrato",
+    "today": "Oggi",
+    "day_ago": "1 giorno fa",
+    "days_ago": "{days} giorni fa",
+    "every_days": "ogni {days} giorni",
+    "empty_history": "Ancora nessuna registrazione.",
+    "values": {
+      "ph": "pH",
+      "free_chlorine": "Cloro libero",
+      "salt_level": "Sale",
+      "water_temperature": "Temperatura dell'acqua",
+      "salt_added": "Sale aggiunto",
+      "chlorinator_output": "Produzione del clorinatore",
+      "chlorinator_mode": "Modalità del clorinatore",
+      "acid_tank_level": "Serbatoio dell'acido",
+      "cleaning_types": "Pulizia"
+    }
+  }
 }

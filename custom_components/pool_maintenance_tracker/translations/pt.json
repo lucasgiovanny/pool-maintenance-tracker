@@ -86,10 +86,12 @@
         "title": "Página e notificações",
         "data": {
           "language": "Idioma da página",
-          "notify_service": "Serviço de notificação (opcional)"
+          "notify_service": "Serviço de notificação (opcional)",
+          "report_enabled": "Aba de relatório na página"
         },
         "data_description": {
-          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações."
+          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações.",
+          "report_enabled": "Adiciona uma aba de relatório (só leitura) à página pública: valores atuais, estado das tarefas e últimos registos. Visível para quem tiver o URL da página."
         }
       },
       "security": {

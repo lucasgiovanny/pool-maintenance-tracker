@@ -86,10 +86,12 @@
         "title": "Page and notifications",
         "data": {
           "language": "Page language",
-          "notify_service": "Notification service (optional)"
+          "notify_service": "Notification service (optional)",
+          "report_enabled": "Report tab on the page"
         },
         "data_description": {
-          "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations."
+          "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations.",
+          "report_enabled": "Adds a read-only report tab to the public page: current values, task status and recent records. Anyone with the page URL can see it."
         }
       },
       "security": {

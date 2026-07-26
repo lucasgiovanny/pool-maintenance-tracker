@@ -89,5 +89,32 @@
   "success_text": "El sistema de la casa ya recibió este mantenimiento.",
   "error_title": "No se pudo guardar",
   "error_text": "Comprueba la conexión a internet e inténtalo de nuevo.",
-  "again": "Nuevo registro"
+  "again": "Nuevo registro",
+  "tabs": {
+    "log": "Registrar",
+    "report": "Informe"
+  },
+  "report": {
+    "current": "Estado actual",
+    "tasks": "Tareas periódicas",
+    "history": "Registros recientes",
+    "overdue": "Atrasado",
+    "never": "Nunca registrado",
+    "today": "Hoy",
+    "day_ago": "hace 1 día",
+    "days_ago": "hace {days} días",
+    "every_days": "cada {days} días",
+    "empty_history": "Aún no hay registros.",
+    "values": {
+      "ph": "pH",
+      "free_chlorine": "Cloro libre",
+      "salt_level": "Sal",
+      "water_temperature": "Temperatura del agua",
+      "salt_added": "Sal añadida",
+      "chlorinator_output": "Producción del clorador",
+      "chlorinator_mode": "Modo del clorador",
+      "acid_tank_level": "Depósito de ácido",
+      "cleaning_types": "Limpieza"
+    }
+  }
 }
