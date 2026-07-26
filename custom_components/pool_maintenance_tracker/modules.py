@@ -44,6 +44,7 @@ from .const import (
     TS_CLEANING,
     TS_FILTER_WASH,
     TS_PROBE_CALIBRATION,
+    TS_SALT_ADDED,
     TS_WATER_TEST,
 )
 
@@ -88,7 +89,7 @@ MODULE_SALT_CHLORINATOR = PoolModule(
         KEY_CHLORINATOR_OUTPUT,
         KEY_CHLORINATOR_MODE,
     ),
-    timestamp_keys=(TS_CELL_CLEAN,),
+    timestamp_keys=(TS_CELL_CLEAN, TS_SALT_ADDED),
     categories=(CATEGORY_CHLORINATOR, CATEGORY_SALT, CATEGORY_CELL_CLEAN),
     reminder=ReminderSpec(TS_CELL_CLEAN, CONF_CELL_DAYS, DEFAULT_CELL_DAYS),
 )

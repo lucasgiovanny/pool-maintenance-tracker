@@ -130,8 +130,10 @@ Created per pool (depending on enabled modules):
 - **Numbers** (manually declared values): pH, free chlorine (ppm), salt (g/L),
   salt added (kg), chlorinator output (g/h)
 - **Selects**: chlorinator mode (smart/manual/boost), acid tank level (full…¼)
-- **Timestamps**: last water test, filter wash, cell cleaning, probe calibration,
-  acid refill, cleaning, and last maintenance of any kind
+- **Timestamps**: last water test, salt added, filter wash, cell cleaning,
+  probe calibration, acid refill, cleaning, and last maintenance of any kind —
+  all driven by the date picked on the page, so back-dated work is recorded on
+  the right day
 - **Binary sensors**: filter wash due, cell cleaning due, probe calibration due
 - **`sensor.<pool>_last_record`**: `who · date · what` summary, with the last
   20 records as attributes

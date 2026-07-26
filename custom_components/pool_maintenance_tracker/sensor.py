@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 ICONS = {
     "last_water_test": "mdi:test-tube",
+    "last_salt_added": "mdi:shaker",
     "last_filter_wash": "mdi:air-filter",
     "last_cell_clean": "mdi:battery-heart-variant",
     "last_probe_calibration": "mdi:tune-vertical",

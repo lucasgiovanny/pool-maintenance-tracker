@@ -121,6 +121,32 @@ async def test_empty_payload_400(hass, salt_entry, hass_client_no_auth):
     assert (await response.json())["error"] == "invalid_payload"
 
 
+async def test_backdated_salt_gets_correct_timestamp(hass, salt_entry, hass_client_no_auth):
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    await setup_entry(hass, salt_entry)
+    client = await hass_client_no_auth()
+
+    yesterday = (dt_util.utcnow() - timedelta(days=1)).isoformat()
+    response = await client.post(
+        LOG_URL,
+        json={
+            "categories": ["salt"],
+            "salt": {"added_kg": 100},
+            "logged_at": yesterday,
+        },
+    )
+    assert response.status == 200
+    await hass.async_block_till_done()
+
+    tracker = salt_entry.runtime_data.tracker
+    assert tracker.timestamps["salt_added"] == yesterday
+    assert tracker.timestamps["any"] == yesterday
+    assert tracker.values["salt_added"] == 100
+
+
 async def test_record_snapshot_from_linked_sensors(hass, salt_entry, hass_client_no_auth):
     hass.states.async_set("sensor.probe_ph", "7.05")
     salt_entry.add_to_hass(hass)

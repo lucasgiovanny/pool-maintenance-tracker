@@ -46,6 +46,7 @@ def test_full_valid_payload():
     assert set(result.timestamps) == {
         "any",
         "water_test",
+        "salt_added",
         "filter_wash",
         "cell_clean",
         "acid_refill",

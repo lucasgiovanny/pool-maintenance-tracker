@@ -58,6 +58,7 @@ KEY_ACID_TANK_LEVEL: Final = "acid_tank_level"
 
 # Timestamp keys (tracker "timestamps" bucket)
 TS_WATER_TEST: Final = "water_test"
+TS_SALT_ADDED: Final = "salt_added"
 TS_FILTER_WASH: Final = "filter_wash"
 TS_CELL_CLEAN: Final = "cell_clean"
 TS_PROBE_CALIBRATION: Final = "probe_calibration"

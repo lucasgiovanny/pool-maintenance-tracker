@@ -67,6 +67,7 @@ def test_active_entity_keys_salt():
     assert "access_qr" in keys
     assert "maintenance_logged" in keys
     assert "last_maintenance" in keys
+    assert "last_salt_added" in keys
     assert "chlorinator_mode" in keys
     assert "filter_wash_due" in keys
     assert "cell_clean_due" in keys

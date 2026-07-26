@@ -172,6 +172,9 @@
       "last_water_test": {
         "name": "Última análise da água"
       },
+      "last_salt_added": {
+        "name": "Última adição de sal"
+      },
       "last_filter_wash": {
         "name": "Última lavagem do filtro"
       },

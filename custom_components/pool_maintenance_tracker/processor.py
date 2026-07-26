@@ -24,6 +24,7 @@ from .const import (
     CATEGORY_CLEANING,
     CATEGORY_FILTER_WASH,
     CATEGORY_PROBE_CALIBRATION,
+    CATEGORY_SALT,
     CATEGORY_WATER_TEST,
     CHLORINATOR_MODES,
     CLEANING_TYPES,
@@ -42,6 +43,7 @@ from .const import (
     TS_CLEANING,
     TS_FILTER_WASH,
     TS_PROBE_CALIBRATION,
+    TS_SALT_ADDED,
     TS_WATER_TEST,
 )
 from .modules import enabled_categories, enabled_value_keys
@@ -52,6 +54,7 @@ LOGGED_AT_FUTURE_WINDOW = timedelta(hours=1)
 # category -> timestamp updated when that category is logged
 CATEGORY_TIMESTAMPS = {
     CATEGORY_WATER_TEST: TS_WATER_TEST,
+    CATEGORY_SALT: TS_SALT_ADDED,
     CATEGORY_FILTER_WASH: TS_FILTER_WASH,
     CATEGORY_CELL_CLEAN: TS_CELL_CLEAN,
     CATEGORY_PROBE_CALIBRATION: TS_PROBE_CALIBRATION,
@@ -219,6 +222,8 @@ def process_payload(
     # corresponding category chip was not selected on the page.
     if any(key in data for key in (KEY_PH, KEY_FREE_CHLORINE, KEY_SALT_LEVEL)):
         timestamps[TS_WATER_TEST] = logged_at_iso
+    if KEY_SALT_ADDED in data:
+        timestamps[TS_SALT_ADDED] = logged_at_iso
     if KEY_ACID_TANK_LEVEL in data:
         timestamps[TS_ACID_REFILL] = logged_at_iso
     if "cleaning_types" in data:
