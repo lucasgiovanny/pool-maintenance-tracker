@@ -128,7 +128,8 @@
     "next_due": "next {date}",
     "schedule_off": "turns off {date} at {time}",
     "schedule_on": "turns on {date} at {time}",
-    "alert_acid": "Acid tank at ¼ — plan a refill"
+    "alert_acid": "Acid tank at ¼ — plan a refill",
+    "in_time": "in {t}"
   },
   "notes": {
     "title": "Notes",

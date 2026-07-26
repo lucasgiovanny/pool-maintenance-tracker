@@ -128,7 +128,8 @@
     "next_due": "nächste {date}",
     "schedule_off": "schaltet aus am {date} um {time}",
     "schedule_on": "schaltet ein am {date} um {time}",
-    "alert_acid": "Säuretank bei ¼ — Auffüllen einplanen"
+    "alert_acid": "Säuretank bei ¼ — Auffüllen einplanen",
+    "in_time": "in {t}"
   },
   "notes": {
     "title": "Notizen",

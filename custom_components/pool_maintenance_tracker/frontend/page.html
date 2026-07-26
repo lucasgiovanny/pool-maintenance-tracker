@@ -241,6 +241,15 @@
   }
   .alert svg{width:17px;height:17px;stroke:#8A5200;fill:none;stroke-width:2.2;stroke-linecap:round;flex:none;margin-top:1px}
 
+  .countdown{
+    font-size:.8rem;font-weight:700;color:var(--muted);text-align:right;
+    font-variant-numeric:tabular-nums;padding:2px 0 8px;
+  }
+  .countdown.soon{color:var(--warn)}
+  .countdown.imminent{color:var(--warn);animation:blink 1s step-start infinite}
+  @keyframes blink{50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.countdown.imminent{animation:none}}
+
   .bar{
     position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
     background:linear-gradient(to top,var(--bg) 70%,transparent);
@@ -498,6 +507,15 @@ function renderReport(){
   if (!CFG.report) return;
   const report = CFG.report;
 
+  /* Idempotent: the status tab is re-rendered by the auto-refresh */
+  ["report-current", "report-tasks", "report-extra"].forEach(id => {
+    document.getElementById(id).style.display = "none";
+  });
+  ["report-current-body", "report-tasks-body", "report-extra-body",
+   "report-history-body"].forEach(id => {
+    document.getElementById(id).innerHTML = "";
+  });
+
   /* Current status: water readings (declared, falling back to the probe) */
   const WATER_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature", "cleaning_types"];
   const LIVE_FOR = { ph: "ph", free_chlorine: "free_chlorine", salt_level: "salt", water_temperature: "temperature" };
@@ -621,6 +639,11 @@ function renderReport(){
       }
       row.appendChild(holder);
       extraBody.appendChild(row);
+      if (item.next_change) {
+        const countdown = el("div", "countdown");
+        countdown.dataset.target = item.next_change;
+        extraBody.appendChild(countdown);
+      }
       if (item.week) extraBody.appendChild(weekGrid(item.week));
     });
   }
@@ -734,6 +757,8 @@ function recordElement(record){
 /* Persistent alerts above the tabs: overdue tasks + low acid */
 function renderAlerts(){
   const box = document.getElementById("alerts");
+  box.innerHTML = "";
+  box.style.display = "";
   if (!CFG.report) { box.style.display = "none"; return; }
   const report = CFG.report;
   const messages = [];
@@ -756,6 +781,55 @@ function renderAlerts(){
   });
 }
 renderAlerts();
+
+/* ---------- reactivity: countdowns + periodic state refresh ---------- */
+function tickCountdowns(){
+  document.querySelectorAll(".countdown").forEach(node => {
+    const target = new Date(node.dataset.target).getTime();
+    const total = Math.floor((target - Date.now()) / 1000);
+    if (total <= 0) {
+      node.textContent = "…";
+      if (!node.dataset.fired) { node.dataset.fired = "1"; refreshState(); }
+      return;
+    }
+    let seconds = total;
+    const days = Math.floor(seconds / 86400); seconds %= 86400;
+    const formatted = (days ? days + "d " : "")
+      + String(Math.floor(seconds / 3600)).padStart(2, "0") + ":"
+      + String(Math.floor((seconds % 3600) / 60)).padStart(2, "0") + ":"
+      + String(seconds % 60).padStart(2, "0");
+    node.textContent = S.report.in_time.replace("{t}", formatted);
+    node.classList.toggle("soon", total <= 3600 && total > 300);
+    node.classList.toggle("imminent", total <= 300);
+  });
+}
+
+let refreshing = false;
+async function refreshState(){
+  if (!CFG.report || refreshing) return;
+  if (document.visibilityState !== "visible") return;
+  refreshing = true;
+  try {
+    const response = await fetch(CFG.state_endpoint);
+    if (response.ok) {
+      const data = await response.json();
+      CFG.live = data.live || {};
+      CFG.report = data.report;
+      renderAlerts();
+      renderReport();
+    }
+  } catch (error) { /* transient network issue — next poll retries */ }
+  refreshing = false;
+}
+
+if (CFG.report) {
+  setInterval(tickCountdowns, 1000);
+  setInterval(refreshState, 60000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshState();
+  });
+  tickCountdowns();
+}
 
 function noteElement(note){
   const { item, body } = personRow(note.person, note.created_at);

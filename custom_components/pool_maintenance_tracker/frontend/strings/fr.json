@@ -128,7 +128,8 @@
     "next_due": "prochaine {date}",
     "schedule_off": "s'éteint le {date} à {time}",
     "schedule_on": "s'allume le {date} à {time}",
-    "alert_acid": "Réservoir d'acide à ¼ — prévoir un remplissage"
+    "alert_acid": "Réservoir d'acide à ¼ — prévoir un remplissage",
+    "in_time": "dans {t}"
   },
   "notes": {
     "title": "Notes",

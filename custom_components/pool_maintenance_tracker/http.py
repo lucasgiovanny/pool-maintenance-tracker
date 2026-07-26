@@ -53,6 +53,7 @@ from .const import (
     URL_LOG,
     URL_MANUAL,
     URL_PAGE,
+    URL_STATE,
 )
 from .entity import page_url
 from .modules import (
@@ -119,6 +120,7 @@ def async_register_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PoolLogView())
     hass.http.register_view(PoolHistoryView())
     hass.http.register_view(PoolManualView())
+    hass.http.register_view(PoolStateView())
     domain_data[DATA_VIEWS_REGISTERED] = True
 
 
@@ -567,6 +569,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "live": _live_values(hass, entry),
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
         "history_endpoint": URL_HISTORY.format(token=token),
+        "state_endpoint": URL_STATE.format(token=token),
         "manual_endpoint": URL_MANUAL.format(token=token),
         "history_periods": list(HISTORY_PERIODS),
         "report": (
@@ -754,3 +757,27 @@ class PoolManualView(HomeAssistantView):
         headers = dict(SECURITY_HEADERS)
         # The QR is embedded as a data: URI image.
         return web.Response(text=html, content_type="text/html", charset="utf-8", headers=headers)
+
+
+class PoolStateView(HomeAssistantView):
+    """Fresh live values and report snapshot for the page's auto-refresh."""
+
+    url = URL_STATE
+    name = "api:pool_maintenance_tracker:state"
+    requires_auth = False
+
+    async def get(self, request: web.Request, token: str) -> web.Response:
+        hass = request.app[KEY_HASS]
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+        if not entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED):
+            return web.Response(status=404)
+        if not _limiter(hass).allow("state", token, 30, 300):
+            return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
+        return self.json(
+            {
+                "live": _live_values(hass, entry),
+                "report": await _build_report(hass, entry),
+            }
+        )

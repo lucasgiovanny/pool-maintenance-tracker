@@ -140,6 +140,7 @@ URL_PAGE: Final = "/api/pool_maintenance_tracker/{token}/page"
 URL_LOG: Final = "/api/pool_maintenance_tracker/{token}/log"
 URL_HISTORY: Final = "/api/pool_maintenance_tracker/{token}/history"
 URL_MANUAL: Final = "/api/pool_maintenance_tracker/{token}/manual"
+URL_STATE: Final = "/api/pool_maintenance_tracker/{token}/state"
 HISTORY_PERIODS: Final = (7, 30, 180)
 
 TECHNICIAN_PERSON: Final = "technician"

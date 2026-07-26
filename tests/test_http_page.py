@@ -316,6 +316,44 @@ async def test_schedule_week_from_storage(hass, salt_entry, hass_client_no_auth,
     assert data["extra"] == []
 
 
+async def test_state_endpoint(hass, salt_entry, hass_client_no_auth):
+    from custom_components.pool_maintenance_tracker.const import URL_STATE
+
+    hass.states.async_set("sensor.probe_temp", "26.5", {"unit_of_measurement": "°C"})
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={**salt_entry.options, "temperature_source": "sensor.probe_temp"},
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    response = await client.get(URL_STATE.format(token=TEST_TOKEN))
+    assert response.status == 200
+    data = await response.json()
+    assert data["live"]["temperature"]["value"] == 26.5
+    assert "tasks" in data["report"]
+
+    response = await client.get(URL_STATE.format(token="wrong"))
+    assert response.status == 404
+
+
+async def test_state_endpoint_404_when_report_disabled(hass, salt_entry, hass_client_no_auth):
+    from custom_components.pool_maintenance_tracker.const import URL_STATE
+
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry, options={**salt_entry.options, "report_enabled": False}
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    response = await client.get(URL_STATE.format(token=TEST_TOKEN))
+    assert response.status == 404
+
+
 async def test_page_unknown_token_404(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()
