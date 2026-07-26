@@ -42,10 +42,10 @@ periodic tasks are overdue.
 
 ### Notes
 
-Notes are a page-only diary — they never become HA entities. Add one together
-with a maintenance record (optional field on the log form, back-dated with the
-record) or at any time from the report tab. The diary keeps the latest 50,
-append-only.
+Notes are a page-only diary — they never become HA entities. Add one on the
+log form (optional field, back-dated with the record; a note without any tile
+selected is also accepted). The report tab shows the diary read-only, keeping
+the latest 50, append-only.
 
 ### Equipment on the report
 
@@ -233,8 +233,7 @@ the endpoint directly (e.g. from a shortcut):
 ```
 
 A payload containing only a valid `note` is accepted too — it stores the note
-without creating a maintenance record. Standalone notes can also be posted to
-`/api/pool_maintenance_tracker/<token>/note` as `{ "person": "...", "text": "..." }`.
+without creating a maintenance record.
 
 Valid `categories`: `water_test`, `chlorinator`, `salt`, `filter_wash`,
 `cell_clean`, `probe_calibration`, `acid_refill`, `cleaning` (limited to the
@@ -249,7 +248,7 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page) and `POST` (log/note); nothing can
+- Endpoints accept only `GET` (page) and `POST` (log); nothing can
   command your equipment. With the report tab enabled, anyone holding the page
   URL can also *read* the declared pool state, the chosen extra entities and
   recent records, and *add notes* — disable the tab in the options if you

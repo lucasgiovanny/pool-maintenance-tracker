@@ -119,8 +119,6 @@
     },
     "equipment": "Equipment",
     "notes": "Notes",
-    "note_save": "Save note",
-    "note_error": "Could not save the note. Try again.",
     "empty_notes": "No notes yet.",
     "state_on": "On",
     "state_off": "Off",

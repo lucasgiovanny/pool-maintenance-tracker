@@ -116,7 +116,6 @@ LINKED_VALUE_KEYS: Final[dict[str, str]] = {
 }
 
 PAYLOAD_VERSION: Final = 2
-MAX_NOTES_NONE: Final = 0  # notes are intentionally not supported
 MAX_PERSON_LENGTH: Final = 40
 MAX_BODY_SIZE: Final = 16 * 1024  # bytes
 MAX_RECORDS: Final = 200
@@ -139,7 +138,6 @@ DATA_TRACKERS: Final = "trackers"
 # Public HTTP endpoints (token is path-scoped)
 URL_PAGE: Final = "/api/pool_maintenance_tracker/{token}/page"
 URL_LOG: Final = "/api/pool_maintenance_tracker/{token}/log"
-URL_NOTE: Final = "/api/pool_maintenance_tracker/{token}/note"
 URL_HISTORY: Final = "/api/pool_maintenance_tracker/{token}/history"
 URL_MANUAL: Final = "/api/pool_maintenance_tracker/{token}/manual"
 HISTORY_PERIODS: Final = (7, 30, 180)

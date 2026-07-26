@@ -89,6 +89,8 @@
   }
   .badge.due{background:#FBE9D0;color:#8A5200}
   .badge.ok{background:#DCF3E9;color:#14684A}
+  .badge.neutral{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+  .badge.info{background:#E8F6F7;color:var(--deep);border:1px solid var(--aqua)}
 
   .rec{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
   .rec:last-child{border-bottom:none}
@@ -215,15 +217,18 @@
   .week{margin:6px 0 10px}
   .week .day{display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .week .day span{flex:none;width:24px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
-  .week .track{flex:1;position:relative;height:16px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .week .track{flex:1;position:relative;height:20px;background:var(--bg);border:1px solid var(--line);border-radius:7px;overflow:hidden}
   .week .tick{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
-  .week .block{position:absolute;top:0;bottom:0;background:var(--aqua);border-radius:4px}
-  .week .axis{display:flex;gap:8px;margin-top:2px}
+  .week .block{
+    position:absolute;top:0;bottom:0;background:var(--aqua);border-radius:5px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--white);font-size:.6rem;font-weight:700;letter-spacing:.01em;
+    overflow:hidden;white-space:nowrap;
+  }
+  .week .axis{display:flex;gap:8px;margin-top:2px;margin-bottom:8px}
   .week .axis span:first-child{flex:none;width:24px}
   .week .axis .marks{flex:1;display:flex;justify-content:space-between;
     font-size:.62rem;color:var(--muted);font-weight:600}
-  .week-times{font-size:.74rem;color:var(--muted);line-height:1.6;margin:4px 0 10px}
-  .week-times b{color:var(--ink)}
 
   .rid{font-size:.62rem;color:var(--muted);font-family:ui-monospace,Menlo,monospace;
     margin-top:5px;word-break:break-all}
@@ -331,10 +336,7 @@
     </div>
     <div class="card">
       <h3 id="report-notes-title"></h3>
-      <textarea id="report-note-text" maxlength="500" rows="2"></textarea>
-      <button type="button" class="note-save" id="report-note-save"></button>
-      <p class="hint" id="report-note-error" style="display:none"></p>
-      <div id="report-notes-body" style="margin-top:12px"></div>
+      <div id="report-notes-body"></div>
     </div>
     <div class="card">
       <h3 id="report-history-title"></h3>
@@ -430,14 +432,12 @@ setText("report-current-title", S.report.current);
 setText("report-tasks-title", S.report.tasks);
 setText("report-extra-title", S.report.equipment);
 setText("report-notes-title", S.report.notes);
-setText("report-note-save", S.report.note_save);
 setText("report-history-title", S.report.history);
 setText("notes-title", S.notes.title);
 setText("notes-hint", S.notes.hint);
 setText("print-manual", S.print_manual);
 document.getElementById("print-manual").href = CFG.manual_endpoint;
 document.getElementById("note").placeholder = S.notes.placeholder;
-document.getElementById("report-note-text").placeholder = S.notes.placeholder;
 
 /* ---------- tabs (hidden entirely when the report is disabled) ---------- */
 if (!CFG.report) {
@@ -560,7 +560,16 @@ function renderReport(){
     equipAny = true;
     const row = el("div", "kv");
     row.appendChild(el("span", "k", S.report.values[key] || key));
-    row.appendChild(el("span", "v", formatValue(key, declared)));
+    const holder = el("span", "v");
+    if (key === "chlorinator_mode") {
+      holder.appendChild(el("span", "badge info", S.modes[declared] || declared));
+    } else if (key === "acid_tank_level") {
+      const cls = declared === "quarter" ? "due" : declared === "full" ? "ok" : "info";
+      holder.appendChild(el("span", "badge " + cls, S.acid_levels[declared] || declared));
+    } else {
+      holder.appendChild(document.createTextNode(formatValue(key, declared)));
+    }
+    row.appendChild(holder);
     extraBody.appendChild(row);
   });
   if ((report.extra || []).length || equipAny) {
@@ -572,8 +581,10 @@ function renderReport(){
       const onOff = ["binary_sensor", "switch", "input_boolean", "light"].includes(item.domain)
         || item.state === "on" || item.state === "off";
       if (onOff || item.domain === "schedule") {
-        holder.appendChild(document.createTextNode(
-          (item.state === "on" ? S.report.state_on : S.report.state_off) + " "));
+        holder.appendChild(el("span",
+          "badge " + (item.state === "on" ? "ok" : "neutral"),
+          item.state === "on" ? S.report.state_on : S.report.state_off));
+        holder.appendChild(document.createTextNode(" "));
         let detail;
         if (item.next_change) {
           const when = new Date(item.next_change);
@@ -639,6 +650,10 @@ function weekGrid(week){
       const block = el("div", "block");
       block.style.left = (start / 1440 * 100) + "%";
       block.style.width = ((end - start) / 1440 * 100) + "%";
+      /* The exact hours live inside the bar when there is room for them */
+      const duration = end - start;
+      if (duration >= 300) block.textContent = from + "–" + to;
+      else if (duration >= 150) block.textContent = from;
       track.appendChild(block);
     });
     row.appendChild(track);
@@ -651,20 +666,6 @@ function weekGrid(week){
   axis.appendChild(marks);
   grid.appendChild(axis);
   wrap.appendChild(grid);
-
-  /* Textual on-times so the exact hours are readable at a glance */
-  const times = el("div", "week-times");
-  week.forEach((blocks, index) => {
-    if (!blocks.length) return;
-    const line = document.createElement("div");
-    const day = document.createElement("b");
-    day.textContent = weekdayLabel(index) + " ";
-    line.appendChild(day);
-    line.appendChild(document.createTextNode(
-      blocks.map(([from, to]) => from + "–" + to).join(", ")));
-    times.appendChild(line);
-  });
-  if (times.childNodes.length) wrap.appendChild(times);
   return wrap;
 }
 
@@ -756,39 +757,6 @@ function renderNotes(notes){
     return;
   }
   notes.forEach(note => body.appendChild(noteElement(note)));
-}
-
-if (CFG.report) {
-  const noteInput = document.getElementById("report-note-text");
-  const noteSave = document.getElementById("report-note-save");
-  const noteError = document.getElementById("report-note-error");
-  noteSave.addEventListener("click", async () => {
-    const text = noteInput.value.trim();
-    if (!text) return;
-    noteSave.disabled = true;
-    noteError.style.display = "none";
-    try {
-      const response = await fetch(CFG.note_endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          person: document.querySelector("#who .chip.on").dataset.v,
-          text: text
-        })
-      });
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      const result = await response.json();
-      const body = document.getElementById("report-notes-body");
-      const emptyHint = body.querySelector(".hint");
-      if (emptyHint) emptyHint.remove();
-      body.prepend(noteElement(result.note));
-      noteInput.value = "";
-    } catch (error) {
-      noteError.textContent = S.report.note_error;
-      noteError.style.display = "";
-    }
-    noteSave.disabled = false;
-  });
 }
 
 renderReport();
@@ -911,14 +879,26 @@ function lineChart(series){
       "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round"
     }));
   }
+  function pointLabel(point, color, bold){
+    const x = Math.min(Math.max(scale.x(new Date(point.t).getTime()), PAD.l + 8), CHART_W - PAD.r - 8);
+    const text = svgEl("text", {
+      x: x, y: scale.y(point.v) - 5, "text-anchor": "middle",
+      "font-size": "7.5", fill: color, "font-family": "inherit",
+      "font-weight": bold ? "700" : "500"
+    });
+    text.textContent = point.v;
+    svg.appendChild(text);
+  }
   sensor.forEach(point => svg.appendChild(svgEl("circle", {
     cx: scale.x(new Date(point.t).getTime()), cy: scale.y(point.v),
     r: 2, fill: "#0FA3B1"
   })));
+  if (sensor.length <= 14) sensor.forEach(point => pointLabel(point, "#0FA3B1", false));
   manual.forEach(point => svg.appendChild(svgEl("circle", {
     cx: scale.x(new Date(point.t).getTime()), cy: scale.y(point.v),
     r: 3.4, fill: "#0B4F6C"
   })));
+  manual.forEach(point => pointLabel(point, "#0B4F6C", true));
   return svg;
 }
 
@@ -934,12 +914,22 @@ function barChart(points, unitLabel){
   const barW = Math.max(2, Math.min(16, step * 0.65));
   points.forEach((point, index) => {
     const height = (point.v / maxV) * (CHART_H - PAD.t - PAD.b);
+    const x = PAD.l + index * step + (step - barW) / 2;
     svg.appendChild(svgEl("rect", {
-      x: PAD.l + index * step + (step - barW) / 2,
+      x: x,
       y: (CHART_H - PAD.b) - height,
       width: barW, height: Math.max(height, point.v > 0 ? 2 : 0),
       rx: 2, fill: "#0FA3B1"
     }));
+    if (points.length <= 16 && point.v > 0) {
+      const label = svgEl("text", {
+        x: x + barW / 2, y: (CHART_H - PAD.b) - height - 3,
+        "text-anchor": "middle", "font-size": "7.5", fill: "#5D7480",
+        "font-family": "inherit", "font-weight": "600"
+      });
+      label.textContent = point.v;
+      svg.appendChild(label);
+    }
   });
   return svg;
 }

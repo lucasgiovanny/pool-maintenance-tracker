@@ -119,8 +119,6 @@
     },
     "equipment": "Equipamento",
     "notes": "Notas",
-    "note_save": "Guardar nota",
-    "note_error": "Não foi possível guardar a nota. Tenta outra vez.",
     "empty_notes": "Ainda não há notas.",
     "state_on": "Ligado",
     "state_off": "Desligado",

@@ -119,8 +119,6 @@
     },
     "equipment": "Geräte",
     "notes": "Notizen",
-    "note_save": "Notiz speichern",
-    "note_error": "Notiz konnte nicht gespeichert werden. Versuche es erneut.",
     "empty_notes": "Noch keine Notizen.",
     "state_on": "Ein",
     "state_off": "Aus",

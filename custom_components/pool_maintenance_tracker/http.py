@@ -52,7 +52,6 @@ from .const import (
     URL_HISTORY,
     URL_LOG,
     URL_MANUAL,
-    URL_NOTE,
     URL_PAGE,
 )
 from .entity import page_url
@@ -118,7 +117,6 @@ def async_register_views(hass: HomeAssistant) -> None:
     domain_data[DATA_RATE_LIMITER] = RateLimiter()
     hass.http.register_view(PoolPageView())
     hass.http.register_view(PoolLogView())
-    hass.http.register_view(PoolNoteView())
     hass.http.register_view(PoolHistoryView())
     hass.http.register_view(PoolManualView())
     domain_data[DATA_VIEWS_REGISTERED] = True
@@ -225,6 +223,31 @@ def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str,
             "unit": state.attributes.get("unit_of_measurement") or "",
         }
     return live
+
+
+async def _true_last_changed(hass: HomeAssistant, entity_id: str, fallback: str) -> str:
+    """Last *recorded* state change — survives HA restarts.
+
+    The state machine's last_changed resets to the startup time after a
+    restart; the recorder keeps the real moment of the last change.
+    """
+    if not _recorder_ready(hass):
+        return fallback
+    from functools import partial
+
+    from homeassistant.components.recorder import get_instance
+    from homeassistant.components.recorder.history import get_last_state_changes
+
+    try:
+        states = await get_instance(hass).async_add_executor_job(
+            partial(get_last_state_changes, hass, 1, entity_id)
+        )
+    except Exception:
+        return fallback
+    rows = states.get(entity_id) or []
+    if rows:
+        return rows[-1].last_changed.isoformat()
+    return fallback
 
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
@@ -343,7 +366,9 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
                 "domain": domain,
                 "next_change": next_change,
                 "week": week,
-                "last_changed": state.last_changed.isoformat(),
+                "last_changed": await _true_last_changed(
+                    hass, entity_id, state.last_changed.isoformat()
+                ),
             }
         )
 
@@ -523,7 +548,6 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "strings": strings,
         "live": _live_values(hass, entry),
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
-        "note_endpoint": URL_NOTE.format(token=token),
         "history_endpoint": URL_HISTORY.format(token=token),
         "manual_endpoint": URL_MANUAL.format(token=token),
         "history_periods": list(HISTORY_PERIODS),
@@ -647,46 +671,6 @@ class PoolLogView(HomeAssistantView):
             result.ignored,
         )
         return self.json({"ok": True, "ignored": result.ignored})
-
-
-class PoolNoteView(HomeAssistantView):
-    """Receive standalone notes posted from the report tab."""
-
-    url = URL_NOTE
-    name = "api:pool_maintenance_tracker:note"
-    requires_auth = False
-
-    async def post(self, request: web.Request, token: str) -> web.Response:
-        hass = request.app[KEY_HASS]
-        ip = request.remote or "unknown"
-        entry = _check_token(hass, request, token)
-        if isinstance(entry, web.Response):
-            return entry
-        # The notes card only exists on the report tab.
-        if not entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED):
-            return web.Response(status=404)
-
-        limiter = _limiter(hass)
-        if not limiter.allow("post_ip", ip, *LIMIT_POST_IP) or not limiter.allow(
-            "post_token", token, *LIMIT_POST_TOKEN
-        ):
-            return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
-
-        if request.content_type != "application/json":
-            return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
-        body = await request.content.read(MAX_BODY_SIZE + 1)
-        if len(body) > MAX_BODY_SIZE:
-            return self.json({"ok": False, "error": "payload_too_large"}, status_code=400)
-        try:
-            payload = json.loads(body)
-        except ValueError:
-            return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
-
-        if not isinstance(payload, dict) or (text := _clean_note(payload.get("text"))) is None:
-            return self.json({"ok": False, "error": "invalid_note"}, status_code=400)
-
-        note = entry.runtime_data.tracker.async_add_note(_clean_person(payload.get("person")), text)
-        return self.json({"ok": True, "note": note})
 
 
 class PoolHistoryView(HomeAssistantView):

@@ -119,8 +119,6 @@
     },
     "equipment": "Attrezzatura",
     "notes": "Note",
-    "note_save": "Salva nota",
-    "note_error": "Impossibile salvare la nota. Riprova.",
     "empty_notes": "Ancora nessuna nota.",
     "state_on": "Acceso",
     "state_off": "Spento",
