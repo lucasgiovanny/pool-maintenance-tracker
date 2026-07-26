@@ -115,6 +115,21 @@
       "chlorinator_mode": "Modalità del clorinatore",
       "acid_tank_level": "Serbatoio dell'acido",
       "cleaning_types": "Pulizia"
-    }
+    },
+    "equipment": "Attrezzatura",
+    "notes": "Note",
+    "note_save": "Salva nota",
+    "note_error": "Impossibile salvare la nota. Riprova.",
+    "empty_notes": "Ancora nessuna nota.",
+    "state_on": "Acceso",
+    "state_off": "Spento",
+    "just_now": "proprio ora",
+    "ago_minutes": "{n} min fa",
+    "ago_hours": "{n} h fa"
+  },
+  "notes": {
+    "title": "Note",
+    "hint": "facoltativo",
+    "placeholder": "Es.: acqua leggermente torbida, controllare domani…"
   }
 }

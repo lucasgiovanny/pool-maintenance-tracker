@@ -16,10 +16,12 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
+from homeassistant.util import ulid as ulid_util
 
 from .const import (
     DOMAIN,
     EVENT_RECORD,
+    MAX_NOTES,
     MAX_RECORDS,
     STORAGE_VERSION,
     signal_record,
@@ -44,6 +46,7 @@ class PoolTracker:
         self.timestamps: dict[str, str] = {}
         self.last_record: dict[str, Any] | None = None
         self.records: list[dict[str, Any]] = []
+        self.notes: list[dict[str, Any]] = []
         self.reminders_last_notified: dict[str, str] = {}
         self.installed_at: str = dt_util.utcnow().isoformat()
 
@@ -57,6 +60,7 @@ class PoolTracker:
         self.timestamps = data.get("timestamps", {})
         self.last_record = data.get("last_record")
         self.records = data.get("records", [])
+        self.notes = data.get("notes", [])
         self.reminders_last_notified = data.get("reminders_last_notified", {})
         self.installed_at = data.get("installed_at", self.installed_at)
 
@@ -78,6 +82,7 @@ class PoolTracker:
             "timestamps": self.timestamps,
             "last_record": self.last_record,
             "records": self.records,
+            "notes": self.notes,
             "reminders_last_notified": self.reminders_last_notified,
             "installed_at": self.installed_at,
         }
@@ -112,6 +117,22 @@ class PoolTracker:
             {"entry_id": self.entry_id, "pool_name": self.pool_name, **result.record},
         )
         self.async_save()
+
+    @callback
+    def async_add_note(
+        self, person: str, text: str, created_at: str | None = None
+    ) -> dict[str, Any]:
+        """Append a note to the page-only diary (no entity involved)."""
+        note = {
+            "id": ulid_util.ulid_now(),
+            "person": person,
+            "created_at": created_at or dt_util.utcnow().isoformat(),
+            "text": text,
+        }
+        self.notes.append(note)
+        del self.notes[:-MAX_NOTES]
+        self.async_save()
+        return note
 
     @callback
     def async_update_listeners(self) -> None:

@@ -115,6 +115,21 @@
       "chlorinator_mode": "Mode de l'électrolyseur",
       "acid_tank_level": "Réservoir d'acide",
       "cleaning_types": "Nettoyage"
-    }
+    },
+    "equipment": "Équipement",
+    "notes": "Notes",
+    "note_save": "Enregistrer la note",
+    "note_error": "Impossible d'enregistrer la note. Réessayez.",
+    "empty_notes": "Aucune note pour l'instant.",
+    "state_on": "Allumé",
+    "state_off": "Éteint",
+    "just_now": "à l'instant",
+    "ago_minutes": "il y a {n} min",
+    "ago_hours": "il y a {n} h"
+  },
+  "notes": {
+    "title": "Notes",
+    "hint": "facultatif",
+    "placeholder": "Ex. : eau légèrement trouble, vérifier demain…"
   }
 }

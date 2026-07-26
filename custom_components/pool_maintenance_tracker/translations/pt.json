@@ -70,7 +70,8 @@
           "chlorine_source": "Sensor de cloro livre",
           "salt_source": "Sensor de sal",
           "temperature_source": "Sensor de temperatura da água",
-          "linked_mode": "Comportamento dos sensores ligados"
+          "linked_mode": "Comportamento dos sensores ligados",
+          "report_sensors": "Entidades extra na aba de relatório"
         }
       },
       "reminders": {

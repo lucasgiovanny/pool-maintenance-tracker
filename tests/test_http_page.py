@@ -160,6 +160,44 @@ async def test_report_tab_data(hass, salt_entry, hass_client_no_auth):
     assert report["last_maintenance"] is not None
 
 
+async def test_report_extra_sensors(hass, salt_entry, hass_client_no_auth):
+    hass.states.async_set(
+        "sensor.heat_pump_power",
+        "1.25",
+        {"friendly_name": "Heat pump power", "unit_of_measurement": "kW"},
+    )
+    hass.states.async_set("switch.heat_pump", "on", {"friendly_name": "Heat pump"})
+    hass.states.async_set("sensor.broken", "unavailable")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={
+            **salt_entry.options,
+            "report_sensors": [
+                "sensor.heat_pump_power",
+                "switch.heat_pump",
+                "sensor.broken",
+                "sensor.missing",
+            ],
+        },
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    extra = config["report"]["extra"]
+    assert len(extra) == 2
+    power = next(item for item in extra if item["entity_id"] == "sensor.heat_pump_power")
+    assert power["name"] == "Heat pump power"
+    assert power["state"] == "1.25"
+    assert power["unit"] == "kW"
+    pump = next(item for item in extra if item["entity_id"] == "switch.heat_pump")
+    assert pump["state"] == "on"
+    assert pump["domain"] == "switch"
+    assert pump["last_changed"]
+
+
 async def test_report_disabled_by_option(hass, salt_entry, hass_client_no_auth):
     salt_entry.add_to_hass(hass)
     hass.config_entries.async_update_entry(

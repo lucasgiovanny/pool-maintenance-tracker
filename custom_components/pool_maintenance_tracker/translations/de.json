@@ -70,7 +70,8 @@
           "chlorine_source": "Sensor für freies Chlor",
           "salt_source": "Salzsensor",
           "temperature_source": "Wassertemperatursensor",
-          "linked_mode": "Verhalten der verknüpften Sensoren"
+          "linked_mode": "Verhalten der verknüpften Sensoren",
+          "report_sensors": "Zusätzliche Entitäten im Bericht-Tab"
         }
       },
       "reminders": {

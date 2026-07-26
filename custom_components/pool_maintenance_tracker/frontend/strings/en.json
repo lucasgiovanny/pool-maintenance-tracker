@@ -115,6 +115,21 @@
       "chlorinator_mode": "Chlorinator mode",
       "acid_tank_level": "Acid tank",
       "cleaning_types": "Cleaning"
-    }
+    },
+    "equipment": "Equipment",
+    "notes": "Notes",
+    "note_save": "Save note",
+    "note_error": "Could not save the note. Try again.",
+    "empty_notes": "No notes yet.",
+    "state_on": "On",
+    "state_off": "Off",
+    "just_now": "just now",
+    "ago_minutes": "{n} min ago",
+    "ago_hours": "{n} h ago"
+  },
+  "notes": {
+    "title": "Notes",
+    "hint": "optional",
+    "placeholder": "E.g.: water slightly cloudy, check tomorrow…"
   }
 }

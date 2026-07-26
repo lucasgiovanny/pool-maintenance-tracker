@@ -35,9 +35,24 @@ periodic tasks are overdue.
    event for your automations, appends to the log, and sends notifications
    when something needs attention.
 5. A **Report** tab on the same page (optional, on by default) gives whoever
-   maintains the pool — even without HA access — a read-only overview:
-   current values, periodic task status with overdue badges, and the recent
+   maintains the pool — even without HA access — an overview: current values,
+   periodic task status with overdue badges, extra equipment entities you
+   choose (e.g. your heat pump), a shared **notes diary**, and the recent
    maintenance history. Toggle it under **Configure → Page and notifications**.
+
+### Notes
+
+Notes are a page-only diary — they never become HA entities. Add one together
+with a maintenance record (optional field on the log form, back-dated with the
+record) or at any time from the report tab. The diary keeps the latest 50,
+append-only.
+
+### Equipment on the report
+
+Under **Configure → Linked sensors → Extra entities on the report tab**, pick
+any entities from other integrations (heat pump switch, power sensor, …). The
+report shows their current state formatted automatically — measurements with
+units, on/off with "since when".
 
 The page adapts to your pool: tiles and entities are created only for the
 equipment you actually have.
@@ -186,9 +201,14 @@ the endpoint directly (e.g. from a shortcut):
   "chlorinator": { "output": 5, "mode": "smart" },
   "salt": { "added_kg": 25 },
   "acid": { "level": "quarter" },
-  "cleaning": { "types": ["vacuum", "waterline"] }
+  "cleaning": { "types": ["vacuum", "waterline"] },
+  "note": "free text ≤ 500 chars (goes to the page-only notes diary)"
 }
 ```
+
+A payload containing only a valid `note` is accepted too — it stores the note
+without creating a maintenance record. Standalone notes can also be posted to
+`/api/pool_maintenance_tracker/<token>/note` as `{ "person": "...", "text": "..." }`.
 
 Valid `categories`: `water_test`, `chlorinator`, `salt`, `filter_wash`,
 `cell_clean`, `probe_calibration`, `acid_refill`, `cleaning` (limited to the
@@ -203,10 +223,11 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page) and `POST` (log); nothing can command
-  your equipment. With the report tab enabled, anyone holding the page URL can
-  also *read* the declared pool state and recent records — disable the tab in
-  the options if you don't want that.
+- Endpoints accept only `GET` (page) and `POST` (log/note); nothing can
+  command your equipment. With the report tab enabled, anyone holding the page
+  URL can also *read* the declared pool state, the chosen extra entities and
+  recent records, and *add notes* — disable the tab in the options if you
+  don't want that.
 - Non-guessable 256-bit token in the path, compared in constant time.
 - Rate limits: 10 posts/min per IP, 30 posts/5 min per token, and repeated
   invalid-token attempts get an IP timeout.

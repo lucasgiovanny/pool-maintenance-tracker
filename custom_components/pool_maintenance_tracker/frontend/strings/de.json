@@ -115,6 +115,21 @@
       "chlorinator_mode": "Modus des Elektrolyseurs",
       "acid_tank_level": "Säuretank",
       "cleaning_types": "Reinigung"
-    }
+    },
+    "equipment": "Geräte",
+    "notes": "Notizen",
+    "note_save": "Notiz speichern",
+    "note_error": "Notiz konnte nicht gespeichert werden. Versuche es erneut.",
+    "empty_notes": "Noch keine Notizen.",
+    "state_on": "Ein",
+    "state_off": "Aus",
+    "just_now": "gerade eben",
+    "ago_minutes": "vor {n} min",
+    "ago_hours": "vor {n} h"
+  },
+  "notes": {
+    "title": "Notizen",
+    "hint": "optional",
+    "placeholder": "Z. B.: Wasser leicht trüb, morgen prüfen…"
   }
 }

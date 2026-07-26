@@ -115,6 +115,21 @@
       "chlorinator_mode": "Modo del clorador",
       "acid_tank_level": "Depósito de ácido",
       "cleaning_types": "Limpieza"
-    }
+    },
+    "equipment": "Equipamiento",
+    "notes": "Notas",
+    "note_save": "Guardar nota",
+    "note_error": "No se pudo guardar la nota. Inténtalo de nuevo.",
+    "empty_notes": "Aún no hay notas.",
+    "state_on": "Encendido",
+    "state_off": "Apagado",
+    "just_now": "ahora mismo",
+    "ago_minutes": "hace {n} min",
+    "ago_hours": "hace {n} h"
+  },
+  "notes": {
+    "title": "Notas",
+    "hint": "opcional",
+    "placeholder": "Ej.: agua ligeramente turbia, revisar mañana…"
   }
 }

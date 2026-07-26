@@ -98,14 +98,22 @@ async def test_sensors_options_step(hass, salt_entry):
         result["flow_id"], {"next_step_id": "sensors"}
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"ph_source": "sensor.probe_ph"}
+        result["flow_id"],
+        {
+            "ph_source": "sensor.probe_ph",
+            "report_sensors": ["switch.heat_pump", "sensor.heat_pump_power"],
+        },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert salt_entry.options["ph_source"] == "sensor.probe_ph"
+    assert salt_entry.options["report_sensors"] == [
+        "switch.heat_pump",
+        "sensor.heat_pump_power",
+    ]
     assert "salt_source" not in salt_entry.options
 
-    # clearing the field unlinks the sensor
+    # clearing the fields unlinks sensors and report entities
     result = await hass.config_entries.options.async_init(salt_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "sensors"}
@@ -114,6 +122,7 @@ async def test_sensors_options_step(hass, salt_entry):
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert "ph_source" not in salt_entry.options
+    assert "report_sensors" not in salt_entry.options
 
 
 async def test_reminder_options_update(hass, salt_entry):

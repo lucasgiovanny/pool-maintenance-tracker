@@ -34,6 +34,9 @@ LINKED_SOURCES: Final[dict[str, str]] = {
 CONF_REPORT_ENABLED: Final = "report_enabled"
 DEFAULT_REPORT_ENABLED: Final = True
 
+# Extra entities (any integration) displayed on the report tab
+CONF_REPORT_SENSORS: Final = "report_sensors"
+
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"
 LINKED_MODE_MANUAL: Final = "manual_only"
@@ -117,6 +120,8 @@ MAX_NOTES_NONE: Final = 0  # notes are intentionally not supported
 MAX_PERSON_LENGTH: Final = 40
 MAX_BODY_SIZE: Final = 16 * 1024  # bytes
 MAX_RECORDS: Final = 200
+MAX_NOTES: Final = 50
+MAX_NOTE_LENGTH: Final = 500
 RECENT_RECORDS_ATTR_COUNT: Final = 20
 
 STORAGE_VERSION: Final = 1
@@ -134,6 +139,7 @@ DATA_TRACKERS: Final = "trackers"
 # Public HTTP endpoints (token is path-scoped)
 URL_PAGE: Final = "/api/pool_maintenance_tracker/{token}/page"
 URL_LOG: Final = "/api/pool_maintenance_tracker/{token}/log"
+URL_NOTE: Final = "/api/pool_maintenance_tracker/{token}/note"
 
 TECHNICIAN_PERSON: Final = "technician"
 

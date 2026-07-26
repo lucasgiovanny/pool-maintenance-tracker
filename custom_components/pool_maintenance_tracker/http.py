@@ -27,6 +27,7 @@ from .const import (
     CONF_LINKED_MODE,
     CONF_PEOPLE,
     CONF_REPORT_ENABLED,
+    CONF_REPORT_SENSORS,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
     DATA_TOKENS,
@@ -40,10 +41,13 @@ from .const import (
     LINKED_SOURCES,
     LINKED_VALUE_KEYS,
     MAX_BODY_SIZE,
+    MAX_NOTE_LENGTH,
+    MAX_PERSON_LENGTH,
     NUMBER_RANGES,
     RECENT_RECORDS_ATTR_COUNT,
     TS_ANY,
     URL_LOG,
+    URL_NOTE,
     URL_PAGE,
 )
 from .modules import (
@@ -106,6 +110,7 @@ def async_register_views(hass: HomeAssistant) -> None:
     domain_data[DATA_RATE_LIMITER] = RateLimiter()
     hass.http.register_view(PoolPageView())
     hass.http.register_view(PoolLogView())
+    hass.http.register_view(PoolNoteView())
     domain_data[DATA_VIEWS_REGISTERED] = True
 
 
@@ -120,6 +125,23 @@ def _entry_for_token(hass: HomeAssistant, token: str) -> ConfigEntry | None:
 
 def _limiter(hass: HomeAssistant) -> RateLimiter:
     return hass.data[DOMAIN][DATA_RATE_LIMITER]
+
+
+def _clean_person(raw: Any) -> str:
+    person = raw.strip() if isinstance(raw, str) else ""
+    if not person or len(person) > MAX_PERSON_LENGTH:
+        return "unknown"
+    return person
+
+
+def _clean_note(raw: Any) -> str | None:
+    """Return the normalized note text, or None when unusable."""
+    if not isinstance(raw, str):
+        return None
+    text = raw.strip()
+    if not text or len(text) > MAX_NOTE_LENGTH:
+        return None
+    return text
 
 
 def _check_token(
@@ -244,11 +266,29 @@ def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
         for item in reversed(tracker.records[-RECENT_RECORDS_ATTR_COUNT:])
     ]
 
+    extra = []
+    for entity_id in entry.options.get(CONF_REPORT_SENSORS, ()):
+        state = hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            continue
+        extra.append(
+            {
+                "entity_id": entity_id,
+                "name": state.attributes.get("friendly_name") or entity_id,
+                "state": state.state,
+                "unit": state.attributes.get("unit_of_measurement") or "",
+                "domain": entity_id.split(".")[0],
+                "last_changed": state.last_changed.isoformat(),
+            }
+        )
+
     return {
         "values": values,
         "tasks": tasks,
         "last_maintenance": tracker.timestamps.get(TS_ANY),
         "records": records,
+        "notes": list(reversed(tracker.notes)),
+        "extra": extra,
     }
 
 
@@ -266,6 +306,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "strings": strings,
         "live": _live_values(hass, entry),
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
+        "note_endpoint": URL_NOTE.format(token=token),
         "report": (
             _build_report(hass, entry)
             if entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED)
@@ -335,13 +376,23 @@ class PoolLogView(HomeAssistantView):
         except ValueError:
             return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
 
+        runtime = entry.runtime_data
+        tracker = runtime.tracker
+
+        note_raw = payload.get("note") if isinstance(payload, dict) else None
+        note_text = _clean_note(note_raw)
+
         try:
             result = process_payload(payload, entry.options)
         except PayloadError:
+            if note_text:
+                # Note-only submission: no record, no event, just the diary.
+                tracker.async_add_note(_clean_person(payload.get("person")), note_text)
+                return self.json({"ok": True, "ignored": []})
             return self.json({"ok": False, "error": "invalid_payload"}, status_code=400)
 
-        runtime = entry.runtime_data
-        tracker = runtime.tracker
+        if note_raw is not None and note_text is None:
+            result.ignored.append("note")
         acid_alert = (
             result.values.get(KEY_ACID_TANK_LEVEL) == "quarter"
             and tracker.values.get(KEY_ACID_TANK_LEVEL) != "quarter"
@@ -362,6 +413,10 @@ class PoolLogView(HomeAssistantView):
                 if minimum <= item["value"] <= maximum:
                     result.values[value_key] = item["value"]
         tracker.async_apply(result)
+        if note_text:
+            tracker.async_add_note(
+                result.record["person"], note_text, created_at=result.record["logged_at"]
+            )
         if acid_alert:
             await runtime.reminders.async_send_acid_alert()
 
@@ -372,3 +427,43 @@ class PoolLogView(HomeAssistantView):
             result.ignored,
         )
         return self.json({"ok": True, "ignored": result.ignored})
+
+
+class PoolNoteView(HomeAssistantView):
+    """Receive standalone notes posted from the report tab."""
+
+    url = URL_NOTE
+    name = "api:pool_maintenance_tracker:note"
+    requires_auth = False
+
+    async def post(self, request: web.Request, token: str) -> web.Response:
+        hass = request.app[KEY_HASS]
+        ip = request.remote or "unknown"
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+        # The notes card only exists on the report tab.
+        if not entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED):
+            return web.Response(status=404)
+
+        limiter = _limiter(hass)
+        if not limiter.allow("post_ip", ip, *LIMIT_POST_IP) or not limiter.allow(
+            "post_token", token, *LIMIT_POST_TOKEN
+        ):
+            return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
+
+        if request.content_type != "application/json":
+            return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
+        body = await request.content.read(MAX_BODY_SIZE + 1)
+        if len(body) > MAX_BODY_SIZE:
+            return self.json({"ok": False, "error": "payload_too_large"}, status_code=400)
+        try:
+            payload = json.loads(body)
+        except ValueError:
+            return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
+
+        if not isinstance(payload, dict) or (text := _clean_note(payload.get("text"))) is None:
+            return self.json({"ok": False, "error": "invalid_note"}, status_code=400)
+
+        note = entry.runtime_data.tracker.async_add_note(_clean_person(payload.get("person")), text)
+        return self.json({"ok": True, "note": note})

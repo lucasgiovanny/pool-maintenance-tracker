@@ -40,6 +40,7 @@ from .const import (
     CONF_PROBE_DAYS,
     CONF_REMINDER_TIME,
     CONF_REPORT_ENABLED,
+    CONF_REPORT_SENSORS,
     CONF_TOKEN,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
@@ -231,6 +232,10 @@ class PoolOptionsFlow(OptionsFlow):
                 else:
                     options.pop(conf_key, None)
             options[CONF_LINKED_MODE] = user_input[CONF_LINKED_MODE]
+            if user_input.get(CONF_REPORT_SENSORS):
+                options[CONF_REPORT_SENSORS] = user_input[CONF_REPORT_SENSORS]
+            else:
+                options.pop(CONF_REPORT_SENSORS, None)
             return self.async_create_entry(data=options)
 
         schema: dict[vol.Marker, Any] = {}
@@ -241,6 +246,12 @@ class PoolOptionsFlow(OptionsFlow):
                     description={"suggested_value": options.get(conf_key)},
                 )
             ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
+        schema[
+            vol.Optional(
+                CONF_REPORT_SENSORS,
+                description={"suggested_value": options.get(CONF_REPORT_SENSORS)},
+            )
+        ] = EntitySelector(EntitySelectorConfig(multiple=True))
         schema[
             vol.Required(
                 CONF_LINKED_MODE,

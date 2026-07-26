@@ -175,6 +175,24 @@
 
   .hint{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.4}
 
+  textarea{
+    width:100%;border:2px solid var(--line);border-radius:12px;padding:14px;
+    font-family:inherit;font-size:.95rem;resize:vertical;min-height:84px;background:var(--white);
+    color:var(--ink);
+  }
+  textarea:focus{outline:none;border-color:var(--aqua)}
+
+  .note-save{
+    margin-top:10px;background:var(--deep);color:var(--white);border:none;border-radius:12px;
+    padding:12px 22px;font-size:.92rem;font-weight:700;font-family:inherit;cursor:pointer;
+  }
+  .note-save:disabled{background:var(--muted)}
+  .note{padding:11px 0;border-bottom:1px solid var(--line)}
+  .note:last-child{border-bottom:none}
+  .note .head{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;font-weight:700}
+  .note .head span:last-child{color:var(--muted);font-weight:600;white-space:nowrap}
+  .note .text{font-size:.88rem;margin-top:4px;line-height:1.5;white-space:pre-wrap}
+
   .bar{
     position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
     background:linear-gradient(to top,var(--bg) 70%,transparent);
@@ -243,6 +261,17 @@
       <h3 id="report-tasks-title"></h3>
       <div id="report-tasks-body"></div>
     </div>
+    <div class="card" id="report-extra" style="display:none">
+      <h3 id="report-extra-title"></h3>
+      <div id="report-extra-body"></div>
+    </div>
+    <div class="card">
+      <h3 id="report-notes-title"></h3>
+      <textarea id="report-note-text" maxlength="500" rows="2"></textarea>
+      <button type="button" class="note-save" id="report-note-save"></button>
+      <p class="hint" id="report-note-error" style="display:none"></p>
+      <div id="report-notes-body" style="margin-top:12px"></div>
+    </div>
     <div class="card">
       <h3 id="report-history-title"></h3>
       <div id="report-history-body"></div>
@@ -267,6 +296,11 @@
     <div class="sec-title"><h2 id="what-title"></h2><small id="what-hint"></small></div>
     <div class="tiles" id="tiles"></div>
     <div id="panels"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-title"><h2 id="notes-title"></h2><small id="notes-hint"></small></div>
+    <textarea id="note" maxlength="500"></textarea>
   </section>
   </div><!-- /view-log -->
 </main>
@@ -324,7 +358,14 @@ setText("tab-log", S.tabs.log);
 setText("tab-report", S.tabs.report);
 setText("report-current-title", S.report.current);
 setText("report-tasks-title", S.report.tasks);
+setText("report-extra-title", S.report.equipment);
+setText("report-notes-title", S.report.notes);
+setText("report-note-save", S.report.note_save);
 setText("report-history-title", S.report.history);
+setText("notes-title", S.notes.title);
+setText("notes-hint", S.notes.hint);
+document.getElementById("note").placeholder = S.notes.placeholder;
+document.getElementById("report-note-text").placeholder = S.notes.placeholder;
 
 /* ---------- tabs (hidden entirely when the report is disabled) ---------- */
 if (!CFG.report) {
@@ -358,6 +399,13 @@ function daysAgoText(iso){
   if (days <= 0) return S.report.today;
   if (days === 1) return S.report.day_ago;
   return S.report.days_ago.replace("{days}", days);
+}
+function relTime(iso){
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 90) return S.report.just_now;
+  if (seconds < 3600) return S.report.ago_minutes.replace("{n}", Math.floor(seconds / 60));
+  if (seconds < 86400) return S.report.ago_hours.replace("{n}", Math.floor(seconds / 3600));
+  return daysAgoText(iso);
 }
 function formatValue(key, value){
   if (key === "chlorinator_mode") return S.modes[value] || value;
@@ -414,6 +462,34 @@ function renderReport(){
     });
   }
 
+  const extraBody = document.getElementById("report-extra-body");
+  if ((report.extra || []).length) {
+    document.getElementById("report-extra").style.display = "";
+    report.extra.forEach(item => {
+      const row = el("div", "kv");
+      row.appendChild(el("span", "k", item.name));
+      const holder = el("span", "v");
+      const onOff = ["binary_sensor", "switch", "input_boolean", "light"].includes(item.domain)
+        || item.state === "on" || item.state === "off";
+      if (onOff) {
+        holder.appendChild(document.createTextNode(
+          (item.state === "on" ? S.report.state_on : S.report.state_off) + " "));
+        const since = el("small", null, relTime(item.last_changed));
+        holder.appendChild(since);
+      } else if (!isNaN(parseFloat(item.state))) {
+        holder.appendChild(document.createTextNode(
+          item.state + (item.unit ? " " + item.unit : "")));
+      } else {
+        holder.appendChild(document.createTextNode(item.state + " "));
+        holder.appendChild(el("small", null, relTime(item.last_changed)));
+      }
+      row.appendChild(holder);
+      extraBody.appendChild(row);
+    });
+  }
+
+  renderNotes(report.notes || []);
+
   const historyBody = document.getElementById("report-history-body");
   const records = report.records || [];
   if (!records.length) {
@@ -437,6 +513,60 @@ function renderReport(){
     historyBody.appendChild(item);
   });
 }
+
+function noteElement(note){
+  const item = el("div", "note");
+  const head = el("div", "head");
+  head.appendChild(el("span", null, note.person || "?"));
+  head.appendChild(el("span", null, formatStamp(note.created_at)));
+  item.appendChild(head);
+  item.appendChild(el("div", "text", note.text));
+  return item;
+}
+
+function renderNotes(notes){
+  const body = document.getElementById("report-notes-body");
+  body.innerHTML = "";
+  if (!notes.length) {
+    body.appendChild(el("p", "hint", S.report.empty_notes));
+    return;
+  }
+  notes.forEach(note => body.appendChild(noteElement(note)));
+}
+
+if (CFG.report) {
+  const noteInput = document.getElementById("report-note-text");
+  const noteSave = document.getElementById("report-note-save");
+  const noteError = document.getElementById("report-note-error");
+  noteSave.addEventListener("click", async () => {
+    const text = noteInput.value.trim();
+    if (!text) return;
+    noteSave.disabled = true;
+    noteError.style.display = "none";
+    try {
+      const response = await fetch(CFG.note_endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          person: document.querySelector("#who .chip.on").dataset.v,
+          text: text
+        })
+      });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const result = await response.json();
+      const body = document.getElementById("report-notes-body");
+      const emptyHint = body.querySelector(".hint");
+      if (emptyHint) emptyHint.remove();
+      body.prepend(noteElement(result.note));
+      noteInput.value = "";
+    } catch (error) {
+      noteError.textContent = S.report.note_error;
+      noteError.style.display = "";
+    }
+    noteSave.disabled = false;
+  });
+}
+
 renderReport();
 
 /* ---------- when (defaults to now; the server accepts up to 6 days back) */
@@ -634,13 +764,15 @@ sendButton.addEventListener("click", async () => {
   const selected = Array.from(document.querySelectorAll(".tile.on")).map(
     tile => tile.dataset.tile
   );
-  if (selected.length === 0) {
+  const noteText = document.getElementById("note").value.trim();
+  if (selected.length === 0 && !noteText) {
     showResult(false, S.nothing_title, S.nothing_text, "");
     return;
   }
 
   const person = document.querySelector("#who .chip.on").dataset.v;
   const payload = {
+    note: noteText || null,
     version: 2,
     person: person,
     logged_at: loggedAt(),
@@ -694,6 +826,7 @@ function summaryFor(payload, selected){
   if (payload.chlorinator.mode) fragments.push(S.panels.chlorinator.mode + ": " + S.modes[payload.chlorinator.mode]);
   if (payload.acid.level) fragments.push(S.panels.acid_refill.level + ": " + S.acid_levels[payload.acid.level]);
   if (payload.cleaning.types.length) fragments.push(payload.cleaning.types.map(type => S.cleaning_types[type]).join(", "));
+  if (payload.note) fragments.push(S.notes.title + ": " + payload.note);
 
   const summary = document.createElement("div");
   const header = document.createElement("strong");
