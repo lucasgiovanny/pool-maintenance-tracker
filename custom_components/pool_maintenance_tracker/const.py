@@ -15,6 +15,20 @@ CONF_MODULES: Final = "modules"
 CONF_LANGUAGE: Final = "language"
 # HA user ids allowed on the page; empty/absent means all active users
 CONF_PEOPLE: Final = "people_users"
+
+# Linked external sensors (entity ids of e.g. a smart probe). Shown as live
+# reference values on the page and snapshotted into each record.
+CONF_PH_SOURCE: Final = "ph_source"
+CONF_CHLORINE_SOURCE: Final = "chlorine_source"
+CONF_SALT_SOURCE: Final = "salt_source"
+CONF_TEMPERATURE_SOURCE: Final = "temperature_source"
+LINKED_SOURCES: Final[dict[str, str]] = {
+    # live-value key -> options key
+    "ph": CONF_PH_SOURCE,
+    "free_chlorine": CONF_CHLORINE_SOURCE,
+    "salt": CONF_SALT_SOURCE,
+    "temperature": CONF_TEMPERATURE_SOURCE,
+}
 CONF_NOTIFY_SERVICE: Final = "notify_service"
 CONF_FILTER_DAYS: Final = "filter_days"
 CONF_PROBE_DAYS: Final = "probe_days"

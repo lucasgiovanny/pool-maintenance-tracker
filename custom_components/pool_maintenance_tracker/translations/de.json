@@ -1,0 +1,219 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Pool hinzufügen",
+        "data": {
+          "name": "Name des Pools",
+          "pool_type": "Pooltyp"
+        },
+        "data_description": {
+          "pool_type": "Wählt die Ausstattungsmodule vor. Du kannst sie im nächsten Schritt anpassen."
+        }
+      },
+      "modules": {
+        "title": "Ausstattungsmodule",
+        "description": "Jedes aktivierte Modul erstellt eigene Entitäten und zeigt eigene Karten auf der Wartungsseite.",
+        "data": {
+          "modules": "Module"
+        }
+      },
+      "settings": {
+        "title": "Seite und Erinnerungen",
+        "data": {
+          "language": "Sprache der Seite",
+          "notify_service": "Benachrichtigungsdienst (optional)",
+          "filter_days": "Erinnerung Filterreinigung (Tage)",
+          "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
+          "cell_days": "Erinnerung Zellenreinigung (Tage)"
+        },
+        "data_description": {
+          "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung."
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Gib einen Dienst wie notify.mobile_app_meinhandy an, oder lass das Feld leer."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "modules": "Ausstattungsmodule",
+          "people": "Personen auf der Seite",
+          "sensors": "Verknüpfte Sensoren",
+          "reminders": "Erinnerungen",
+          "page": "Seite und Benachrichtigungen",
+          "security": "Sicherheit"
+        }
+      },
+      "modules": {
+        "title": "Ausstattungsmodule",
+        "description": "Entitäten und Karten deaktivierter Module werden entfernt.",
+        "data": {
+          "modules": "Module"
+        }
+      },
+      "people": {
+        "title": "Personen auf der Seite",
+        "description": "Wähle, welche Home-Assistant-Benutzer auf der Wartungsseite erscheinen. Der generische Techniker-Eintrag wird immer angezeigt. Alle (oder niemanden) auszuwählen zeigt alle aktiven Benutzer.",
+        "data": {
+          "people_users": "Benutzer"
+        }
+      },
+      "sensors": {
+        "title": "Verknüpfte Sensoren",
+        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen.",
+        "data": {
+          "ph_source": "pH-Sensor",
+          "chlorine_source": "Sensor für freies Chlor",
+          "salt_source": "Salzsensor",
+          "temperature_source": "Wassertemperatursensor"
+        }
+      },
+      "reminders": {
+        "title": "Erinnerungen",
+        "data": {
+          "filter_days": "Erinnerung Filterreinigung (Tage)",
+          "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
+          "cell_days": "Erinnerung Zellenreinigung (Tage)",
+          "reminder_time": "Zeit der täglichen Prüfung (HH:MM)"
+        }
+      },
+      "page": {
+        "title": "Seite und Benachrichtigungen",
+        "data": {
+          "language": "Sprache der Seite",
+          "notify_service": "Benachrichtigungsdienst (optional)"
+        },
+        "data_description": {
+          "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung."
+        }
+      },
+      "security": {
+        "title": "Sicherheit",
+        "description": "Das Erneuern des Zugriffstokens macht die aktuelle Seiten-URL ungültig. QR-Code oder NFC-Tag müssen neu geschrieben werden.",
+        "data": {
+          "regenerate_token": "Zugriffstoken erneuern"
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Gib einen Dienst wie notify.mobile_app_meinhandy an, oder lass das Feld leer."
+    }
+  },
+  "selector": {
+    "pool_type": {
+      "options": {
+        "salt": "Salzwasser (Elektrolyseur)",
+        "chlorine": "Manuell dosiertes Chlor",
+        "other": "Sonstiges"
+      }
+    },
+    "modules": {
+      "options": {
+        "salt_chlorinator": "Salzelektrolyseur",
+        "acid_tank": "Säuretank des pH-Dosierers",
+        "filter": "Filter",
+        "ph_probe": "pH-Sonde",
+        "cleaning": "Reinigungsaufgaben"
+      }
+    },
+    "language": {
+      "options": {
+        "en": "English",
+        "pt": "Português",
+        "es": "Español",
+        "fr": "Français",
+        "de": "Deutsch",
+        "it": "Italiano"
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "ph": {
+        "name": "pH (manuelle Messung)"
+      },
+      "free_chlorine": {
+        "name": "Freies Chlor"
+      },
+      "salt_level": {
+        "name": "Salz (manuelle Messung)"
+      },
+      "salt_added": {
+        "name": "Salz nachgefüllt"
+      },
+      "chlorinator_output": {
+        "name": "Leistung des Elektrolyseurs"
+      }
+    },
+    "select": {
+      "chlorinator_mode": {
+        "name": "Modus des Elektrolyseurs",
+        "state": {
+          "smart": "Smart",
+          "manual": "Manuell",
+          "boost": "Boost"
+        }
+      },
+      "acid_tank_level": {
+        "name": "Füllstand des Säuretanks",
+        "state": {
+          "full": "Voll",
+          "three_quarters": "¾",
+          "half": "½",
+          "quarter": "¼"
+        }
+      }
+    },
+    "sensor": {
+      "last_water_test": {
+        "name": "Letzte Wasseranalyse"
+      },
+      "last_filter_wash": {
+        "name": "Letzte Filterreinigung"
+      },
+      "last_cell_clean": {
+        "name": "Letzte Zellenreinigung"
+      },
+      "last_probe_calibration": {
+        "name": "Letzte pH-Sonden-Kalibrierung"
+      },
+      "last_acid_refill": {
+        "name": "Letztes Säure-Auffüllen"
+      },
+      "last_cleaning": {
+        "name": "Letzte Reinigung"
+      },
+      "last_maintenance": {
+        "name": "Letzte Wartung"
+      },
+      "last_record": {
+        "name": "Letzter Eintrag"
+      }
+    },
+    "binary_sensor": {
+      "filter_wash_due": {
+        "name": "Filterreinigung überfällig"
+      },
+      "cell_clean_due": {
+        "name": "Zellenreinigung überfällig"
+      },
+      "probe_calibration_due": {
+        "name": "Sonden-Kalibrierung überfällig"
+      }
+    },
+    "event": {
+      "maintenance_logged": {
+        "name": "Wartung protokolliert"
+      }
+    },
+    "image": {
+      "access_qr": {
+        "name": "QR-Code der Seite"
+      }
+    }
+  }
+}

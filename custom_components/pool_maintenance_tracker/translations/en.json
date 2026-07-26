@@ -28,7 +28,7 @@
           "cell_days": "Cell cleaning reminder (days)"
         },
         "data_description": {
-          "notify_service": "For example notify.mobile_app_myphone. Leave empty to disable notifications."
+          "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations."
         }
       }
     },
@@ -42,6 +42,7 @@
         "menu_options": {
           "modules": "Equipment modules",
           "people": "People on the page",
+          "sensors": "Linked sensors",
           "reminders": "Reminders",
           "page": "Page and notifications",
           "security": "Security"
@@ -61,6 +62,16 @@
           "people_users": "Users"
         }
       },
+      "sensors": {
+        "title": "Linked sensors",
+        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it.",
+        "data": {
+          "ph_source": "pH sensor",
+          "chlorine_source": "Free chlorine sensor",
+          "salt_source": "Salt sensor",
+          "temperature_source": "Water temperature sensor"
+        }
+      },
       "reminders": {
         "title": "Reminders",
         "data": {
@@ -75,6 +86,9 @@
         "data": {
           "language": "Page language",
           "notify_service": "Notification service (optional)"
+        },
+        "data_description": {
+          "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations."
         }
       },
       "security": {

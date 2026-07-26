@@ -363,6 +363,25 @@ function hintOnly(text){
   return el("p", "hint", text);
 }
 
+/* Live reference values from linked sensors (smart probe etc.) */
+function liveLine(){
+  const live = CFG.live || {};
+  const parts = [];
+  if (live.ph) parts.push("pH " + live.ph.value);
+  ["free_chlorine", "salt", "temperature"].forEach(key => {
+    if (live[key]) {
+      const unit = live[key].unit || (S.units[key === "salt" ? "salt_level" : key] || "");
+      parts.push(live[key].value + (unit ? " " + unit : ""));
+    }
+  });
+  if (!parts.length) return null;
+  const line = el("p", "hint live", S.live_now + ": " + parts.join(" · "));
+  line.style.marginTop = "0";
+  line.style.marginBottom = "14px";
+  line.style.fontWeight = "600";
+  return line;
+}
+
 /* ---------- panels per tile ---------- */
 function buildPanel(tile){
   const panel = el("div", "panel");
@@ -371,6 +390,7 @@ function buildPanel(tile){
   panel.appendChild(el("h3", null, p.title));
   const parts = [];
   if (tile === "water_test") {
+    parts.push(liveLine());
     parts.push(stepperField(p.ph, "ph"));
     parts.push(stepperField(p.free_chlorine, "free_chlorine"));
     parts.push(stepperField(p.salt, "salt_level"));

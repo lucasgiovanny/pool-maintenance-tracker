@@ -51,6 +51,9 @@ equipment you actually have.
 Copy `custom_components/pool_maintenance_tracker` into your `config/custom_components`
 folder and restart Home Assistant.
 
+> The integration ships its own brand icon (shown in the integrations list on
+> Home Assistant 2026.3 or newer).
+
 ## Configuration
 
 Go to **Settings → Devices & services → Add integration → Pool Maintenance Tracker**.
@@ -73,6 +76,10 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
    reminder periods (defaults: filter 30 days, pH probe 60 days, chlorinator
    cell 90 days).
 
+   Notifications are entirely optional: leave the service empty and the
+   integration sends nothing — the "due" binary sensors and the maintenance
+   event remain available to drive your own automations instead.
+
 Everything can be changed later via **Configure** on the integration — including
 disabling modules (their entities are removed) and regenerating the access token.
 
@@ -84,6 +91,20 @@ The "who is logging" chips are your active Home Assistant users plus a generic
 **Technician** chip — no configuration needed, and new HA users appear
 automatically. To show only some users, pick them under **Configure → People
 on the page**.
+
+### Linked sensors (smart probes)
+
+Already have automatic measurements — a Blue Connect probe, a Fluidra/other
+pool integration? Link those entities under **Configure → Linked sensors**
+(pH, free chlorine, salt, water temperature). Then:
+
+- the maintenance page shows the live probe values right next to the manual
+  readings, so whoever is testing can compare on the spot;
+- every record stores a snapshot of the probe values at log time — a handy
+  audit trail of manual reading vs. probe (e.g. to spot calibration drift).
+
+The integration stays the *human logbook* on top of your telemetry; it never
+duplicates or polls those sensors.
 
 ## QR code / NFC tag
 

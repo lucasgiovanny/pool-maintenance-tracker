@@ -16,6 +16,8 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     BooleanSelector,
+    EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -44,6 +46,7 @@ from .const import (
     DEFAULT_REMINDER_TIME,
     DOMAIN,
     LANGUAGES,
+    LINKED_SOURCES,
     POOL_TYPE_SALT,
     POOL_TYPES,
 )
@@ -208,8 +211,31 @@ class PoolOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["modules", "people", "reminders", "page", "security"],
+            menu_options=["modules", "people", "sensors", "reminders", "page", "security"],
         )
+
+    async def async_step_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Link external sensors (e.g. a smart probe) to the pool."""
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            for conf_key in LINKED_SOURCES.values():
+                if user_input.get(conf_key):
+                    options[conf_key] = user_input[conf_key]
+                else:
+                    options.pop(conf_key, None)
+            return self.async_create_entry(data=options)
+
+        schema: dict[vol.Marker, Any] = {}
+        for conf_key in LINKED_SOURCES.values():
+            schema[
+                vol.Optional(
+                    conf_key,
+                    description={"suggested_value": options.get(conf_key)},
+                )
+            ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
+        return self.async_show_form(step_id="sensors", data_schema=vol.Schema(schema))
 
     async def async_step_modules(
         self, user_input: dict[str, Any] | None = None

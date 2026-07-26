@@ -95,6 +95,39 @@ async def test_page_has_date_picker(hass, salt_entry, hass_client_no_auth):
     assert "other" not in config["tiles"]
 
 
+async def test_linked_sensors_live_values(hass, salt_entry, hass_client_no_auth):
+    hass.states.async_set("sensor.probe_ph", "7.13")
+    hass.states.async_set("sensor.probe_temp", "28.4", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.probe_salt", "unavailable")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={
+            **salt_entry.options,
+            "ph_source": "sensor.probe_ph",
+            "temperature_source": "sensor.probe_temp",
+            "salt_source": "sensor.probe_salt",
+        },
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    response = await client.get(PAGE_URL)
+    config = extract_config(await response.text())
+    assert config["live"]["ph"] == {"value": 7.13, "unit": ""}
+    assert config["live"]["temperature"] == {"value": 28.4, "unit": "°C"}
+    # unavailable source is skipped entirely
+    assert "salt" not in config["live"]
+
+
+async def test_no_linked_sensors_means_empty_live(hass, salt_entry, hass_client_no_auth):
+    await setup_entry(hass, salt_entry)
+    client = await hass_client_no_auth()
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    assert config["live"] == {}
+
+
 async def test_page_unknown_token_404(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()

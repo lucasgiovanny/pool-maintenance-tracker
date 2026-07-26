@@ -1,0 +1,219 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ajouter une piscine",
+        "data": {
+          "name": "Nom de la piscine",
+          "pool_type": "Type de piscine"
+        },
+        "data_description": {
+          "pool_type": "Présélectionne les modules d'équipement. Vous pourrez les ajuster à l'étape suivante."
+        }
+      },
+      "modules": {
+        "title": "Modules d'équipement",
+        "description": "Chaque module activé crée ses propres entités et affiche ses cartes sur la page d'entretien.",
+        "data": {
+          "modules": "Modules"
+        }
+      },
+      "settings": {
+        "title": "Page et rappels",
+        "data": {
+          "language": "Langue de la page",
+          "notify_service": "Service de notification (facultatif)",
+          "filter_days": "Rappel de lavage du filtre (jours)",
+          "probe_days": "Rappel d'étalonnage de la sonde pH (jours)",
+          "cell_days": "Rappel de nettoyage de la cellule (jours)"
+        },
+        "data_description": {
+          "notify_service": "Par exemple notify.mobile_app_montelephone. Laissez vide pour désactiver les notifications intégrées : les capteurs binaires de retard et l'événement d'entretien restent disponibles pour vos propres automatisations."
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Indiquez un service comme notify.mobile_app_montelephone, ou laissez vide."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "modules": "Modules d'équipement",
+          "people": "Personnes sur la page",
+          "sensors": "Capteurs liés",
+          "reminders": "Rappels",
+          "page": "Page et notifications",
+          "security": "Sécurité"
+        }
+      },
+      "modules": {
+        "title": "Modules d'équipement",
+        "description": "Les entités et cartes des modules désactivés sont supprimées.",
+        "data": {
+          "modules": "Modules"
+        }
+      },
+      "people": {
+        "title": "Personnes sur la page",
+        "description": "Choisissez quels utilisateurs Home Assistant apparaissent sur la page d'entretien. Le choix générique Technicien est toujours affiché. Sélectionner tout le monde (ou personne) affiche tous les utilisateurs actifs.",
+        "data": {
+          "people_users": "Utilisateurs"
+        }
+      },
+      "sensors": {
+        "title": "Capteurs liés",
+        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier.",
+        "data": {
+          "ph_source": "Capteur de pH",
+          "chlorine_source": "Capteur de chlore libre",
+          "salt_source": "Capteur de sel",
+          "temperature_source": "Capteur de température de l'eau"
+        }
+      },
+      "reminders": {
+        "title": "Rappels",
+        "data": {
+          "filter_days": "Rappel de lavage du filtre (jours)",
+          "probe_days": "Rappel d'étalonnage de la sonde pH (jours)",
+          "cell_days": "Rappel de nettoyage de la cellule (jours)",
+          "reminder_time": "Heure de la vérification quotidienne (HH:MM)"
+        }
+      },
+      "page": {
+        "title": "Page et notifications",
+        "data": {
+          "language": "Langue de la page",
+          "notify_service": "Service de notification (facultatif)"
+        },
+        "data_description": {
+          "notify_service": "Par exemple notify.mobile_app_montelephone. Laissez vide pour désactiver les notifications intégrées : les capteurs binaires de retard et l'événement d'entretien restent disponibles pour vos propres automatisations."
+        }
+      },
+      "security": {
+        "title": "Sécurité",
+        "description": "Régénérer le jeton d'accès invalide l'URL actuelle de la page. Vous devrez réécrire votre code QR ou votre tag NFC.",
+        "data": {
+          "regenerate_token": "Régénérer le jeton d'accès"
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Indiquez un service comme notify.mobile_app_montelephone, ou laissez vide."
+    }
+  },
+  "selector": {
+    "pool_type": {
+      "options": {
+        "salt": "Eau salée (électrolyseur)",
+        "chlorine": "Chlore dosé manuellement",
+        "other": "Autre"
+      }
+    },
+    "modules": {
+      "options": {
+        "salt_chlorinator": "Électrolyseur au sel",
+        "acid_tank": "Réservoir d'acide du doseur de pH",
+        "filter": "Filtre",
+        "ph_probe": "Sonde pH",
+        "cleaning": "Tâches de nettoyage"
+      }
+    },
+    "language": {
+      "options": {
+        "en": "English",
+        "pt": "Português",
+        "es": "Español",
+        "fr": "Français",
+        "de": "Deutsch",
+        "it": "Italiano"
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "ph": {
+        "name": "pH (mesure manuelle)"
+      },
+      "free_chlorine": {
+        "name": "Chlore libre"
+      },
+      "salt_level": {
+        "name": "Sel (mesure manuelle)"
+      },
+      "salt_added": {
+        "name": "Sel ajouté"
+      },
+      "chlorinator_output": {
+        "name": "Production de l'électrolyseur"
+      }
+    },
+    "select": {
+      "chlorinator_mode": {
+        "name": "Mode de l'électrolyseur",
+        "state": {
+          "smart": "Smart",
+          "manual": "Manuel",
+          "boost": "Boost"
+        }
+      },
+      "acid_tank_level": {
+        "name": "Niveau du réservoir d'acide",
+        "state": {
+          "full": "Plein",
+          "three_quarters": "¾",
+          "half": "½",
+          "quarter": "¼"
+        }
+      }
+    },
+    "sensor": {
+      "last_water_test": {
+        "name": "Dernière analyse de l'eau"
+      },
+      "last_filter_wash": {
+        "name": "Dernier lavage du filtre"
+      },
+      "last_cell_clean": {
+        "name": "Dernier nettoyage de la cellule"
+      },
+      "last_probe_calibration": {
+        "name": "Dernier étalonnage de la sonde pH"
+      },
+      "last_acid_refill": {
+        "name": "Dernier remplissage d'acide"
+      },
+      "last_cleaning": {
+        "name": "Dernier nettoyage"
+      },
+      "last_maintenance": {
+        "name": "Dernier entretien"
+      },
+      "last_record": {
+        "name": "Dernière saisie"
+      }
+    },
+    "binary_sensor": {
+      "filter_wash_due": {
+        "name": "Lavage du filtre en retard"
+      },
+      "cell_clean_due": {
+        "name": "Nettoyage de la cellule en retard"
+      },
+      "probe_calibration_due": {
+        "name": "Étalonnage de la sonde en retard"
+      }
+    },
+    "event": {
+      "maintenance_logged": {
+        "name": "Entretien enregistré"
+      }
+    },
+    "image": {
+      "access_qr": {
+        "name": "Code QR de la page"
+      }
+    }
+  }
+}

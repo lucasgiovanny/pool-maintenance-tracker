@@ -28,7 +28,7 @@
           "cell_days": "Lembrete de limpeza da célula (dias)"
         },
         "data_description": {
-          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para desativar notificações."
+          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações."
         }
       }
     },
@@ -42,6 +42,7 @@
         "menu_options": {
           "modules": "Módulos de equipamento",
           "people": "Pessoas na página",
+          "sensors": "Sensores ligados",
           "reminders": "Lembretes",
           "page": "Página e notificações",
           "security": "Segurança"
@@ -61,6 +62,16 @@
           "people_users": "Utilizadores"
         }
       },
+      "sensors": {
+        "title": "Sensores ligados",
+        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registo. Deixa um campo vazio para desligar.",
+        "data": {
+          "ph_source": "Sensor de pH",
+          "chlorine_source": "Sensor de cloro livre",
+          "salt_source": "Sensor de sal",
+          "temperature_source": "Sensor de temperatura da água"
+        }
+      },
       "reminders": {
         "title": "Lembretes",
         "data": {
@@ -75,6 +86,9 @@
         "data": {
           "language": "Idioma da página",
           "notify_service": "Serviço de notificação (opcional)"
+        },
+        "data_description": {
+          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações."
         }
       },
       "security": {

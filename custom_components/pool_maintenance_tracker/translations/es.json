@@ -1,0 +1,219 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Añadir una piscina",
+        "data": {
+          "name": "Nombre de la piscina",
+          "pool_type": "Tipo de piscina"
+        },
+        "data_description": {
+          "pool_type": "Preselecciona los módulos de equipamiento. Puedes ajustarlos en el siguiente paso."
+        }
+      },
+      "modules": {
+        "title": "Módulos de equipamiento",
+        "description": "Cada módulo activo crea sus propias entidades y muestra sus tarjetas en la página de mantenimiento.",
+        "data": {
+          "modules": "Módulos"
+        }
+      },
+      "settings": {
+        "title": "Página y recordatorios",
+        "data": {
+          "language": "Idioma de la página",
+          "notify_service": "Servicio de notificación (opcional)",
+          "filter_days": "Recordatorio de lavado del filtro (días)",
+          "probe_days": "Recordatorio de calibración de la sonda de pH (días)",
+          "cell_days": "Recordatorio de limpieza de la célula (días)"
+        },
+        "data_description": {
+          "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones."
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Indica un servicio como notify.mobile_app_mimovil, o déjalo vacío."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "modules": "Módulos de equipamiento",
+          "people": "Personas en la página",
+          "sensors": "Sensores vinculados",
+          "reminders": "Recordatorios",
+          "page": "Página y notificaciones",
+          "security": "Seguridad"
+        }
+      },
+      "modules": {
+        "title": "Módulos de equipamiento",
+        "description": "Las entidades y tarjetas de los módulos desactivados se eliminan.",
+        "data": {
+          "modules": "Módulos"
+        }
+      },
+      "people": {
+        "title": "Personas en la página",
+        "description": "Elige qué usuarios de Home Assistant aparecen como opciones en la página de mantenimiento. La opción genérica Técnico se muestra siempre. Seleccionar a todos (o a ninguno) muestra todos los usuarios activos.",
+        "data": {
+          "people_users": "Usuarios"
+        }
+      },
+      "sensors": {
+        "title": "Sensores vinculados",
+        "description": "Vincula sensores existentes (por ejemplo de una sonda inteligente u otra integración de piscina). Sus valores actuales se muestran en la página junto a las lecturas manuales y se guarda un snapshot con cada registro. Deja un campo vacío para desvincularlo.",
+        "data": {
+          "ph_source": "Sensor de pH",
+          "chlorine_source": "Sensor de cloro libre",
+          "salt_source": "Sensor de sal",
+          "temperature_source": "Sensor de temperatura del agua"
+        }
+      },
+      "reminders": {
+        "title": "Recordatorios",
+        "data": {
+          "filter_days": "Recordatorio de lavado del filtro (días)",
+          "probe_days": "Recordatorio de calibración de la sonda de pH (días)",
+          "cell_days": "Recordatorio de limpieza de la célula (días)",
+          "reminder_time": "Hora de la comprobación diaria (HH:MM)"
+        }
+      },
+      "page": {
+        "title": "Página y notificaciones",
+        "data": {
+          "language": "Idioma de la página",
+          "notify_service": "Servicio de notificación (opcional)"
+        },
+        "data_description": {
+          "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones."
+        }
+      },
+      "security": {
+        "title": "Seguridad",
+        "description": "Regenerar el token de acceso invalida la URL actual de la página. Tendrás que reescribir el código QR o la etiqueta NFC.",
+        "data": {
+          "regenerate_token": "Regenerar token de acceso"
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Indica un servicio como notify.mobile_app_mimovil, o déjalo vacío."
+    }
+  },
+  "selector": {
+    "pool_type": {
+      "options": {
+        "salt": "Agua salada (clorador)",
+        "chlorine": "Cloro dosificado manualmente",
+        "other": "Otro"
+      }
+    },
+    "modules": {
+      "options": {
+        "salt_chlorinator": "Clorador salino",
+        "acid_tank": "Depósito de ácido del dosificador de pH",
+        "filter": "Filtro",
+        "ph_probe": "Sonda de pH",
+        "cleaning": "Tareas de limpieza"
+      }
+    },
+    "language": {
+      "options": {
+        "en": "English",
+        "pt": "Português",
+        "es": "Español",
+        "fr": "Français",
+        "de": "Deutsch",
+        "it": "Italiano"
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "ph": {
+        "name": "pH (lectura manual)"
+      },
+      "free_chlorine": {
+        "name": "Cloro libre"
+      },
+      "salt_level": {
+        "name": "Sal (lectura manual)"
+      },
+      "salt_added": {
+        "name": "Sal añadida"
+      },
+      "chlorinator_output": {
+        "name": "Producción del clorador"
+      }
+    },
+    "select": {
+      "chlorinator_mode": {
+        "name": "Modo del clorador",
+        "state": {
+          "smart": "Smart",
+          "manual": "Manual",
+          "boost": "Boost"
+        }
+      },
+      "acid_tank_level": {
+        "name": "Nivel del depósito de ácido",
+        "state": {
+          "full": "Lleno",
+          "three_quarters": "¾",
+          "half": "½",
+          "quarter": "¼"
+        }
+      }
+    },
+    "sensor": {
+      "last_water_test": {
+        "name": "Último análisis del agua"
+      },
+      "last_filter_wash": {
+        "name": "Último lavado del filtro"
+      },
+      "last_cell_clean": {
+        "name": "Última limpieza de la célula"
+      },
+      "last_probe_calibration": {
+        "name": "Última calibración de la sonda de pH"
+      },
+      "last_acid_refill": {
+        "name": "Último rellenado de ácido"
+      },
+      "last_cleaning": {
+        "name": "Última limpieza"
+      },
+      "last_maintenance": {
+        "name": "Último mantenimiento"
+      },
+      "last_record": {
+        "name": "Último registro"
+      }
+    },
+    "binary_sensor": {
+      "filter_wash_due": {
+        "name": "Lavado del filtro atrasado"
+      },
+      "cell_clean_due": {
+        "name": "Limpieza de la célula atrasada"
+      },
+      "probe_calibration_due": {
+        "name": "Calibración de la sonda atrasada"
+      }
+    },
+    "event": {
+      "maintenance_logged": {
+        "name": "Mantenimiento registrado"
+      }
+    },
+    "image": {
+      "access_qr": {
+        "name": "Código QR de la página"
+      }
+    }
+  }
+}

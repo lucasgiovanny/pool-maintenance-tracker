@@ -121,6 +121,27 @@ async def test_empty_payload_400(hass, salt_entry, hass_client_no_auth):
     assert (await response.json())["error"] == "invalid_payload"
 
 
+async def test_record_snapshot_from_linked_sensors(hass, salt_entry, hass_client_no_auth):
+    hass.states.async_set("sensor.probe_ph", "7.05")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={**salt_entry.options, "ph_source": "sensor.probe_ph"},
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    response = await client.post(
+        LOG_URL, json={"categories": ["water_test"], "readings": {"ph": 7.2}}
+    )
+    assert response.status == 200
+    await hass.async_block_till_done()
+
+    record = salt_entry.runtime_data.tracker.last_record
+    assert record["snapshot"] == {"ph": 7.05}
+
+
 async def test_acid_alert_notification(hass, salt_entry, hass_client_no_auth):
     notifications = []
 

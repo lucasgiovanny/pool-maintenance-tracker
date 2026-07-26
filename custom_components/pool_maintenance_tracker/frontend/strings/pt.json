@@ -5,6 +5,7 @@
   "intro": "Escolhe o que fizeste, confirma os valores e envia. Fica tudo guardado no sistema da casa.",
   "who": "Quem está a registar?",
   "when": "Quando foi feito?",
+  "live_now": "Sensor neste momento",
   "what": "O que foi feito?",
   "what_hint": "toca em tudo o que se aplica",
   "tiles": {

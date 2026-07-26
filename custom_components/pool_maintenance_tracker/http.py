@@ -31,6 +31,7 @@ from .const import (
     DEFAULT_LANGUAGE,
     DOMAIN,
     KEY_ACID_TANK_LEVEL,
+    LINKED_SOURCES,
     MAX_BODY_SIZE,
     NUMBER_RANGES,
     URL_LOG,
@@ -160,6 +161,25 @@ async def _page_people(hass: HomeAssistant, entry: ConfigEntry, technician_label
     return people
 
 
+@callback
+def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str, Any]]:
+    """Current values of the linked external sensors (smart probe etc.)."""
+    live: dict[str, dict[str, Any]] = {}
+    for key, conf_key in LINKED_SOURCES.items():
+        entity_id = entry.options.get(conf_key)
+        if not entity_id or (state := hass.states.get(entity_id)) is None:
+            continue
+        try:
+            value = float(state.state)
+        except ValueError:
+            continue
+        live[key] = {
+            "value": round(value, 2),
+            "unit": state.attributes.get("unit_of_measurement") or "",
+        }
+    return live
+
+
 async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str) -> dict[str, Any]:
     language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
     strings = await _load_strings(hass, language)
@@ -172,6 +192,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "people": await _page_people(hass, entry, technician_label),
         "tiles": enabled_tiles(entry.options),
         "strings": strings,
+        "live": _live_values(hass, entry),
         # Only enabled value keys — the page uses presence here to decide
         # which steppers to render (e.g. the salt reading field).
         "limits": {
@@ -247,6 +268,9 @@ class PoolLogView(HomeAssistantView):
             result.values.get(KEY_ACID_TANK_LEVEL) == "quarter"
             and tracker.values.get(KEY_ACID_TANK_LEVEL) != "quarter"
         )
+        # Audit trail: what the linked automatic sensors read at log time.
+        if snapshot := {key: item["value"] for key, item in _live_values(hass, entry).items()}:
+            result.record["snapshot"] = snapshot
         tracker.async_apply(result)
         if acid_alert:
             await runtime.reminders.async_send_acid_alert()
