@@ -15,6 +15,8 @@
     color:var(--ink);max-width:720px;margin:0 auto;padding:28px 24px;
   }
   @page{size:A4;margin:16mm}
+  .header-row{display:flex;align-items:center;gap:16px}
+  .header-row .logo{flex:none;width:54px;height:54px;border-radius:14px}
   .eyebrow{
     font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
     color:var(--aqua);font-weight:700;margin-bottom:4px;
@@ -61,15 +63,27 @@
 
 <button class="print-button" id="print" onclick="window.print()"></button>
 
-<div class="eyebrow" id="pool-name"></div>
-<h1 id="title"></h1>
+<div class="header-row">
+  <svg class="logo" viewBox="0 0 256 256" aria-hidden="true">
+    <rect x="0" y="0" width="256" height="256" rx="58" fill="#0B4F6C"/>
+    <path d="M76 114l36 36 70-72" stroke="#FFFFFF" stroke-width="24" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M44 184q16-14 32 0t32 0t32 0t32 0t32 0" stroke="#0FA3B1"
+          stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M60 212q16-11 32 0t32 0t32 0t32 0" stroke="#0FA3B1" stroke-width="11"
+          fill="none" stroke-linecap="round" opacity="0.55"/>
+  </svg>
+  <div>
+    <div class="eyebrow" id="pool-name"></div>
+    <h1 id="title"></h1>
+  </div>
+</div>
 <div class="rule"></div>
 
 <div class="grid">
   <div class="panel">
     <h2 id="qr-title"></h2>
     <img id="qr" alt="QR code">
-    <div class="url" id="url"></div>
     <p class="caption" id="qr-caption"></p>
   </div>
   <div class="panel">
@@ -109,7 +123,6 @@ setText("nfc-caption", M.nfc_caption);
 setText("steps-title", M.steps_title);
 setText("report-hint", M.report_hint);
 setText("print", M.print);
-setText("url", CFG.url || "");
 setText("date", new Date().toLocaleDateString(CFG.language === "pt" ? "pt-PT" : CFG.language));
 document.getElementById("qr").src = CFG.qr;
 

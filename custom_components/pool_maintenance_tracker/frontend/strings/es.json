@@ -129,7 +129,8 @@
     "ago_hours": "hace {n} h",
     "next_due": "próxima {date}",
     "schedule_off": "se apaga {date} a las {time}",
-    "schedule_on": "se enciende {date} a las {time}"
+    "schedule_on": "se enciende {date} a las {time}",
+    "alert_acid": "Depósito de ácido a ¼ — planifica un rellenado"
   },
   "notes": {
     "title": "Notas",

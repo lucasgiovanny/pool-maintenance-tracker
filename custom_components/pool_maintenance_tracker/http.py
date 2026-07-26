@@ -310,6 +310,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
 
     records = [
         {
+            "id": item.get("id"),
             "person": item.get("person"),
             "logged_at": item.get("logged_at"),
             "categories": item.get("categories", []),

@@ -40,6 +40,8 @@
     background:repeating-linear-gradient(-45deg,var(--aqua) 0 14px,transparent 14px 28px);
     opacity:.9;
   }
+  .header-row{display:flex;align-items:center;gap:14px}
+  .header-row .logo{flex:none;width:46px;height:46px;border-radius:12px}
   .eyebrow{
     font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
     color:var(--aqua);font-weight:700;margin-bottom:4px;
@@ -211,10 +213,28 @@
   .note-save:disabled{background:var(--muted)}
 
   .week{margin:6px 0 10px}
-  .week .day{display:flex;align-items:center;gap:8px;margin-bottom:3px}
-  .week .day span{flex:none;width:22px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
-  .week .track{flex:1;position:relative;height:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-  .week .block{position:absolute;top:0;bottom:0;background:var(--aqua);border-radius:5px}
+  .week .day{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .week .day span{flex:none;width:24px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+  .week .track{flex:1;position:relative;height:16px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .week .tick{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+  .week .block{position:absolute;top:0;bottom:0;background:var(--aqua);border-radius:4px}
+  .week .axis{display:flex;gap:8px;margin-top:2px}
+  .week .axis span:first-child{flex:none;width:24px}
+  .week .axis .marks{flex:1;display:flex;justify-content:space-between;
+    font-size:.62rem;color:var(--muted);font-weight:600}
+  .week-times{font-size:.74rem;color:var(--muted);line-height:1.6;margin:4px 0 10px}
+  .week-times b{color:var(--ink)}
+
+  .rid{font-size:.62rem;color:var(--muted);font-family:ui-monospace,Menlo,monospace;
+    margin-top:5px;word-break:break-all}
+
+  .alerts{margin-top:16px}
+  .alert{
+    display:flex;align-items:flex-start;gap:9px;background:#FBE9D0;border:1px solid var(--warn);
+    border-radius:12px;padding:11px 14px;margin-bottom:8px;
+    font-size:.85rem;font-weight:600;color:#8A5200;line-height:1.4;
+  }
+  .alert svg{width:17px;height:17px;stroke:#8A5200;fill:none;stroke-width:2.2;stroke-linecap:round;flex:none;margin-top:1px}
 
   .bar{
     position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
@@ -264,12 +284,27 @@
 <body>
 
 <header>
-  <div class="eyebrow" id="eyebrow"></div>
-  <h1 id="title"></h1>
+  <div class="header-row">
+    <svg class="logo" viewBox="0 0 256 256" aria-hidden="true">
+      <rect x="0" y="0" width="256" height="256" rx="58" fill="#FFFFFF"/>
+      <path d="M76 114l36 36 70-72" stroke="#0B4F6C" stroke-width="24" fill="none"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M44 184q16-14 32 0t32 0t32 0t32 0t32 0" stroke="#0FA3B1"
+            stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M60 212q16-11 32 0t32 0t32 0t32 0" stroke="#0FA3B1" stroke-width="11"
+            fill="none" stroke-linecap="round" opacity="0.55"/>
+    </svg>
+    <div>
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1 id="title"></h1>
+    </div>
+  </div>
   <p id="intro"></p>
 </header>
 
 <main>
+  <div class="alerts" id="alerts"></div>
+
   <div class="tabs" id="tabs">
     <button type="button" class="on" id="tab-log"></button>
     <button type="button" id="tab-report"></button>
@@ -463,26 +498,33 @@ function renderReport(){
   if (!CFG.report) return;
   const report = CFG.report;
 
+  /* Current status: water readings (declared, falling back to the probe) */
+  const WATER_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature", "cleaning_types"];
+  const LIVE_FOR = { ph: "ph", free_chlorine: "free_chlorine", salt_level: "salt", water_temperature: "temperature" };
   const currentBody = document.getElementById("report-current-body");
-  const valueKeys = Object.keys(S.report.values).filter(
-    key => report.values && report.values[key] !== undefined
-  );
-  if (valueKeys.length) {
-    document.getElementById("report-current").style.display = "";
-    valueKeys.forEach(key => {
-      const row = el("div", "kv");
-      row.appendChild(el("span", "k", S.report.values[key]));
-      const holder = el("span", "v", formatValue(key, report.values[key]));
-      const liveKey = { ph: "ph", free_chlorine: "free_chlorine", salt_level: "salt", water_temperature: "temperature" }[key];
-      if (liveKey && CFG.live[liveKey]) {
-        const live = CFG.live[liveKey];
+  let currentAny = false;
+  WATER_KEYS.forEach(key => {
+    const declared = report.values ? report.values[key] : undefined;
+    const live = LIVE_FOR[key] ? CFG.live[LIVE_FOR[key]] : null;
+    if (declared === undefined && !live) return;
+    currentAny = true;
+    const row = el("div", "kv");
+    row.appendChild(el("span", "k", S.report.values[key] || key));
+    let holder;
+    if (declared !== undefined) {
+      holder = el("span", "v", formatValue(key, declared));
+      if (live) {
         holder.appendChild(el("span", "probe",
           S.probe + ": " + live.value + (live.unit ? " " + live.unit : "")));
       }
-      row.appendChild(holder);
-      currentBody.appendChild(row);
-    });
-  }
+    } else {
+      holder = el("span", "v", live.value + (live.unit ? " " + live.unit : ""));
+      holder.appendChild(el("span", "probe", S.probe));
+    }
+    row.appendChild(holder);
+    currentBody.appendChild(row);
+  });
+  if (currentAny) document.getElementById("report-current").style.display = "";
 
   const tasksBody = document.getElementById("report-tasks-body");
   if ((report.tasks || []).length) {
@@ -508,10 +550,22 @@ function renderReport(){
     });
   }
 
+  /* Equipment: our declared equipment states first, then external entities */
+  const EQUIP_KEYS = ["chlorinator_mode", "chlorinator_output", "acid_tank_level"];
   const extraBody = document.getElementById("report-extra-body");
-  if ((report.extra || []).length) {
+  let equipAny = false;
+  EQUIP_KEYS.forEach(key => {
+    const declared = report.values ? report.values[key] : undefined;
+    if (declared === undefined) return;
+    equipAny = true;
+    const row = el("div", "kv");
+    row.appendChild(el("span", "k", S.report.values[key] || key));
+    row.appendChild(el("span", "v", formatValue(key, declared)));
+    extraBody.appendChild(row);
+  });
+  if ((report.extra || []).length || equipAny) {
     document.getElementById("report-extra").style.display = "";
-    report.extra.forEach(item => {
+    (report.extra || []).forEach(item => {
       const row = el("div", "kv");
       row.appendChild(el("span", "k", item.name));
       const holder = el("span", "v");
@@ -558,15 +612,24 @@ function renderReport(){
 }
 
 /* Weekly on-blocks of a schedule helper: 7 rows (Mon..Sun), 0-24h tracks */
+function weekdayLabel(index){
+  // 2024-01-01 is a Monday; derive localized short weekday labels from it
+  return new Date(Date.UTC(2024, 0, 1 + index)).toLocaleDateString(
+    LOCALE, { weekday: "short", timeZone: "UTC" }).replace(".", "").slice(0, 3);
+}
+
 function weekGrid(week){
+  const wrap = document.createDocumentFragment();
   const grid = el("div", "week");
   week.forEach((blocks, index) => {
     const row = el("div", "day");
-    // 2024-01-01 is a Monday; derive localized short weekday labels from it
-    const label = new Date(Date.UTC(2024, 0, 1 + index)).toLocaleDateString(
-      LOCALE, { weekday: "short", timeZone: "UTC" }).slice(0, 2);
-    row.appendChild(el("span", null, label));
+    row.appendChild(el("span", null, weekdayLabel(index)));
     const track = el("div", "track");
+    [25, 50, 75].forEach(percent => {
+      const tick = el("div", "tick");
+      tick.style.left = percent + "%";
+      track.appendChild(tick);
+    });
     blocks.forEach(([from, to]) => {
       const toMinutes = time => {
         const [hours, minutes] = time.split(":").map(Number);
@@ -581,7 +644,28 @@ function weekGrid(week){
     row.appendChild(track);
     grid.appendChild(row);
   });
-  return grid;
+  const axis = el("div", "axis");
+  axis.appendChild(el("span"));
+  const marks = el("div", "marks");
+  ["0h", "6h", "12h", "18h", "24h"].forEach(mark => marks.appendChild(el("span", null, mark)));
+  axis.appendChild(marks);
+  grid.appendChild(axis);
+  wrap.appendChild(grid);
+
+  /* Textual on-times so the exact hours are readable at a glance */
+  const times = el("div", "week-times");
+  week.forEach((blocks, index) => {
+    if (!blocks.length) return;
+    const line = document.createElement("div");
+    const day = document.createElement("b");
+    day.textContent = weekdayLabel(index) + " ";
+    line.appendChild(day);
+    line.appendChild(document.createTextNode(
+      blocks.map(([from, to]) => from + "–" + to).join(", ")));
+    times.appendChild(line);
+  });
+  if (times.childNodes.length) wrap.appendChild(times);
+  return wrap;
 }
 
 function initials(name){
@@ -628,8 +712,35 @@ function recordElement(record){
     });
     body.appendChild(pills);
   }
+  if (record.id) body.appendChild(el("div", "rid", "id " + record.id));
   return item;
 }
+
+/* Persistent alerts above the tabs: overdue tasks + low acid */
+function renderAlerts(){
+  const box = document.getElementById("alerts");
+  if (!CFG.report) { box.style.display = "none"; return; }
+  const report = CFG.report;
+  const messages = [];
+  (report.tasks || []).forEach(task => {
+    if (task.due) {
+      messages.push((S.tiles[task.key] || S.report.values[task.key] || task.key) +
+        " — " + S.report.overdue.toLowerCase());
+    }
+  });
+  if (report.values && report.values.acid_tank_level === "quarter") {
+    messages.push(S.report.alert_acid);
+  }
+  if (!messages.length) { box.style.display = "none"; return; }
+  messages.forEach(message => {
+    const alert = el("div", "alert");
+    alert.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>' +
+      '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+    alert.appendChild(document.createTextNode(message));
+    box.appendChild(alert);
+  });
+}
+renderAlerts();
 
 function noteElement(note){
   const { item, body } = personRow(note.person, note.created_at);

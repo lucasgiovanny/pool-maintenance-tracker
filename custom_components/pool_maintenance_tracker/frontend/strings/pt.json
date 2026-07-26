@@ -129,7 +129,8 @@
     "ago_hours": "há {n} h",
     "next_due": "próxima {date}",
     "schedule_off": "desliga {date} às {time}",
-    "schedule_on": "liga {date} às {time}"
+    "schedule_on": "liga {date} às {time}",
+    "alert_acid": "Depósito de ácido a ¼ — planeia um atesto"
   },
   "notes": {
     "title": "Notas",

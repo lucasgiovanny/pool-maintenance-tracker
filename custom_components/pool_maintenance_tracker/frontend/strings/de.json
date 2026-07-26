@@ -129,7 +129,8 @@
     "ago_hours": "vor {n} h",
     "next_due": "nächste {date}",
     "schedule_off": "schaltet aus am {date} um {time}",
-    "schedule_on": "schaltet ein am {date} um {time}"
+    "schedule_on": "schaltet ein am {date} um {time}",
+    "alert_acid": "Säuretank bei ¼ — Auffüllen einplanen"
   },
   "notes": {
     "title": "Notizen",

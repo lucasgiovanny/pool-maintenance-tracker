@@ -129,7 +129,8 @@
     "ago_hours": "{n} h ago",
     "next_due": "next {date}",
     "schedule_off": "turns off {date} at {time}",
-    "schedule_on": "turns on {date} at {time}"
+    "schedule_on": "turns on {date} at {time}",
+    "alert_acid": "Acid tank at ¼ — plan a refill"
   },
   "notes": {
     "title": "Notes",

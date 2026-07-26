@@ -164,6 +164,7 @@ async def test_report_tab_data(hass, salt_entry, hass_client_no_auth):
     assert dt_util.parse_datetime(filter_task["next"]) == expected_next
     assert report["records"][0]["person"] == "Lucas"
     assert report["records"][0]["categories"] == ["filter_wash"]
+    assert report["records"][0]["id"]
     assert report["last_maintenance"] is not None
 
 

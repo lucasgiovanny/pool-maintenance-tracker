@@ -129,7 +129,8 @@
     "ago_hours": "{n} h fa",
     "next_due": "prossima {date}",
     "schedule_off": "si spegne il {date} alle {time}",
-    "schedule_on": "si accende il {date} alle {time}"
+    "schedule_on": "si accende il {date} alle {time}",
+    "alert_acid": "Serbatoio dell'acido a ¼ — pianifica un rabbocco"
   },
   "notes": {
     "title": "Note",
