@@ -241,10 +241,12 @@
   }
   .alert svg{width:17px;height:17px;stroke:#8A5200;fill:none;stroke-width:2.2;stroke-linecap:round;flex:none;margin-top:1px}
 
+  .kv.with-countdown{border-bottom:none;padding-bottom:0}
   .countdown{
-    font-size:.8rem;font-weight:700;color:var(--muted);text-align:right;
-    font-variant-numeric:tabular-nums;padding:2px 0 8px;
+    font-size:.8rem;font-weight:700;color:var(--aqua);text-align:right;
+    font-variant-numeric:tabular-nums;padding:1px 0 9px;
   }
+  .countdown.last{border-bottom:1px solid var(--line)}
   .countdown.soon{color:var(--warn)}
   .countdown.imminent{color:var(--warn);animation:blink 1s step-start infinite}
   @keyframes blink{50%{opacity:.25}}
@@ -640,7 +642,8 @@ function renderReport(){
       row.appendChild(holder);
       extraBody.appendChild(row);
       if (item.next_change) {
-        const countdown = el("div", "countdown");
+        row.classList.add("with-countdown");
+        const countdown = el("div", "countdown" + (item.week ? "" : " last"));
         countdown.dataset.target = item.next_change;
         extraBody.appendChild(countdown);
       }
