@@ -5,7 +5,7 @@
   "intro": "Wähle aus, was du gemacht hast, bestätige die Werte und sende ab. Alles wird im Haussystem gespeichert.",
   "who": "Wer trägt ein?",
   "when": "Wann wurde es gemacht?",
-  "live_now": "Sensor aktuell",
+  "probe": "Sonde jetzt",
   "what": "Was wurde gemacht?",
   "what_hint": "tippe auf alles, was zutrifft",
   "tiles": {

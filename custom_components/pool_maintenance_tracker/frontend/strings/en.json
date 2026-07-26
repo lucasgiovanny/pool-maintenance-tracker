@@ -5,7 +5,7 @@
   "intro": "Pick what you did, confirm the values and save. Everything is stored in the home system.",
   "who": "Who is logging?",
   "when": "When was it done?",
-  "live_now": "Sensor right now",
+  "probe": "Probe now",
   "what": "What was done?",
   "what_hint": "tap everything that applies",
   "tiles": {

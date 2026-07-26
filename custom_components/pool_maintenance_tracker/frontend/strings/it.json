@@ -5,7 +5,7 @@
   "intro": "Scegli cosa hai fatto, conferma i valori e invia. Tutto viene salvato nel sistema di casa.",
   "who": "Chi registra?",
   "when": "Quando è stato fatto?",
-  "live_now": "Sensore in questo momento",
+  "probe": "Sonda ora",
   "what": "Cosa è stato fatto?",
   "what_hint": "tocca tutto ciò che si applica",
   "tiles": {

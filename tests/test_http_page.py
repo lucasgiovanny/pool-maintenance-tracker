@@ -90,7 +90,7 @@ async def test_page_has_date_picker(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()
     html = await (await client.get(PAGE_URL)).text()
-    assert 'type="date"' in html
+    assert 'type="datetime-local"' in html
     config = extract_config(html)
     assert "other" not in config["tiles"]
 
@@ -119,6 +119,7 @@ async def test_linked_sensors_live_values(hass, salt_entry, hass_client_no_auth)
     assert config["live"]["temperature"] == {"value": 28.4, "unit": "°C"}
     # unavailable source is skipped entirely
     assert "salt" not in config["live"]
+    assert config["linked_mode"] == "manual_only"
 
 
 async def test_no_linked_sensors_means_empty_live(hass, salt_entry, hass_client_no_auth):

@@ -5,7 +5,7 @@
   "intro": "Choisissez ce que vous avez fait, confirmez les valeurs et envoyez. Tout est enregistré dans le système de la maison.",
   "who": "Qui enregistre ?",
   "when": "Quand cela a-t-il été fait ?",
-  "live_now": "Capteur en ce moment",
+  "probe": "Sonde",
   "what": "Qu'est-ce qui a été fait ?",
   "what_hint": "touchez tout ce qui s'applique",
   "tiles": {

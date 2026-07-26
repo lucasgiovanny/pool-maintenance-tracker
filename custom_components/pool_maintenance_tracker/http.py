@@ -197,6 +197,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "tiles": enabled_tiles(entry.options),
         "strings": strings,
         "live": _live_values(hass, entry),
+        "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
         # Only enabled value keys — the page uses presence here to decide
         # which steppers to render (e.g. the salt reading field).
         "limits": {
