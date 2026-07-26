@@ -22,7 +22,7 @@ def test_full_valid_payload():
             "person": "Lucas",
             "logged_at": NOW.isoformat(),
             "categories": ["water_test", "filter_wash", "cell_clean"],
-            "readings": {"ph": 7.2, "free_chlorine": 1.5, "salt": 3.0},
+            "readings": {"ph": 7.2, "free_chlorine": 1.5, "salt": 3.0, "temperature": 27.5},
             "chlorinator": {"output": 5, "mode": "smart"},
             "salt": {"added_kg": 25},
             "acid": {"level": "half"},
@@ -35,6 +35,7 @@ def test_full_valid_payload():
     assert result.values["ph"] == 7.2
     assert result.values["free_chlorine"] == 1.5
     assert result.values["salt_level"] == 3.0
+    assert result.values["water_temperature"] == 27.5
     assert result.values["salt_added"] == 25
     assert result.values["chlorinator_output"] == 5
     assert result.values["chlorinator_mode"] == "smart"

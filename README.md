@@ -38,6 +38,10 @@ periodic tasks are overdue.
 The page adapts to your pool: tiles and entities are created only for the
 equipment you actually have.
 
+<p align="center">
+  <img src="assets/page-screenshot.png" alt="The maintenance page (Portuguese, salt pool with a linked temperature probe)" width="560">
+</p>
+
 ## Installation
 
 ### HACS (recommended)
@@ -127,8 +131,9 @@ the token in the integration options and rewrite the tag.
 
 Created per pool (depending on enabled modules):
 
-- **Numbers** (manually declared values): pH, free chlorine (ppm), salt (g/L),
-  salt added (kg), chlorinator output (g/h)
+- **Numbers** (manually declared values): pH, free chlorine (ppm), water
+  temperature (°C — entity/API only, not on the page), salt (g/L), salt added
+  (kg), chlorinator output (g/h)
 - **Selects**: chlorinator mode (smart/manual/boost), acid tank level (full…¼)
 - **Timestamps**: last water test, salt added, filter wash, cell cleaning,
   probe calibration, acid refill, cleaning, and last maintenance of any kind —
@@ -167,7 +172,7 @@ the endpoint directly (e.g. from a shortcut):
   "person": "Lucas",
   "logged_at": "2026-07-26T14:30:00+01:00",
   "categories": ["water_test", "filter_wash"],
-  "readings": { "ph": 7.2, "free_chlorine": 1.2, "salt": 4.5 },
+  "readings": { "ph": 7.2, "free_chlorine": 1.2, "salt": 4.5, "temperature": 27.5 },
   "chlorinator": { "output": 5, "mode": "smart" },
   "salt": { "added_kg": 25 },
   "acid": { "level": "quarter" },

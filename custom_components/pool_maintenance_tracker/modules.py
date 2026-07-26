@@ -35,6 +35,7 @@ from .const import (
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
+    KEY_WATER_TEMPERATURE,
     POOL_TYPE_CHLORINE,
     POOL_TYPE_OTHER,
     POOL_TYPE_SALT,
@@ -74,7 +75,9 @@ class PoolModule:
 MODULE_WATER_TESTING = PoolModule(
     key="water_testing",
     tiles=("water_test",),
-    value_keys=(KEY_PH, KEY_FREE_CHLORINE),
+    # water_temperature is entity/API-only: the page deliberately has no
+    # stepper for it (it is usually covered by a linked probe).
+    value_keys=(KEY_PH, KEY_FREE_CHLORINE, KEY_WATER_TEMPERATURE),
     timestamp_keys=(TS_WATER_TEST,),
     categories=(CATEGORY_WATER_TEST,),
     always_on=True,

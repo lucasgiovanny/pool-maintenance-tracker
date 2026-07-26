@@ -35,6 +35,7 @@ from .const import (
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
+    KEY_WATER_TEMPERATURE,
     MAX_PERSON_LENGTH,
     NUMBER_RANGES,
     TS_ACID_REFILL,
@@ -176,6 +177,7 @@ def process_payload(
     take_number("readings", "ph", readings.get("ph"), KEY_PH)
     take_number("readings", "free_chlorine", readings.get("free_chlorine"), KEY_FREE_CHLORINE)
     take_number("readings", "salt", readings.get("salt"), KEY_SALT_LEVEL)
+    take_number("readings", "temperature", readings.get("temperature"), KEY_WATER_TEMPERATURE)
 
     chlorinator = section_dict("chlorinator")
     take_number("chlorinator", "output", chlorinator.get("output"), KEY_CHLORINATOR_OUTPUT)
@@ -220,7 +222,9 @@ def process_payload(
             timestamps[ts_key] = logged_at_iso
     # Data presence also refreshes the matching timestamps, even when the
     # corresponding category chip was not selected on the page.
-    if any(key in data for key in (KEY_PH, KEY_FREE_CHLORINE, KEY_SALT_LEVEL)):
+    if any(
+        key in data for key in (KEY_PH, KEY_FREE_CHLORINE, KEY_SALT_LEVEL, KEY_WATER_TEMPERATURE)
+    ):
         timestamps[TS_WATER_TEST] = logged_at_iso
     if KEY_SALT_ADDED in data:
         timestamps[TS_SALT_ADDED] = logged_at_iso

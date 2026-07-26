@@ -50,6 +50,7 @@ DEFAULT_REMINDER_TIME: Final = "10:00"
 # Value keys (tracker "values" bucket)
 KEY_PH: Final = "ph"
 KEY_FREE_CHLORINE: Final = "free_chlorine"
+KEY_WATER_TEMPERATURE: Final = "water_temperature"
 KEY_SALT_LEVEL: Final = "salt_level"
 KEY_SALT_ADDED: Final = "salt_added"
 KEY_CHLORINATOR_OUTPUT: Final = "chlorinator_output"
@@ -86,6 +87,7 @@ CLEANING_TYPES: Final = ["vacuum", "waterline", "baskets"]
 NUMBER_RANGES: Final[dict[str, tuple[float, float, float]]] = {
     KEY_PH: (6.0, 9.0, 0.1),
     KEY_FREE_CHLORINE: (0.0, 10.0, 0.5),
+    KEY_WATER_TEMPERATURE: (0.0, 45.0, 0.1),
     KEY_SALT_LEVEL: (0.0, 10.0, 0.1),
     KEY_SALT_ADDED: (0.0, 500.0, 1.0),
     KEY_CHLORINATOR_OUTPUT: (0.0, 10.0, 0.5),

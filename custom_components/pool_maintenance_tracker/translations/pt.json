@@ -139,6 +139,9 @@
       "free_chlorine": {
         "name": "Cloro livre"
       },
+      "water_temperature": {
+        "name": "Temperatura da água (medição manual)"
+      },
       "salt_level": {
         "name": "Sal (medição manual)"
       },

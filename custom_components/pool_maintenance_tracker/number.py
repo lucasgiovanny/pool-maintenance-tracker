@@ -4,10 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.components.number import (
+    NumberDeviceClass,
+    NumberEntity,
+    NumberMode,
+)
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     UnitOfMass,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -18,6 +23,7 @@ from .const import (
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
+    KEY_WATER_TEMPERATURE,
     NUMBER_RANGES,
 )
 from .entity import PoolBaseEntity
@@ -29,6 +35,7 @@ if TYPE_CHECKING:
 UNITS = {
     KEY_PH: None,
     KEY_FREE_CHLORINE: CONCENTRATION_PARTS_PER_MILLION,
+    KEY_WATER_TEMPERATURE: UnitOfTemperature.CELSIUS,
     KEY_SALT_LEVEL: "g/L",
     KEY_SALT_ADDED: UnitOfMass.KILOGRAMS,
     KEY_CHLORINATOR_OUTPUT: "g/h",
@@ -37,9 +44,14 @@ UNITS = {
 ICONS = {
     KEY_PH: "mdi:ph",
     KEY_FREE_CHLORINE: "mdi:test-tube",
+    KEY_WATER_TEMPERATURE: "mdi:thermometer-water",
     KEY_SALT_LEVEL: "mdi:shaker-outline",
     KEY_SALT_ADDED: "mdi:shaker",
     KEY_CHLORINATOR_OUTPUT: "mdi:lightning-bolt-outline",
+}
+
+DEVICE_CLASSES = {
+    KEY_WATER_TEMPERATURE: NumberDeviceClass.TEMPERATURE,
 }
 
 
@@ -65,6 +77,8 @@ class PoolNumber(PoolBaseEntity, NumberEntity):
         self._attr_native_step = step
         self._attr_native_unit_of_measurement = UNITS[key]
         self._attr_icon = ICONS[key]
+        if key in DEVICE_CLASSES:
+            self._attr_device_class = DEVICE_CLASSES[key]
 
     @property
     def native_value(self) -> float | None:
