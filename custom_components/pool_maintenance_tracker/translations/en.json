@@ -1,0 +1,158 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a pool",
+        "data": {
+          "name": "Pool name",
+          "pool_type": "Pool type"
+        },
+        "data_description": {
+          "pool_type": "Pre-selects the equipment modules. You can adjust them in the next step."
+        }
+      },
+      "modules": {
+        "title": "Equipment modules",
+        "description": "Each enabled module creates its own entities and shows its own tiles on the maintenance page.",
+        "data": {
+          "modules": "Modules"
+        }
+      },
+      "settings": {
+        "title": "Page and reminders",
+        "data": {
+          "language": "Page language",
+          "notify_service": "Notification service (optional)",
+          "filter_days": "Filter wash reminder (days)",
+          "probe_days": "pH probe calibration reminder (days)",
+          "cell_days": "Cell cleaning reminder (days)"
+        },
+        "data_description": {
+          "notify_service": "For example notify.mobile_app_myphone. Leave empty to disable notifications."
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Enter a service like notify.mobile_app_myphone, or leave it empty."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "modules": "Equipment modules",
+          "reminders": "Reminders",
+          "page": "Page and notifications",
+          "security": "Security"
+        }
+      },
+      "modules": {
+        "title": "Equipment modules",
+        "description": "Entities and page tiles of disabled modules are removed.",
+        "data": {
+          "modules": "Modules"
+        }
+      },
+      "reminders": {
+        "title": "Reminders",
+        "data": {
+          "filter_days": "Filter wash reminder (days)",
+          "probe_days": "pH probe calibration reminder (days)",
+          "cell_days": "Cell cleaning reminder (days)",
+          "reminder_time": "Daily check time (HH:MM)"
+        }
+      },
+      "page": {
+        "title": "Page and notifications",
+        "data": {
+          "language": "Page language",
+          "notify_service": "Notification service (optional)"
+        }
+      },
+      "security": {
+        "title": "Security",
+        "description": "Regenerating the access token invalidates the current page URL. You will need to rewrite your QR code or NFC tag.",
+        "data": {
+          "regenerate_token": "Regenerate access token"
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Enter a service like notify.mobile_app_myphone, or leave it empty."
+    }
+  },
+  "selector": {
+    "pool_type": {
+      "options": {
+        "salt": "Salt water (chlorinator)",
+        "chlorine": "Manually dosed chlorine",
+        "other": "Other"
+      }
+    },
+    "modules": {
+      "options": {
+        "salt_chlorinator": "Salt chlorinator",
+        "acid_tank": "pH doser acid tank",
+        "filter": "Filter",
+        "ph_probe": "pH probe",
+        "cleaning": "Cleaning tasks"
+      }
+    },
+    "language": {
+      "options": {
+        "en": "English",
+        "pt": "Português"
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "ph": { "name": "pH (manual reading)" },
+      "free_chlorine": { "name": "Free chlorine" },
+      "salt_level": { "name": "Salt (manual reading)" },
+      "salt_added": { "name": "Salt added" },
+      "chlorinator_output": { "name": "Chlorinator output" }
+    },
+    "select": {
+      "chlorinator_mode": {
+        "name": "Chlorinator mode",
+        "state": {
+          "smart": "Smart",
+          "manual": "Manual",
+          "boost": "Boost"
+        }
+      },
+      "acid_tank_level": {
+        "name": "Acid tank level",
+        "state": {
+          "full": "Full",
+          "three_quarters": "¾",
+          "half": "½",
+          "quarter": "¼"
+        }
+      }
+    },
+    "sensor": {
+      "last_water_test": { "name": "Last water test" },
+      "last_filter_wash": { "name": "Last filter wash" },
+      "last_cell_clean": { "name": "Last cell cleaning" },
+      "last_probe_calibration": { "name": "Last pH probe calibration" },
+      "last_acid_refill": { "name": "Last acid refill" },
+      "last_cleaning": { "name": "Last cleaning" },
+      "last_maintenance": { "name": "Last maintenance" },
+      "last_record": { "name": "Last record" },
+      "access_url": { "name": "Page URL" }
+    },
+    "binary_sensor": {
+      "filter_wash_due": { "name": "Filter wash due" },
+      "cell_clean_due": { "name": "Cell cleaning due" },
+      "probe_calibration_due": { "name": "pH probe calibration due" }
+    },
+    "event": {
+      "maintenance_logged": { "name": "Maintenance logged" }
+    },
+    "image": {
+      "access_qr": { "name": "Page QR code" }
+    }
+  }
+}

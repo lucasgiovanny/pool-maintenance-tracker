@@ -1,0 +1,94 @@
+{
+  "technician": "Técnico",
+  "eyebrow": "Casa das máquinas",
+  "title": "Registo de manutenção da piscina",
+  "intro": "Escolhe o que fizeste, confirma os valores e envia. Fica tudo guardado no sistema da casa.",
+  "who": "Quem está a registar?",
+  "what": "O que foi feito?",
+  "what_hint": "toca em tudo o que se aplica",
+  "tiles": {
+    "water_test": "Leituras da água",
+    "chlorinator": "Clorador ajustado",
+    "salt": "Sal adicionado",
+    "filter_wash": "Filtro lavado",
+    "cell_clean": "Célula limpa",
+    "probe_calibration": "Sonda pH calibrada",
+    "acid_refill": "Ácido atestado",
+    "cleaning": "Aspiração / limpeza",
+    "other": "Outro"
+  },
+  "panels": {
+    "water_test": {
+      "title": "Leituras da água",
+      "ph": "pH medido (fita ou kit)",
+      "free_chlorine": "Cloro livre",
+      "salt": "Sal (medição manual)",
+      "hint": "Preenche só o que mediste. Campos vazios não alteram nada no sistema."
+    },
+    "chlorinator": {
+      "title": "Clorador ajustado",
+      "mode": "Modo",
+      "output": "Produção definida"
+    },
+    "salt": {
+      "title": "Sal adicionado",
+      "amount": "Quantidade deitada à piscina"
+    },
+    "filter_wash": {
+      "title": "Filtro lavado",
+      "hint": "Regista a lavagem. A data fica guardada e o sistema avisa quando estiver na altura da próxima."
+    },
+    "cell_clean": {
+      "title": "Célula do clorador limpa",
+      "hint": "Inspeção ou limpeza do calcário nos elétrodos. Fica registada a data."
+    },
+    "probe_calibration": {
+      "title": "Sonda de pH calibrada",
+      "hint": "Calibração com as soluções tampão. Fica registada a data."
+    },
+    "acid_refill": {
+      "title": "Depósito de ácido atestado",
+      "level": "Nível após atesto (aprox.)"
+    },
+    "cleaning": {
+      "title": "Aspiração / limpeza",
+      "what": "O que foi feito"
+    },
+    "other": {
+      "title": "Outro",
+      "hint": "Outra manutenção qualquer — ficam registados a data e quem fez."
+    }
+  },
+  "acid_levels": {
+    "full": "Cheio",
+    "three_quarters": "¾",
+    "half": "½",
+    "quarter": "¼"
+  },
+  "modes": {
+    "smart": "Smart",
+    "manual": "Manual",
+    "boost": "Boost"
+  },
+  "cleaning_types": {
+    "vacuum": "Aspiração",
+    "waterline": "Linha de água",
+    "baskets": "Cestos"
+  },
+  "units": {
+    "ph": "pH",
+    "free_chlorine": "ppm",
+    "salt_level": "g/L",
+    "salt_added": "kg",
+    "chlorinator_output": "g/h"
+  },
+  "save": "Guardar registo",
+  "saving": "A guardar…",
+  "nothing_title": "Nada para registar",
+  "nothing_text": "Toca primeiro num dos cartões de manutenção.",
+  "success_title": "Registo guardado",
+  "success_text": "O sistema da casa já recebeu esta manutenção.",
+  "error_title": "Não foi possível guardar",
+  "error_text": "Verifica a ligação à internet e tenta outra vez.",
+  "again": "Novo registo"
+}

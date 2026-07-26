@@ -1,0 +1,295 @@
+"""Config and options flows for Pool Maintenance Tracker."""
+
+from __future__ import annotations
+
+import secrets
+from typing import Any
+
+import voluptuous as vol
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import CONF_NAME
+from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    BooleanSelector,
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+    TextSelector,
+)
+
+from .const import (
+    CONF_CELL_DAYS,
+    CONF_FILTER_DAYS,
+    CONF_LANGUAGE,
+    CONF_MODULES,
+    CONF_NOTIFY_SERVICE,
+    CONF_POOL_TYPE,
+    CONF_PROBE_DAYS,
+    CONF_REMINDER_TIME,
+    CONF_TOKEN,
+    DEFAULT_CELL_DAYS,
+    DEFAULT_FILTER_DAYS,
+    DEFAULT_LANGUAGE,
+    DEFAULT_PROBE_DAYS,
+    DEFAULT_REMINDER_TIME,
+    DOMAIN,
+    LANGUAGES,
+    POOL_TYPE_SALT,
+    POOL_TYPES,
+)
+from .modules import (
+    MODULE_FILTER,
+    MODULE_PH_PROBE,
+    MODULE_SALT_CHLORINATOR,
+    OPTIONAL_MODULE_KEYS,
+    POOL_TYPE_PRESETS,
+)
+
+CONF_REGENERATE_TOKEN = "regenerate_token"
+
+REMINDER_DAY_FIELDS: tuple[tuple[str, str, int], ...] = (
+    # (module key, options key, default)
+    (MODULE_FILTER.key, CONF_FILTER_DAYS, DEFAULT_FILTER_DAYS),
+    (MODULE_PH_PROBE.key, CONF_PROBE_DAYS, DEFAULT_PROBE_DAYS),
+    (MODULE_SALT_CHLORINATOR.key, CONF_CELL_DAYS, DEFAULT_CELL_DAYS),
+)
+
+
+def _new_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def _modules_selector(default: list[str]) -> SelectSelector:
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=list(OPTIONAL_MODULE_KEYS),
+            multiple=True,
+            mode=SelectSelectorMode.LIST,
+            translation_key="modules",
+        )
+    )
+
+
+def _language_selector() -> SelectSelector:
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=LANGUAGES,
+            mode=SelectSelectorMode.DROPDOWN,
+            translation_key="language",
+        )
+    )
+
+
+def _reminder_days_schema(modules: list[str], current: dict[str, Any]) -> dict[vol.Marker, Any]:
+    schema: dict[vol.Marker, Any] = {}
+    for module_key, conf_key, default in REMINDER_DAY_FIELDS:
+        if module_key in modules:
+            schema[vol.Required(conf_key, default=current.get(conf_key, default))] = NumberSelector(
+                NumberSelectorConfig(min=1, max=365, step=1, mode=NumberSelectorMode.BOX)
+            )
+    return schema
+
+
+def _validate_notify_service(value: str) -> str | None:
+    """Normalize a notify service; return None when invalid."""
+    service = value.strip()
+    if not service:
+        return ""
+    if service.startswith("notify.") and len(service.split(".")) == 2:
+        return service
+    return None
+
+
+class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Create a new pool."""
+
+    VERSION = 1
+
+    def __init__(self) -> None:
+        self._name: str = ""
+        self._pool_type: str = POOL_TYPE_SALT
+        self._modules: list[str] = []
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            self._name = user_input[CONF_NAME].strip() or "Pool"
+            self._pool_type = user_input[CONF_POOL_TYPE]
+            return await self.async_step_modules()
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_NAME, default="Pool"): TextSelector(),
+                    vol.Required(CONF_POOL_TYPE, default=POOL_TYPE_SALT): SelectSelector(
+                        SelectSelectorConfig(
+                            options=POOL_TYPES,
+                            mode=SelectSelectorMode.LIST,
+                            translation_key="pool_type",
+                        )
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_modules(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            self._modules = user_input[CONF_MODULES]
+            return await self.async_step_settings()
+
+        preset = list(POOL_TYPE_PRESETS[self._pool_type])
+        return self.async_show_form(
+            step_id="modules",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_MODULES, default=preset): _modules_selector(preset)}
+            ),
+        )
+
+    async def async_step_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            notify_service = _validate_notify_service(user_input.get(CONF_NOTIFY_SERVICE, ""))
+            if notify_service is None:
+                errors[CONF_NOTIFY_SERVICE] = "invalid_notify_service"
+            else:
+                options: dict[str, Any] = {
+                    CONF_POOL_TYPE: self._pool_type,
+                    CONF_MODULES: self._modules,
+                    CONF_LANGUAGE: user_input[CONF_LANGUAGE],
+                    CONF_NOTIFY_SERVICE: notify_service,
+                    CONF_REMINDER_TIME: DEFAULT_REMINDER_TIME,
+                }
+                for _module_key, conf_key, _default in REMINDER_DAY_FIELDS:
+                    if conf_key in user_input:
+                        options[conf_key] = int(user_input[conf_key])
+                return self.async_create_entry(
+                    title=self._name,
+                    data={CONF_NAME: self._name, CONF_TOKEN: _new_token()},
+                    options=options,
+                )
+
+        default_language = (
+            self.hass.config.language.split("-")[0]
+            if self.hass.config.language.split("-")[0] in LANGUAGES
+            else DEFAULT_LANGUAGE
+        )
+        schema: dict[vol.Marker, Any] = {
+            vol.Required(CONF_LANGUAGE, default=default_language): _language_selector(),
+            vol.Optional(CONF_NOTIFY_SERVICE, default=""): TextSelector(),
+        }
+        schema.update(_reminder_days_schema(self._modules, {}))
+        return self.async_show_form(
+            step_id="settings", data_schema=vol.Schema(schema), errors=errors
+        )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> PoolOptionsFlow:
+        return PoolOptionsFlow()
+
+
+class PoolOptionsFlow(OptionsFlow):
+    """Edit modules, reminders, page settings, or regenerate the token."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["modules", "reminders", "page", "security"],
+        )
+
+    async def async_step_modules(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            options[CONF_MODULES] = user_input[CONF_MODULES]
+            return self.async_create_entry(data=options)
+
+        current = list(options.get(CONF_MODULES, ()))
+        return self.async_show_form(
+            step_id="modules",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_MODULES, default=current): _modules_selector(current)}
+            ),
+        )
+
+    async def async_step_reminders(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            for _module_key, conf_key, _default in REMINDER_DAY_FIELDS:
+                if conf_key in user_input:
+                    options[conf_key] = int(user_input[conf_key])
+            options[CONF_REMINDER_TIME] = user_input[CONF_REMINDER_TIME]
+            return self.async_create_entry(data=options)
+
+        modules = list(options.get(CONF_MODULES, ()))
+        schema: dict[vol.Marker, Any] = {}
+        schema.update(_reminder_days_schema(modules, options))
+        schema[
+            vol.Required(
+                CONF_REMINDER_TIME,
+                default=options.get(CONF_REMINDER_TIME, DEFAULT_REMINDER_TIME),
+            )
+        ] = TextSelector()
+        return self.async_show_form(step_id="reminders", data_schema=vol.Schema(schema))
+
+    async def async_step_page(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        options = dict(self.config_entry.options)
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            notify_service = _validate_notify_service(user_input.get(CONF_NOTIFY_SERVICE, ""))
+            if notify_service is None:
+                errors[CONF_NOTIFY_SERVICE] = "invalid_notify_service"
+            else:
+                options[CONF_LANGUAGE] = user_input[CONF_LANGUAGE]
+                options[CONF_NOTIFY_SERVICE] = notify_service
+                return self.async_create_entry(data=options)
+
+        return self.async_show_form(
+            step_id="page",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_LANGUAGE,
+                        default=options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE),
+                    ): _language_selector(),
+                    vol.Optional(
+                        CONF_NOTIFY_SERVICE,
+                        default=options.get(CONF_NOTIFY_SERVICE, ""),
+                    ): TextSelector(),
+                }
+            ),
+            errors=errors,
+        )
+
+    async def async_step_security(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            if user_input.get(CONF_REGENERATE_TOKEN):
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    data={**self.config_entry.data, CONF_TOKEN: _new_token()},
+                )
+            return self.async_create_entry(data=dict(self.config_entry.options))
+
+        return self.async_show_form(
+            step_id="security",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_REGENERATE_TOKEN, default=False): BooleanSelector()}
+            ),
+        )

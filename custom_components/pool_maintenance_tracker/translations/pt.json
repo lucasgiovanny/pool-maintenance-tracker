@@ -1,0 +1,158 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Adicionar uma piscina",
+        "data": {
+          "name": "Nome da piscina",
+          "pool_type": "Tipo de piscina"
+        },
+        "data_description": {
+          "pool_type": "Pré-seleciona os módulos de equipamento. Podes ajustá-los no passo seguinte."
+        }
+      },
+      "modules": {
+        "title": "Módulos de equipamento",
+        "description": "Cada módulo ativo cria as suas entidades e mostra os seus cartões na página de manutenção.",
+        "data": {
+          "modules": "Módulos"
+        }
+      },
+      "settings": {
+        "title": "Página e lembretes",
+        "data": {
+          "language": "Idioma da página",
+          "notify_service": "Serviço de notificação (opcional)",
+          "filter_days": "Lembrete de lavagem do filtro (dias)",
+          "probe_days": "Lembrete de calibração da sonda de pH (dias)",
+          "cell_days": "Lembrete de limpeza da célula (dias)"
+        },
+        "data_description": {
+          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para desativar notificações."
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Indica um serviço como notify.mobile_app_meutelemovel, ou deixa vazio."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "modules": "Módulos de equipamento",
+          "reminders": "Lembretes",
+          "page": "Página e notificações",
+          "security": "Segurança"
+        }
+      },
+      "modules": {
+        "title": "Módulos de equipamento",
+        "description": "As entidades e cartões de módulos desativados são removidos.",
+        "data": {
+          "modules": "Módulos"
+        }
+      },
+      "reminders": {
+        "title": "Lembretes",
+        "data": {
+          "filter_days": "Lembrete de lavagem do filtro (dias)",
+          "probe_days": "Lembrete de calibração da sonda de pH (dias)",
+          "cell_days": "Lembrete de limpeza da célula (dias)",
+          "reminder_time": "Hora da verificação diária (HH:MM)"
+        }
+      },
+      "page": {
+        "title": "Página e notificações",
+        "data": {
+          "language": "Idioma da página",
+          "notify_service": "Serviço de notificação (opcional)"
+        }
+      },
+      "security": {
+        "title": "Segurança",
+        "description": "Regenerar o token de acesso invalida o URL atual da página. Terás de regravar o QR code ou a tag NFC.",
+        "data": {
+          "regenerate_token": "Regenerar token de acesso"
+        }
+      }
+    },
+    "error": {
+      "invalid_notify_service": "Indica um serviço como notify.mobile_app_meutelemovel, ou deixa vazio."
+    }
+  },
+  "selector": {
+    "pool_type": {
+      "options": {
+        "salt": "Água salgada (clorador)",
+        "chlorine": "Cloro doseado manualmente",
+        "other": "Outro"
+      }
+    },
+    "modules": {
+      "options": {
+        "salt_chlorinator": "Clorador salino",
+        "acid_tank": "Depósito de ácido do doseador de pH",
+        "filter": "Filtro",
+        "ph_probe": "Sonda de pH",
+        "cleaning": "Tarefas de limpeza"
+      }
+    },
+    "language": {
+      "options": {
+        "en": "English",
+        "pt": "Português"
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "ph": { "name": "pH (medição manual)" },
+      "free_chlorine": { "name": "Cloro livre" },
+      "salt_level": { "name": "Sal (medição manual)" },
+      "salt_added": { "name": "Sal adicionado" },
+      "chlorinator_output": { "name": "Produção do clorador" }
+    },
+    "select": {
+      "chlorinator_mode": {
+        "name": "Modo do clorador",
+        "state": {
+          "smart": "Smart",
+          "manual": "Manual",
+          "boost": "Boost"
+        }
+      },
+      "acid_tank_level": {
+        "name": "Nível do depósito de ácido",
+        "state": {
+          "full": "Cheio",
+          "three_quarters": "¾",
+          "half": "½",
+          "quarter": "¼"
+        }
+      }
+    },
+    "sensor": {
+      "last_water_test": { "name": "Última análise da água" },
+      "last_filter_wash": { "name": "Última lavagem do filtro" },
+      "last_cell_clean": { "name": "Última limpeza da célula" },
+      "last_probe_calibration": { "name": "Última calibração da sonda de pH" },
+      "last_acid_refill": { "name": "Último atesto de ácido" },
+      "last_cleaning": { "name": "Última limpeza" },
+      "last_maintenance": { "name": "Última manutenção" },
+      "last_record": { "name": "Último registo" },
+      "access_url": { "name": "URL da página" }
+    },
+    "binary_sensor": {
+      "filter_wash_due": { "name": "Lavagem do filtro em atraso" },
+      "cell_clean_due": { "name": "Limpeza da célula em atraso" },
+      "probe_calibration_due": { "name": "Calibração da sonda em atraso" }
+    },
+    "event": {
+      "maintenance_logged": { "name": "Manutenção registada" }
+    },
+    "image": {
+      "access_qr": { "name": "QR code da página" }
+    }
+  }
+}

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Pool maintenance</title>
+<style>
+  :root{
+    --deep:#0B4F6C;
+    --aqua:#0FA3B1;
+    --bg:#F4F8F9;
+    --ink:#10222B;
+    --muted:#5D7480;
+    --line:#D6E2E6;
+    --warn:#E8890C;
+    --ok:#1E9E6A;
+    --white:#FFFFFF;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{font-size:16px}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:110px;
+  }
+
+  header{
+    background:var(--deep);
+    color:var(--white);
+    padding:20px 20px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:8px;
+    background:repeating-linear-gradient(-45deg,var(--aqua) 0 14px,transparent 14px 28px);
+    opacity:.9;
+  }
+  .eyebrow{
+    font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--aqua);font-weight:700;margin-bottom:4px;
+  }
+  h1{font-weight:800;font-size:1.45rem;line-height:1.15}
+  header p{font-size:.85rem;opacity:.75;margin-top:6px}
+
+  main{max-width:560px;margin:0 auto;padding:18px 16px 0}
+
+  .sec{margin-top:26px}
+  .sec-title{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .sec-title h2{font-size:1.02rem;font-weight:700}
+  .sec-title small{color:var(--muted);font-size:.78rem;font-weight:500}
+
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{
+    border:2px solid var(--line);background:var(--white);
+    border-radius:999px;padding:12px 20px;font-size:.95rem;font-weight:600;
+    color:var(--muted);cursor:pointer;transition:all .15s;
+    font-family:inherit;
+  }
+  .chip.on{border-color:var(--deep);background:var(--deep);color:var(--white)}
+
+  .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:460px){.tiles{grid-template-columns:repeat(3,1fr)}}
+  .tile{
+    background:var(--white);border:2px solid var(--line);border-radius:var(--radius);
+    padding:16px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    cursor:pointer;transition:all .15s;font-family:inherit;min-height:104px;justify-content:center;
+    text-align:center;
+  }
+  .tile svg{width:30px;height:30px;stroke:var(--muted);transition:stroke .15s;fill:none;stroke-width:2;stroke-linecap:round}
+  .tile span{font-size:.82rem;font-weight:600;color:var(--ink);line-height:1.2}
+  .tile.on{border-color:var(--aqua);background:#E8F6F7;box-shadow:inset 0 0 0 1px var(--aqua)}
+  .tile.on svg{stroke:var(--deep)}
+  .tile:active{transform:scale(.97)}
+
+  .panel{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 16px;margin-top:14px;display:none;
+  }
+  .panel.open{display:block}
+  .panel h3{
+    font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--deep);font-weight:700;margin-bottom:14px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .panel h3::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--aqua)}
+
+  .field{margin-bottom:16px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:8px}
+
+  .stepper{display:flex;align-items:stretch;gap:0;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+  .stepper button{
+    width:64px;border:none;background:var(--bg);font-size:1.6rem;font-weight:700;
+    color:var(--deep);cursor:pointer;font-family:inherit;
+  }
+  .stepper button:active{background:var(--line)}
+  .stepper input{
+    flex:1;border:none;text-align:center;font-size:1.5rem;font-weight:700;
+    font-family:inherit;color:var(--ink);min-width:0;padding:14px 4px;background:var(--white);
+  }
+  .stepper input:focus{outline:none}
+  .stepper .unit{
+    display:flex;align-items:center;padding:0 14px;background:var(--white);
+    color:var(--muted);font-size:.85rem;font-weight:600;border-left:1px solid var(--line);
+  }
+
+  .segments{display:flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+  .segments button{
+    flex:1;border:none;background:var(--white);padding:13px 6px;font-size:.9rem;font-weight:600;
+    color:var(--muted);cursor:pointer;font-family:inherit;border-right:1px solid var(--line);
+  }
+  .segments button:last-child{border-right:none}
+  .segments button.on{background:var(--deep);color:var(--white)}
+
+  .hint{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.4}
+
+  .bar{
+    position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,var(--bg) 70%,transparent);
+  }
+  .send{
+    width:100%;max-width:560px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px;
+    background:var(--deep);color:var(--white);border:none;border-radius:16px;
+    padding:18px;font-size:1.05rem;font-weight:700;font-family:inherit;cursor:pointer;
+    box-shadow:0 6px 18px rgba(11,79,108,.28);transition:transform .12s;
+  }
+  .send:active{transform:scale(.98)}
+  .send:disabled{background:var(--muted);box-shadow:none}
+  .send svg{width:20px;height:20px;stroke:var(--white);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+  .result{
+    position:fixed;inset:0;background:var(--bg);z-index:50;display:none;
+    flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;
+  }
+  .result.open{display:flex}
+  .result .icon{
+    width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+  }
+  .result.ok .icon{background:#DCF3E9}
+  .result.err .icon{background:#FBE9D0}
+  .result .icon svg{width:42px;height:42px}
+  .result h2{font-size:1.3rem;margin-bottom:10px;font-weight:800}
+  .result p{color:var(--muted);font-size:.95rem;line-height:1.5;max-width:340px}
+  .result .summary{
+    margin-top:18px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 20px;text-align:left;font-size:.88rem;line-height:1.7;max-width:340px;width:100%;
+  }
+  .result .back{
+    margin-top:26px;background:none;border:2px solid var(--deep);color:var(--deep);
+    border-radius:999px;padding:12px 28px;font-weight:700;font-size:.95rem;font-family:inherit;cursor:pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important}
+  }
+  button:focus-visible, input:focus-visible{
+    outline:3px solid var(--warn);outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow" id="eyebrow"></div>
+  <h1 id="title"></h1>
+  <p id="intro"></p>
+</header>
+
+<main>
+  <section class="sec">
+    <div class="sec-title"><h2 id="who-title"></h2></div>
+    <div class="chips" id="who"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-title"><h2 id="what-title"></h2><small id="what-hint"></small></div>
+    <div class="tiles" id="tiles"></div>
+    <div id="panels"></div>
+  </section>
+</main>
+
+<div class="bar">
+  <button class="send" id="send">
+    <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+    <span id="send-label"></span>
+  </button>
+</div>
+
+<div class="result" id="result">
+  <div class="icon" id="res-icon"></div>
+  <h2 id="res-title"></h2>
+  <p id="res-text"></p>
+  <div class="summary" id="res-summary"></div>
+  <button class="back" id="res-back" onclick="location.reload()"></button>
+</div>
+
+<script>
+"use strict";
+/* Injected by the integration when the page is served. */
+const CFG = "__POOL_CONFIG__";
+const S = CFG.strings;
+
+const ICONS = {
+  water_test: '<path d="M12 3v13"/><circle cx="12" cy="19" r="3"/><path d="M9 7h6M9 11h6"/>',
+  chlorinator: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01M8 16h8"/>',
+  salt: '<path d="M7 21h10l1.5-11h-13z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/>',
+  filter_wash: '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M6 6.5c2 1.4 10 1.4 12 0M6 17.5c2-1.4 10-1.4 12 0"/>',
+  cell_clean: '<rect x="6" y="4" width="12" height="16" rx="2"/><path d="M10 8v8M14 8v8"/>',
+  probe_calibration: '<path d="M12 3v8"/><circle cx="12" cy="16" r="5"/><path d="M12 14v2l1.5 1"/>',
+  acid_refill: '<path d="M12 3s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/><path d="M9 15a3 3 0 0 0 3 3"/>',
+  cleaning: '<path d="M4 20l4-9 5 5-9 4z"/><path d="M13 11l7-7M14 4h6v6"/>',
+  other: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>'
+};
+
+const PLACEHOLDERS = {
+  ph: "7.2", free_chlorine: "1.5", salt_level: "3.0",
+  salt_added: "25", chlorinator_output: "10"
+};
+
+document.documentElement.lang = CFG.language;
+document.title = CFG.pool_name + " · " + S.title;
+setText("eyebrow", CFG.pool_name);
+setText("title", S.title);
+setText("intro", S.intro);
+setText("who-title", S.who);
+setText("what-title", S.what);
+setText("what-hint", S.what_hint);
+setText("send-label", S.save);
+setText("res-back", S.again);
+
+function setText(id, value){ document.getElementById(id).textContent = value; }
+function el(tag, cls, text){
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+/* ---------- who ---------- */
+const whoBox = document.getElementById("who");
+CFG.people.forEach((name, index) => {
+  const chip = el("button", "chip" + (index === 0 ? " on" : ""), name);
+  chip.type = "button";
+  chip.dataset.v = name;
+  chip.addEventListener("click", () => {
+    whoBox.querySelectorAll(".chip").forEach(other => other.classList.remove("on"));
+    chip.classList.add("on");
+  });
+  whoBox.appendChild(chip);
+});
+
+/* ---------- field builders ---------- */
+function stepperField(labelText, key){
+  if (!CFG.limits[key]) return null;
+  const limit = CFG.limits[key];
+  const field = el("div", "field");
+  field.appendChild(el("label", null, labelText));
+  const box = el("div", "stepper");
+  box.dataset.key = key;
+
+  const minus = el("button", null, "−");
+  minus.type = "button";
+  const input = document.createElement("input");
+  input.type = "number";
+  input.inputMode = limit.step < 1 ? "decimal" : "numeric";
+  input.step = String(limit.step);
+  input.placeholder = PLACEHOLDERS[key] || String(limit.min);
+  const unit = el("div", "unit", S.units[key] || "");
+  const plus = el("button", null, "+");
+  plus.type = "button";
+
+  const decimals = (String(limit.step).split(".")[1] || "").length;
+  function bump(direction){
+    let value = parseFloat(input.value);
+    if (isNaN(value)) value = parseFloat(input.placeholder) || limit.min;
+    value += direction * limit.step;
+    value = Math.min(limit.max, Math.max(limit.min, value));
+    input.value = value.toFixed(decimals);
+  }
+  minus.addEventListener("click", () => bump(-1));
+  plus.addEventListener("click", () => bump(1));
+
+  box.append(minus, input, unit, plus);
+  field.appendChild(box);
+  return field;
+}
+
+function segmentsField(labelText, key, options, labels, multi){
+  const field = el("div", "field");
+  field.appendChild(el("label", null, labelText));
+  const box = el("div", "segments");
+  box.dataset.key = key;
+  if (multi) box.dataset.multi = "1";
+  options.forEach(option => {
+    const button = el("button", null, labels[option] || option);
+    button.type = "button";
+    button.dataset.v = option;
+    button.addEventListener("click", () => {
+      if (multi) {
+        button.classList.toggle("on");
+      } else {
+        box.querySelectorAll("button").forEach(other => {
+          if (other !== button) other.classList.remove("on");
+        });
+        button.classList.toggle("on");
+      }
+    });
+    box.appendChild(button);
+  });
+  field.appendChild(box);
+  return field;
+}
+
+function hintOnly(text){
+  return el("p", "hint", text);
+}
+
+/* ---------- panels per tile ---------- */
+function buildPanel(tile){
+  const panel = el("div", "panel");
+  panel.id = "panel-" + tile;
+  const p = S.panels[tile];
+  panel.appendChild(el("h3", null, p.title));
+  const parts = [];
+  if (tile === "water_test") {
+    parts.push(stepperField(p.ph, "ph"));
+    parts.push(stepperField(p.free_chlorine, "free_chlorine"));
+    parts.push(stepperField(p.salt, "salt_level"));
+    parts.push(hintOnly(p.hint));
+  } else if (tile === "chlorinator") {
+    parts.push(segmentsField(p.mode, "chlorinator_mode", ["smart", "manual", "boost"], S.modes, false));
+    parts.push(stepperField(p.output, "chlorinator_output"));
+  } else if (tile === "salt") {
+    parts.push(stepperField(p.amount, "salt_added"));
+  } else if (tile === "acid_refill") {
+    parts.push(segmentsField(p.level, "acid_level", ["full", "three_quarters", "half", "quarter"], S.acid_levels, false));
+  } else if (tile === "cleaning") {
+    parts.push(segmentsField(p.what, "cleaning_types", ["vacuum", "waterline", "baskets"], S.cleaning_types, true));
+  } else {
+    parts.push(hintOnly(p.hint));
+  }
+  parts.filter(Boolean).forEach(part => panel.appendChild(part));
+  return panel;
+}
+
+const tilesBox = document.getElementById("tiles");
+const panelsBox = document.getElementById("panels");
+CFG.tiles.forEach(tile => {
+  const button = el("button", "tile");
+  button.type = "button";
+  button.dataset.tile = tile;
+  button.innerHTML =
+    '<svg viewBox="0 0 24 24">' + (ICONS[tile] || ICONS.other) + "</svg>" +
+    "<span></span>";
+  button.querySelector("span").textContent = S.tiles[tile] || tile;
+  button.addEventListener("click", () => {
+    button.classList.toggle("on");
+    const panel = document.getElementById("panel-" + tile);
+    panel.classList.toggle("open", button.classList.contains("on"));
+  });
+  tilesBox.appendChild(button);
+  panelsBox.appendChild(buildPanel(tile));
+});
+
+/* ---------- value collection ---------- */
+function stepperValue(key){
+  const box = document.querySelector('.stepper[data-key="' + key + '"]');
+  if (!box) return null;
+  const value = parseFloat(box.querySelector("input").value);
+  return isNaN(value) ? null : value;
+}
+function segmentValue(key){
+  const active = document.querySelector('.segments[data-key="' + key + '"] button.on');
+  return active ? active.dataset.v : null;
+}
+function segmentValues(key){
+  const active = document.querySelectorAll('.segments[data-key="' + key + '"] button.on');
+  return Array.from(active).map(button => button.dataset.v);
+}
+
+/* ---------- submit ---------- */
+const sendButton = document.getElementById("send");
+sendButton.addEventListener("click", async () => {
+  const selected = Array.from(document.querySelectorAll(".tile.on")).map(
+    tile => tile.dataset.tile
+  );
+  if (selected.length === 0) {
+    showResult(false, S.nothing_title, S.nothing_text, "");
+    return;
+  }
+
+  const person = document.querySelector("#who .chip.on").dataset.v;
+  const payload = {
+    version: 2,
+    person: person,
+    logged_at: new Date().toISOString(),
+    categories: selected,
+    readings: {
+      ph: stepperValue("ph"),
+      free_chlorine: stepperValue("free_chlorine"),
+      salt: stepperValue("salt_level")
+    },
+    chlorinator: {
+      output: stepperValue("chlorinator_output"),
+      mode: segmentValue("chlorinator_mode")
+    },
+    salt: { added_kg: stepperValue("salt_added") },
+    acid: { level: segmentValue("acid_level") },
+    cleaning: { types: segmentValues("cleaning_types") }
+  };
+
+  sendButton.disabled = true;
+  setText("send-label", S.saving);
+
+  try {
+    const response = await fetch(CFG.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    showResult(true, S.success_title, S.success_text, summaryFor(payload, selected));
+  } catch (error) {
+    showResult(false, S.error_title, S.error_text, "");
+    sendButton.disabled = false;
+    setText("send-label", S.save);
+  }
+});
+
+function summaryFor(payload, selected){
+  const stamp = new Date().toLocaleString(CFG.language === "pt" ? "pt-PT" : undefined, {
+    dateStyle: "short", timeStyle: "short"
+  });
+  const fragments = [];
+  selected.forEach(tile => fragments.push("✓ " + (S.tiles[tile] || tile)));
+  if (payload.readings.ph !== null) fragments.push(S.panels.water_test.ph + ": " + payload.readings.ph);
+  if (payload.readings.free_chlorine !== null) fragments.push(S.panels.water_test.free_chlorine + ": " + payload.readings.free_chlorine + " " + S.units.free_chlorine);
+  if (payload.readings.salt !== null) fragments.push(S.panels.water_test.salt + ": " + payload.readings.salt + " " + S.units.salt_level);
+  if (payload.salt.added_kg !== null) fragments.push(S.tiles.salt + ": " + payload.salt.added_kg + " " + S.units.salt_added);
+  if (payload.chlorinator.output !== null) fragments.push(S.panels.chlorinator.output + ": " + payload.chlorinator.output + " " + S.units.chlorinator_output);
+  if (payload.chlorinator.mode) fragments.push(S.panels.chlorinator.mode + ": " + S.modes[payload.chlorinator.mode]);
+  if (payload.acid.level) fragments.push(S.panels.acid_refill.level + ": " + S.acid_levels[payload.acid.level]);
+  if (payload.cleaning.types.length) fragments.push(payload.cleaning.types.map(type => S.cleaning_types[type]).join(", "));
+
+  const summary = document.createElement("div");
+  const header = document.createElement("strong");
+  header.textContent = payload.person + " · " + stamp;
+  summary.appendChild(header);
+  fragments.forEach(text => {
+    summary.appendChild(document.createElement("br"));
+    summary.appendChild(document.createTextNode(text));
+  });
+  return summary.innerHTML;
+}
+
+function showResult(ok, title, text, summaryHtml){
+  const box = document.getElementById("result");
+  box.classList.remove("ok", "err");
+  box.classList.add("open", ok ? "ok" : "err");
+  document.getElementById("res-icon").innerHTML = ok
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="#1E9E6A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="#E8890C" stroke-width="2.5" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>';
+  setText("res-title", title);
+  setText("res-text", text);
+  const summaryBox = document.getElementById("res-summary");
+  summaryBox.innerHTML = summaryHtml;
+  summaryBox.style.display = summaryHtml ? "block" : "none";
+  if (!ok && !summaryHtml) {
+    setTimeout(() => box.classList.remove("open"), 2600);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{
+  "technician": "Technician",
+  "eyebrow": "Machine room",
+  "title": "Pool maintenance log",
+  "intro": "Pick what you did, confirm the values and save. Everything is stored in the home system.",
+  "who": "Who is logging?",
+  "what": "What was done?",
+  "what_hint": "tap everything that applies",
+  "tiles": {
+    "water_test": "Water readings",
+    "chlorinator": "Chlorinator adjusted",
+    "salt": "Salt added",
+    "filter_wash": "Filter washed",
+    "cell_clean": "Cell cleaned",
+    "probe_calibration": "pH probe calibrated",
+    "acid_refill": "Acid topped up",
+    "cleaning": "Vacuum / cleaning",
+    "other": "Other"
+  },
+  "panels": {
+    "water_test": {
+      "title": "Water readings",
+      "ph": "pH (strip or kit)",
+      "free_chlorine": "Free chlorine",
+      "salt": "Salt (manual reading)",
+      "hint": "Only fill in what you measured. Empty fields don't change anything."
+    },
+    "chlorinator": {
+      "title": "Chlorinator adjusted",
+      "mode": "Mode",
+      "output": "Output setting"
+    },
+    "salt": {
+      "title": "Salt added",
+      "amount": "Amount added to the pool"
+    },
+    "filter_wash": {
+      "title": "Filter washed",
+      "hint": "Logs the wash date. The system reminds you when the next one is due."
+    },
+    "cell_clean": {
+      "title": "Chlorinator cell cleaned",
+      "hint": "Inspection or descaling of the electrodes. The date is logged."
+    },
+    "probe_calibration": {
+      "title": "pH probe calibrated",
+      "hint": "Calibration with the buffer solutions. The date is logged."
+    },
+    "acid_refill": {
+      "title": "Acid tank topped up",
+      "level": "Level after refill (approx.)"
+    },
+    "cleaning": {
+      "title": "Vacuum / cleaning",
+      "what": "What was done"
+    },
+    "other": {
+      "title": "Other",
+      "hint": "Any other maintenance — the date and the person are logged."
+    }
+  },
+  "acid_levels": {
+    "full": "Full",
+    "three_quarters": "¾",
+    "half": "½",
+    "quarter": "¼"
+  },
+  "modes": {
+    "smart": "Smart",
+    "manual": "Manual",
+    "boost": "Boost"
+  },
+  "cleaning_types": {
+    "vacuum": "Vacuum",
+    "waterline": "Waterline",
+    "baskets": "Baskets"
+  },
+  "units": {
+    "ph": "pH",
+    "free_chlorine": "ppm",
+    "salt_level": "g/L",
+    "salt_added": "kg",
+    "chlorinator_output": "g/h"
+  },
+  "save": "Save record",
+  "saving": "Saving…",
+  "nothing_title": "Nothing to log",
+  "nothing_text": "Tap one of the maintenance tiles first.",
+  "success_title": "Record saved",
+  "success_text": "The home system has received this maintenance.",
+  "error_title": "Could not save",
+  "error_text": "Check the internet connection and try again.",
+  "again": "New record"
+}
