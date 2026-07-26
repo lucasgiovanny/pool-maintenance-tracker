@@ -92,7 +92,7 @@
   "again": "New record",
   "tabs": {
     "log": "Log",
-    "report": "Report",
+    "report": "Status",
     "history": "History"
   },
   "report": {
@@ -158,7 +158,7 @@
       "Tap what you did and fill in the values you measured.",
       "Save the record."
     ],
-    "report_hint": "The Report tab shows the pool status, upcoming maintenance and history charts.",
+    "report_hint": "The Status tab shows the pool status, upcoming maintenance and history charts.",
     "print": "Print"
   }
 }

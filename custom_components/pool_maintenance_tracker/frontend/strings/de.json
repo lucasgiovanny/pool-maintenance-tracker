@@ -92,7 +92,7 @@
   "again": "Neuer Eintrag",
   "tabs": {
     "log": "Eintragen",
-    "report": "Bericht",
+    "report": "Status",
     "history": "Verlauf"
   },
   "report": {
@@ -158,7 +158,7 @@
       "Tippe an, was du gemacht hast, und trage die Messwerte ein.",
       "Speichere den Eintrag."
     ],
-    "report_hint": "Der Bericht-Tab zeigt den Poolzustand, anstehende Wartungen und den Verlauf.",
+    "report_hint": "Der Status-Tab zeigt den Poolzustand, anstehende Wartungen und den Verlauf.",
     "print": "Drucken"
   }
 }

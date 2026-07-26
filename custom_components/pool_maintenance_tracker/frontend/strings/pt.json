@@ -92,7 +92,7 @@
   "again": "Novo registo",
   "tabs": {
     "log": "Registar",
-    "report": "Relatório",
+    "report": "Estado",
     "history": "Histórico"
   },
   "report": {
@@ -158,7 +158,7 @@
       "Toca no que fizeste e preenche os valores que mediste.",
       "Guarda o registo."
     ],
-    "report_hint": "A aba Relatório mostra o estado da piscina, as próximas manutenções e os gráficos de histórico.",
+    "report_hint": "A aba Estado mostra o estado da piscina, as próximas manutenções e os gráficos de histórico.",
     "print": "Imprimir"
   }
 }

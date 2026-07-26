@@ -88,7 +88,7 @@
         "data": {
           "language": "Sprache der Seite",
           "notify_service": "Benachrichtigungsdienst (optional)",
-          "report_enabled": "Bericht-Tab auf der Seite"
+          "report_enabled": "\"Status\"-Tab auf der Seite"
         },
         "data_description": {
           "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung.",

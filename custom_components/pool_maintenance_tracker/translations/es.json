@@ -88,7 +88,7 @@
         "data": {
           "language": "Idioma de la página",
           "notify_service": "Servicio de notificación (opcional)",
-          "report_enabled": "Pestaña de informe en la página"
+          "report_enabled": "Pestaña \"Estado\" en la página"
         },
         "data_description": {
           "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones.",

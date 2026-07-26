@@ -88,7 +88,7 @@
         "data": {
           "language": "Langue de la page",
           "notify_service": "Service de notification (facultatif)",
-          "report_enabled": "Onglet rapport sur la page"
+          "report_enabled": "Onglet « État » sur la page"
         },
         "data_description": {
           "notify_service": "Par exemple notify.mobile_app_montelephone. Laissez vide pour désactiver les notifications intégrées : les capteurs binaires de retard et l'événement d'entretien restent disponibles pour vos propres automatisations.",

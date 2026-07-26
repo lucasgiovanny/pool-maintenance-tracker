@@ -92,7 +92,7 @@
   "again": "Nouvel enregistrement",
   "tabs": {
     "log": "Enregistrer",
-    "report": "Rapport",
+    "report": "État",
     "history": "Historique"
   },
   "report": {
@@ -158,7 +158,7 @@
       "Touchez ce que vous avez fait et saisissez les valeurs mesurées.",
       "Enregistrez la saisie."
     ],
-    "report_hint": "L'onglet Rapport montre l'état de la piscine, les prochains entretiens et l'historique.",
+    "report_hint": "L'onglet État montre l'état de la piscine, les prochains entretiens et l'historique.",
     "print": "Imprimer"
   }
 }

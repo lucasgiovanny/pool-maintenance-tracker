@@ -88,7 +88,7 @@
         "data": {
           "language": "Lingua della pagina",
           "notify_service": "Servizio di notifica (facoltativo)",
-          "report_enabled": "Scheda rapporto nella pagina"
+          "report_enabled": "Scheda \"Stato\" nella pagina"
         },
         "data_description": {
           "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni.",

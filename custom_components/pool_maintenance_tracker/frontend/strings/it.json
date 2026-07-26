@@ -92,7 +92,7 @@
   "again": "Nuova registrazione",
   "tabs": {
     "log": "Registra",
-    "report": "Rapporto",
+    "report": "Stato",
     "history": "Storico"
   },
   "report": {
@@ -158,7 +158,7 @@
       "Tocca ciò che hai fatto e inserisci i valori misurati.",
       "Salva la registrazione."
     ],
-    "report_hint": "La scheda Rapporto mostra lo stato della piscina, le prossime manutenzioni e lo storico.",
+    "report_hint": "La scheda Stato mostra lo stato della piscina, le prossime manutenzioni e lo storico.",
     "print": "Stampa"
   }
 }

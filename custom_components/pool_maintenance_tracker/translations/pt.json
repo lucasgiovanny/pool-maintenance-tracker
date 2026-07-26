@@ -88,7 +88,7 @@
         "data": {
           "language": "Idioma da página",
           "notify_service": "Serviço de notificação (opcional)",
-          "report_enabled": "Aba de relatório na página"
+          "report_enabled": "Aba \"Estado\" na página"
         },
         "data_description": {
           "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações.",
