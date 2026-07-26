@@ -85,12 +85,31 @@
   .badge.due{background:#FBE9D0;color:#8A5200}
   .badge.ok{background:#DCF3E9;color:#14684A}
 
-  .rec{padding:11px 0;border-bottom:1px solid var(--line)}
+  .rec{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
   .rec:last-child{border-bottom:none}
-  .rec .head{display:flex;justify-content:space-between;gap:10px;font-size:.85rem;font-weight:700}
-  .rec .head span:last-child{color:var(--muted);font-weight:600;white-space:nowrap}
-  .rec .cats{font-size:.8rem;color:var(--deep);font-weight:600;margin-top:3px}
-  .rec .vals{font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.5}
+  .avatar{
+    flex:none;width:38px;height:38px;border-radius:50%;background:var(--deep);color:var(--white);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;
+    letter-spacing:.02em;
+  }
+  .rec .body{flex:1;min-width:0}
+  .rec .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .rec .head .who{font-size:.9rem;font-weight:700}
+  .rec .head .when{color:var(--muted);font-weight:600;font-size:.74rem;white-space:nowrap}
+  .chips-mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .cat-chip{
+    display:inline-flex;align-items:center;gap:5px;background:#E8F6F7;
+    border:1px solid var(--aqua);color:var(--deep);border-radius:999px;
+    padding:3px 10px;font-size:.72rem;font-weight:700;
+  }
+  .cat-chip svg{width:13px;height:13px;stroke:var(--deep);fill:none;stroke-width:2;stroke-linecap:round;flex:none}
+  .val-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .val-pill{
+    background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:3px 9px;font-size:.72rem;color:var(--muted);font-weight:600;
+  }
+  .val-pill b{color:var(--ink);font-weight:700}
+  .rec .note-text{font-size:.88rem;margin-top:5px;line-height:1.5;white-space:pre-wrap}
 
   .sec{margin-top:26px}
   .sec-title{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
@@ -187,11 +206,6 @@
     padding:12px 22px;font-size:.92rem;font-weight:700;font-family:inherit;cursor:pointer;
   }
   .note-save:disabled{background:var(--muted)}
-  .note{padding:11px 0;border-bottom:1px solid var(--line)}
-  .note:last-child{border-bottom:none}
-  .note .head{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;font-weight:700}
-  .note .head span:last-child{color:var(--muted);font-weight:600;white-space:nowrap}
-  .note .text{font-size:.88rem;margin-top:4px;line-height:1.5;white-space:pre-wrap}
 
   .bar{
     position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
@@ -250,6 +264,12 @@
   <div class="tabs" id="tabs">
     <button type="button" class="on" id="tab-log"></button>
     <button type="button" id="tab-report"></button>
+    <button type="button" id="tab-history"></button>
+  </div>
+
+  <div id="view-history" style="display:none">
+    <div class="tabs periods" id="history-periods" style="margin-top:16px"></div>
+    <div id="history-body"></div>
   </div>
 
   <div id="view-report" style="display:none">
@@ -356,6 +376,7 @@ setText("send-label", S.save);
 setText("res-back", S.again);
 setText("tab-log", S.tabs.log);
 setText("tab-report", S.tabs.report);
+setText("tab-history", S.tabs.history);
 setText("report-current-title", S.report.current);
 setText("report-tasks-title", S.report.tasks);
 setText("report-extra-title", S.report.equipment);
@@ -371,19 +392,24 @@ document.getElementById("report-note-text").placeholder = S.notes.placeholder;
 if (!CFG.report) {
   document.getElementById("tabs").style.display = "none";
   document.getElementById("view-report").remove();
+  document.getElementById("view-history").remove();
 }
 const tabLog = document.getElementById("tab-log");
 const tabReport = document.getElementById("tab-report");
+const tabHistory = document.getElementById("tab-history");
 function showTab(which){
-  const log = which === "log";
-  tabLog.classList.toggle("on", log);
-  tabReport.classList.toggle("on", !log);
-  document.getElementById("view-log").style.display = log ? "" : "none";
-  document.getElementById("view-report").style.display = log ? "none" : "";
-  document.querySelector(".bar").style.display = log ? "" : "none";
+  tabLog.classList.toggle("on", which === "log");
+  tabReport.classList.toggle("on", which === "report");
+  tabHistory.classList.toggle("on", which === "history");
+  document.getElementById("view-log").style.display = which === "log" ? "" : "none";
+  document.getElementById("view-report").style.display = which === "report" ? "" : "none";
+  document.getElementById("view-history").style.display = which === "history" ? "" : "none";
+  document.querySelector(".bar").style.display = which === "log" ? "" : "none";
+  if (which === "history") loadHistory(historyDays);
 }
 tabLog.addEventListener("click", () => showTab("log"));
 tabReport.addEventListener("click", () => showTab("report"));
+tabHistory.addEventListener("click", () => showTab("history"));
 
 /* ---------- report rendering ---------- */
 const LOCALE = CFG.language === "pt" ? "pt-PT" : CFG.language;
@@ -496,31 +522,59 @@ function renderReport(){
     historyBody.appendChild(el("p", "hint", S.report.empty_history));
     return;
   }
-  records.forEach(record => {
-    const item = el("div", "rec");
-    const head = el("div", "head");
-    head.appendChild(el("span", null, record.person || "?"));
-    head.appendChild(el("span", null, formatStamp(record.logged_at)));
-    item.appendChild(head);
-    if ((record.categories || []).length) {
-      item.appendChild(el("div", "cats",
-        record.categories.map(category => S.tiles[category] || category).join(" · ")));
-    }
-    const fragments = Object.entries(record.data || {}).map(
-      ([key, value]) => (S.report.values[key] || key) + ": " + formatValue(key, value)
-    );
-    if (fragments.length) item.appendChild(el("div", "vals", fragments.join(" · ")));
-    historyBody.appendChild(item);
-  });
+  records.forEach(record => historyBody.appendChild(recordElement(record)));
+}
+
+function initials(name){
+  const parts = String(name || "?").trim().split(/\s+/);
+  const first = parts[0] ? parts[0][0] : "?";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
+
+function personRow(person, stampIso){
+  const item = el("div", "rec");
+  item.appendChild(el("div", "avatar", initials(person)));
+  const body = el("div", "body");
+  const head = el("div", "head");
+  head.appendChild(el("span", "who", person || "?"));
+  head.appendChild(el("span", "when", formatStamp(stampIso)));
+  body.appendChild(head);
+  item.appendChild(body);
+  return { item, body };
+}
+
+function recordElement(record){
+  const { item, body } = personRow(record.person, record.logged_at);
+  if ((record.categories || []).length) {
+    const chips = el("div", "chips-mini");
+    record.categories.forEach(category => {
+      const chip = el("span", "cat-chip");
+      chip.innerHTML = '<svg viewBox="0 0 24 24">' + (ICONS[category] || "") + "</svg>";
+      chip.appendChild(document.createTextNode(S.tiles[category] || category));
+      chips.appendChild(chip);
+    });
+    body.appendChild(chips);
+  }
+  const entries = Object.entries(record.data || {});
+  if (entries.length) {
+    const pills = el("div", "val-pills");
+    entries.forEach(([key, value]) => {
+      const pill = el("span", "val-pill");
+      const strong = document.createElement("b");
+      strong.textContent = formatValue(key, value);
+      pill.appendChild(strong);
+      pill.appendChild(document.createTextNode(" " + (S.report.values[key] || key)));
+      pills.appendChild(pill);
+    });
+    body.appendChild(pills);
+  }
+  return item;
 }
 
 function noteElement(note){
-  const item = el("div", "note");
-  const head = el("div", "head");
-  head.appendChild(el("span", null, note.person || "?"));
-  head.appendChild(el("span", null, formatStamp(note.created_at)));
-  item.appendChild(head);
-  item.appendChild(el("div", "text", note.text));
+  const { item, body } = personRow(note.person, note.created_at);
+  body.appendChild(el("div", "note-text", note.text));
   return item;
 }
 
@@ -568,6 +622,218 @@ if (CFG.report) {
 }
 
 renderReport();
+
+/* ---------- history tab (lazy-loaded charts) ---------- */
+let historyDays = (CFG.history_periods || [7])[0];
+let historyLoadedDays = null;
+
+if (CFG.report) {
+  const periodsBox = document.getElementById("history-periods");
+  (CFG.history_periods || []).forEach(days => {
+    const button = el("button", days === historyDays ? "on" : "",
+      S.history["period_" + days] || days + "d");
+    button.type = "button";
+    button.dataset.days = days;
+    button.addEventListener("click", () => {
+      historyDays = days;
+      periodsBox.querySelectorAll("button").forEach(other =>
+        other.classList.toggle("on", Number(other.dataset.days) === days));
+      loadHistory(days, true);
+    });
+    periodsBox.appendChild(button);
+  });
+}
+
+function svgEl(tag, attrs){
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attrs || {}).forEach(([key, value]) => node.setAttribute(key, value));
+  return node;
+}
+
+function chartCard(title, unit){
+  const card = el("div", "card");
+  const heading = el("h3", null, title);
+  if (unit) {
+    const small = el("small", null, " " + unit);
+    small.style.textTransform = "none";
+    small.style.color = "var(--muted)";
+    heading.appendChild(small);
+  }
+  card.appendChild(heading);
+  return card;
+}
+
+const CHART_W = 320, CHART_H = 110;
+const PAD = { l: 34, r: 6, t: 8, b: 18 };
+
+function chartFrame(minY, maxY, firstLabel, lastLabel){
+  const svg = svgEl("svg", {
+    viewBox: "0 0 " + CHART_W + " " + CHART_H,
+    style: "width:100%;height:auto;display:block"
+  });
+  const base = svgEl("line", {
+    x1: PAD.l, y1: CHART_H - PAD.b, x2: CHART_W - PAD.r, y2: CHART_H - PAD.b,
+    stroke: "#D6E2E6", "stroke-width": 1
+  });
+  svg.appendChild(base);
+  const labels = [
+    [minY, CHART_H - PAD.b], [maxY, PAD.t + 6]
+  ];
+  labels.forEach(([value, y]) => {
+    const text = svgEl("text", {
+      x: PAD.l - 5, y: y + 3, "text-anchor": "end",
+      "font-size": "9", fill: "#5D7480", "font-family": "inherit"
+    });
+    text.textContent = value;
+    svg.appendChild(text);
+  });
+  [[firstLabel, PAD.l, "start"], [lastLabel, CHART_W - PAD.r, "end"]].forEach(
+    ([label, x, anchor]) => {
+      const text = svgEl("text", {
+        x: x, y: CHART_H - 5, "text-anchor": anchor,
+        "font-size": "9", fill: "#5D7480", "font-family": "inherit"
+      });
+      text.textContent = label;
+      svg.appendChild(text);
+    });
+  return svg;
+}
+
+function shortDate(iso){
+  const date = new Date(iso);
+  return date.toLocaleDateString(LOCALE, { day: "2-digit", month: "2-digit" });
+}
+
+function scaleFactory(times, values){
+  const tMin = Math.min(...times), tMax = Math.max(...times);
+  let vMin = Math.min(...values), vMax = Math.max(...values);
+  if (vMin === vMax) { vMin -= 1; vMax += 1; }
+  const span = vMax - vMin;
+  vMin -= span * 0.1; vMax += span * 0.1;
+  return {
+    x: t => tMax === tMin
+      ? (PAD.l + CHART_W - PAD.r) / 2
+      : PAD.l + ((t - tMin) / (tMax - tMin)) * (CHART_W - PAD.l - PAD.r),
+    y: v => (CHART_H - PAD.b) - ((v - vMin) / (vMax - vMin)) * (CHART_H - PAD.t - PAD.b),
+    vMin: vMin, vMax: vMax
+  };
+}
+
+function round1(value){ return Math.round(value * 10) / 10; }
+
+function lineChart(series){
+  const sensor = series.sensor || [];
+  const manual = series.manual || [];
+  const all = sensor.concat(manual);
+  const times = all.map(point => new Date(point.t).getTime());
+  const values = all.map(point => point.v);
+  const scale = scaleFactory(times, values);
+  const svg = chartFrame(
+    round1(scale.vMin), round1(scale.vMax),
+    shortDate(all[0].t), shortDate(all[all.length - 1].t)
+  );
+  if (sensor.length > 1) {
+    const path = sensor
+      .map(point => scale.x(new Date(point.t).getTime()) + "," + scale.y(point.v))
+      .join(" ");
+    svg.appendChild(svgEl("polyline", {
+      points: path, fill: "none", stroke: "#0FA3B1",
+      "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round"
+    }));
+  }
+  sensor.forEach(point => svg.appendChild(svgEl("circle", {
+    cx: scale.x(new Date(point.t).getTime()), cy: scale.y(point.v),
+    r: 2, fill: "#0FA3B1"
+  })));
+  manual.forEach(point => svg.appendChild(svgEl("circle", {
+    cx: scale.x(new Date(point.t).getTime()), cy: scale.y(point.v),
+    r: 3.4, fill: "#0B4F6C"
+  })));
+  return svg;
+}
+
+function barChart(points, unitLabel){
+  const values = points.map(point => point.v);
+  const maxV = Math.max(...values, 1);
+  const svg = chartFrame(
+    0, round1(maxV) + " " + unitLabel,
+    shortDate(points[0].t), shortDate(points[points.length - 1].t)
+  );
+  const innerW = CHART_W - PAD.l - PAD.r;
+  const step = innerW / points.length;
+  const barW = Math.max(2, Math.min(16, step * 0.65));
+  points.forEach((point, index) => {
+    const height = (point.v / maxV) * (CHART_H - PAD.t - PAD.b);
+    svg.appendChild(svgEl("rect", {
+      x: PAD.l + index * step + (step - barW) / 2,
+      y: (CHART_H - PAD.b) - height,
+      width: barW, height: Math.max(height, point.v > 0 ? 2 : 0),
+      rx: 2, fill: "#0FA3B1"
+    }));
+  });
+  return svg;
+}
+
+function legendLine(){
+  const hint = el("p", "hint");
+  hint.innerHTML = '<span style="color:#0FA3B1;font-weight:700">―</span> ' +
+    "<span></span> &nbsp; <span style=\"color:#0B4F6C;font-weight:700\">●</span> <span></span>";
+  const spans = hint.querySelectorAll("span");
+  spans[1].textContent = S.history.sensor;
+  spans[3].textContent = S.history.manual;
+  return hint;
+}
+
+async function loadHistory(days, force){
+  if (historyLoadedDays === days && !force) return;
+  const body = document.getElementById("history-body");
+  body.innerHTML = "";
+  body.appendChild(el("p", "hint", S.history.loading));
+  try {
+    const response = await fetch(CFG.history_endpoint + "?days=" + days);
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const data = await response.json();
+    historyLoadedDays = days;
+    body.innerHTML = "";
+    renderHistory(body, data);
+  } catch (error) {
+    body.innerHTML = "";
+    body.appendChild(el("p", "hint", S.history.error));
+    historyLoadedDays = null;
+  }
+}
+
+function renderHistory(body, data){
+  let anything = false;
+
+  Object.entries(data.readings || {}).forEach(([key, series]) => {
+    anything = true;
+    const card = chartCard(S.report.values[key === "salt" ? "salt_level" :
+      key === "temperature" ? "water_temperature" : key] || key, series.unit);
+    card.appendChild(lineChart(series));
+    if ((series.sensor || []).length && (series.manual || []).length) {
+      card.appendChild(legendLine());
+    }
+    body.appendChild(card);
+  });
+
+  (data.extra || []).forEach(item => {
+    anything = true;
+    if (item.type === "ontime") {
+      const card = chartCard(item.name, S.history.on_hours);
+      card.appendChild(barChart(item.points, "h"));
+      body.appendChild(card);
+    } else {
+      const card = chartCard(item.name, item.unit);
+      card.appendChild(lineChart({ sensor: item.points }));
+      body.appendChild(card);
+    }
+  });
+
+  if (!anything) {
+    body.appendChild(el("p", "hint", S.history.no_data));
+  }
+}
 
 /* ---------- when (defaults to now; the server accepts up to 6 days back) */
 const whenInput = document.getElementById("when");

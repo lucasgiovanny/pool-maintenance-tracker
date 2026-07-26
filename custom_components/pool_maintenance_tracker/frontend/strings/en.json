@@ -92,7 +92,8 @@
   "again": "New record",
   "tabs": {
     "log": "Log",
-    "report": "Report"
+    "report": "Report",
+    "history": "History"
   },
   "report": {
     "current": "Current status",
@@ -131,5 +132,16 @@
     "title": "Notes",
     "hint": "optional",
     "placeholder": "E.g.: water slightly cloudy, check tomorrow…"
+  },
+  "history": {
+    "loading": "Loading…",
+    "error": "Could not load the history. Try again.",
+    "no_data": "No data for this period.",
+    "period_7": "7 days",
+    "period_30": "30 days",
+    "period_180": "6 months",
+    "sensor": "probe (daily average)",
+    "manual": "manual reading",
+    "on_hours": "hours on per day"
   }
 }

@@ -54,6 +54,19 @@ any entities from other integrations (heat pump switch, power sensor, …). The
 report shows their current state formatted automatically — measurements with
 units, on/off with "since when".
 
+### History tab
+
+A third tab charts the pool over time (7 days / 30 days / 6 months):
+
+- **Water readings** — daily averages from the linked probes (HA long-term
+  statistics) as a line, with your manual readings overlaid as dots.
+- **Equipment** — daily averages for numeric extra entities, and *hours on per
+  day* bars for on/off entities (computed from the HA recorder history, so
+  limited by your recorder retention — 10 days by default).
+
+Charts are lightweight inline SVG — no external libraries, still one
+self-contained page.
+
 The page adapts to your pool: tiles and entities are created only for the
 equipment you actually have.
 

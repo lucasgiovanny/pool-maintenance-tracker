@@ -92,7 +92,8 @@
   "again": "Novo registo",
   "tabs": {
     "log": "Registar",
-    "report": "Relatório"
+    "report": "Relatório",
+    "history": "Histórico"
   },
   "report": {
     "current": "Estado atual",
@@ -131,5 +132,16 @@
     "title": "Notas",
     "hint": "opcional",
     "placeholder": "Ex.: água ligeiramente turva, verificar amanhã…"
+  },
+  "history": {
+    "loading": "A carregar…",
+    "error": "Não foi possível carregar o histórico. Tenta outra vez.",
+    "no_data": "Sem dados neste período.",
+    "period_7": "7 dias",
+    "period_30": "30 dias",
+    "period_180": "6 meses",
+    "sensor": "sonda (média diária)",
+    "manual": "medição manual",
+    "on_hours": "horas ligado por dia"
   }
 }

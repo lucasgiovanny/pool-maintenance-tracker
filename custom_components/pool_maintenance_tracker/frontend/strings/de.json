@@ -92,7 +92,8 @@
   "again": "Neuer Eintrag",
   "tabs": {
     "log": "Eintragen",
-    "report": "Bericht"
+    "report": "Bericht",
+    "history": "Verlauf"
   },
   "report": {
     "current": "Aktueller Zustand",
@@ -131,5 +132,16 @@
     "title": "Notizen",
     "hint": "optional",
     "placeholder": "Z. B.: Wasser leicht trüb, morgen prüfen…"
+  },
+  "history": {
+    "loading": "Lädt…",
+    "error": "Verlauf konnte nicht geladen werden. Versuche es erneut.",
+    "no_data": "Keine Daten in diesem Zeitraum.",
+    "period_7": "7 Tage",
+    "period_30": "30 Tage",
+    "period_180": "6 Monate",
+    "sensor": "Sonde (Tagesmittel)",
+    "manual": "manuelle Messung",
+    "on_hours": "Stunden ein pro Tag"
   }
 }

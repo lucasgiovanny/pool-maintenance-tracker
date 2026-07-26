@@ -92,7 +92,8 @@
   "again": "Nuevo registro",
   "tabs": {
     "log": "Registrar",
-    "report": "Informe"
+    "report": "Informe",
+    "history": "Historial"
   },
   "report": {
     "current": "Estado actual",
@@ -131,5 +132,16 @@
     "title": "Notas",
     "hint": "opcional",
     "placeholder": "Ej.: agua ligeramente turbia, revisar mañana…"
+  },
+  "history": {
+    "loading": "Cargando…",
+    "error": "No se pudo cargar el historial. Inténtalo de nuevo.",
+    "no_data": "Sin datos en este período.",
+    "period_7": "7 días",
+    "period_30": "30 días",
+    "period_180": "6 meses",
+    "sensor": "sonda (media diaria)",
+    "manual": "lectura manual",
+    "on_hours": "horas encendido por día"
   }
 }

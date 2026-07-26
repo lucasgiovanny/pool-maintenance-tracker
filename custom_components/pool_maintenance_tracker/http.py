@@ -14,6 +14,7 @@ import json
 import logging
 import time
 from collections import defaultdict, deque
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -35,6 +36,7 @@ from .const import (
     DEFAULT_LANGUAGE,
     DEFAULT_REPORT_ENABLED,
     DOMAIN,
+    HISTORY_PERIODS,
     KEY_ACID_TANK_LEVEL,
     LINKED_MODE_MANUAL,
     LINKED_MODE_ON_RECORD,
@@ -46,6 +48,7 @@ from .const import (
     NUMBER_RANGES,
     RECENT_RECORDS_ATTR_COUNT,
     TS_ANY,
+    URL_HISTORY,
     URL_LOG,
     URL_NOTE,
     URL_PAGE,
@@ -111,6 +114,7 @@ def async_register_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PoolPageView())
     hass.http.register_view(PoolLogView())
     hass.http.register_view(PoolNoteView())
+    hass.http.register_view(PoolHistoryView())
     domain_data[DATA_VIEWS_REGISTERED] = True
 
 
@@ -292,6 +296,154 @@ def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
     }
 
 
+ONOFF_DOMAINS = {"binary_sensor", "switch", "input_boolean", "light"}
+
+
+def _recorder_ready(hass: HomeAssistant) -> bool:
+    return "recorder" in hass.config.components
+
+
+async def _daily_means(hass: HomeAssistant, entity_id: str, start) -> list[dict[str, Any]]:
+    """Daily mean series from HA long-term statistics (empty if none)."""
+    if not _recorder_ready(hass):
+        return []
+    from functools import partial
+
+    from homeassistant.components.recorder import get_instance
+    from homeassistant.components.recorder.statistics import statistics_during_period
+
+    stats = await get_instance(hass).async_add_executor_job(
+        partial(
+            statistics_during_period,
+            hass,
+            start,
+            None,
+            {entity_id},
+            "day",
+            None,
+            {"mean"},
+        )
+    )
+    points = []
+    for row in stats.get(entity_id, []):
+        mean = row.get("mean")
+        if mean is None:
+            continue
+        raw_start = row.get("start")
+        stamp = (
+            dt_util.utc_from_timestamp(raw_start)
+            if isinstance(raw_start, (int, float))
+            else raw_start
+        )
+        points.append({"t": stamp.isoformat(), "v": round(float(mean), 2)})
+    return points
+
+
+def _ontime_buckets(changes, start, end) -> list[dict[str, Any]]:
+    """Hours 'on' per local day from a list of (moment, state) changes.
+
+    ``changes`` must be sorted and include the state at ``start``.
+    Returns one point per local day between start and end (zeros included).
+    """
+    tz = dt_util.DEFAULT_TIME_ZONE
+    seconds: dict[str, float] = {}
+    day = dt_util.as_local(start).date()
+    last_day = dt_util.as_local(end).date()
+    while day <= last_day:
+        seconds[day.isoformat()] = 0.0
+        day = day + timedelta(days=1)
+
+    intervals = [*changes, (end, None)]
+    for index in range(len(intervals) - 1):
+        moment, state = intervals[index]
+        if state != "on":
+            continue
+        block_start = max(moment, start)
+        block_end = min(intervals[index + 1][0], end)
+        cursor = block_start
+        while cursor < block_end:
+            local = dt_util.as_local(cursor)
+            next_midnight = datetime.combine(
+                local.date() + timedelta(days=1), datetime.min.time(), tz
+            )
+            segment_end = min(block_end, next_midnight)
+            key = local.date().isoformat()
+            if key in seconds:
+                seconds[key] += (segment_end - cursor).total_seconds()
+            cursor = segment_end
+
+    return [{"t": key, "v": round(value / 3600, 1)} for key, value in seconds.items()]
+
+
+async def _ontime_daily(hass: HomeAssistant, entity_id: str, start, end) -> list[dict[str, Any]]:
+    """Hours-on per day computed from recorder history (limited by retention)."""
+    if not _recorder_ready(hass):
+        return []
+    from functools import partial
+
+    from homeassistant.components.recorder import get_instance
+    from homeassistant.components.recorder.history import get_significant_states
+
+    states = await get_instance(hass).async_add_executor_job(
+        partial(get_significant_states, hass, start, end, [entity_id])
+    )
+    changes = [(state.last_changed, state.state) for state in states.get(entity_id, [])]
+    if not changes:
+        return []
+    return _ontime_buckets(sorted(changes), start, end)
+
+
+async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> dict[str, Any]:
+    """Time series for the page's history tab."""
+    tracker = entry.runtime_data.tracker
+    end = dt_util.utcnow()
+    start = end - timedelta(days=days)
+
+    readings: dict[str, Any] = {}
+    for live_key, conf_key in LINKED_SOURCES.items():
+        value_key = LINKED_VALUE_KEYS[live_key]
+        manual = []
+        for record in tracker.records:
+            if value_key not in record.get("data", {}):
+                continue
+            logged_at = dt_util.parse_datetime(record.get("logged_at") or "")
+            if logged_at and logged_at >= start:
+                manual.append({"t": record["logged_at"], "v": record["data"][value_key]})
+        series: dict[str, Any] = {}
+        if manual:
+            series["manual"] = manual
+        entity_id = entry.options.get(conf_key)
+        if entity_id and (sensor_points := await _daily_means(hass, entity_id, start)):
+            series["sensor"] = sensor_points
+        if series:
+            series["unit"] = "" if live_key == "ph" else _unit_of(hass, entry, live_key)
+            readings[live_key] = series
+
+    extra = []
+    for entity_id in entry.options.get(CONF_REPORT_SENSORS, ()):
+        state = hass.states.get(entity_id)
+        name = (state.attributes.get("friendly_name") if state else None) or entity_id
+        domain = entity_id.split(".")[0]
+        if domain in ONOFF_DOMAINS or (state and state.state in ("on", "off")):
+            # On/off runtime is limited by the recorder retention window.
+            points = await _ontime_daily(hass, entity_id, max(start, end - timedelta(days=31)), end)
+            if any(point["v"] for point in points):
+                extra.append({"type": "ontime", "name": name, "points": points})
+        elif points := await _daily_means(hass, entity_id, start):
+            unit = state.attributes.get("unit_of_measurement", "") if state else ""
+            extra.append({"type": "line", "name": name, "unit": unit or "", "points": points})
+
+    return {"days": days, "readings": readings, "extra": extra}
+
+
+def _unit_of(hass: HomeAssistant, entry: ConfigEntry, live_key: str) -> str:
+    entity_id = entry.options.get(LINKED_SOURCES[live_key])
+    if entity_id and (state := hass.states.get(entity_id)):
+        return state.attributes.get("unit_of_measurement") or ""
+    defaults = {"free_chlorine": "ppm", "salt": "g/L", "temperature": "°C"}
+    return defaults.get(live_key, "")
+
+
 async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str) -> dict[str, Any]:
     language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
     strings = await _load_strings(hass, language)
@@ -307,6 +459,8 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "live": _live_values(hass, entry),
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
         "note_endpoint": URL_NOTE.format(token=token),
+        "history_endpoint": URL_HISTORY.format(token=token),
+        "history_periods": list(HISTORY_PERIODS),
         "report": (
             _build_report(hass, entry)
             if entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED)
@@ -467,3 +621,32 @@ class PoolNoteView(HomeAssistantView):
 
         note = entry.runtime_data.tracker.async_add_note(_clean_person(payload.get("person")), text)
         return self.json({"ok": True, "note": note})
+
+
+class PoolHistoryView(HomeAssistantView):
+    """Serve time series for the page's history tab."""
+
+    url = URL_HISTORY
+    name = "api:pool_maintenance_tracker:history"
+    requires_auth = False
+
+    async def get(self, request: web.Request, token: str) -> web.Response:
+        hass = request.app[KEY_HASS]
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+        if not entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED):
+            return web.Response(status=404)
+
+        if not _limiter(hass).allow("history", token, 20, 300):
+            return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
+
+        try:
+            days = int(request.query.get("days", "30"))
+        except ValueError:
+            days = 0
+        if days not in HISTORY_PERIODS:
+            return self.json({"ok": False, "error": "invalid_period"}, status_code=400)
+
+        data = await _build_history(hass, entry, days)
+        return self.json(data)

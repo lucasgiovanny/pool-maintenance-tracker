@@ -92,7 +92,8 @@
   "again": "Nouvel enregistrement",
   "tabs": {
     "log": "Enregistrer",
-    "report": "Rapport"
+    "report": "Rapport",
+    "history": "Historique"
   },
   "report": {
     "current": "État actuel",
@@ -131,5 +132,16 @@
     "title": "Notes",
     "hint": "facultatif",
     "placeholder": "Ex. : eau légèrement trouble, vérifier demain…"
+  },
+  "history": {
+    "loading": "Chargement…",
+    "error": "Impossible de charger l'historique. Réessayez.",
+    "no_data": "Aucune donnée sur cette période.",
+    "period_7": "7 jours",
+    "period_30": "30 jours",
+    "period_180": "6 mois",
+    "sensor": "sonde (moyenne journalière)",
+    "manual": "mesure manuelle",
+    "on_hours": "heures allumé par jour"
   }
 }
