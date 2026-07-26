@@ -127,7 +127,8 @@
     "just_now": "à l'instant",
     "ago_minutes": "il y a {n} min",
     "ago_hours": "il y a {n} h",
-    "next_due": "prochaine {date}"
+    "next_due": "prochaine {date}",
+    "next_change": "change {date}"
   },
   "notes": {
     "title": "Notes",
@@ -144,5 +145,25 @@
     "sensor": "sonde (moyenne journalière)",
     "manual": "mesure manuelle",
     "on_hours": "heures allumé par jour"
+  },
+  "print_manual": "🖨 Imprimer le manuel du local technique",
+  "manual": {
+    "title": "Entretien de la piscine — manuel du local technique",
+    "qr_title": "Scannez pour enregistrer",
+    "qr_caption": "Pointez l'appareil photo du téléphone vers le code pour ouvrir la page.",
+    "nfc_title": "Tag NFC",
+    "nfc_box": "Collez le tag NFC ici",
+    "nfc_caption": "Écrivez l'URL de la page sur un tag NFC et collez-le dans cet espace.",
+    "steps_title": "Comment enregistrer un entretien",
+    "steps": [
+      "Ouvrez la page avec le code QR (ou approchez le téléphone du tag NFC).",
+      "Choisissez qui vous êtes dans la liste.",
+      "Confirmez la date et l'heure du travail.",
+      "Touchez tout ce que vous avez fait et saisissez les valeurs mesurées — les champs vides ne changent rien.",
+      "Ajoutez une note s'il y a quelque chose à signaler (facultatif).",
+      "Appuyez sur Enregistrer — tout est stocké dans le système de la maison."
+    ],
+    "report_hint": "L'onglet Rapport montre l'état de la piscine, les prochains entretiens et l'historique.",
+    "print": "Imprimer"
   }
 }

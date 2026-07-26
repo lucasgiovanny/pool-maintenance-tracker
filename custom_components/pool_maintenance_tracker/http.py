@@ -50,9 +50,11 @@ from .const import (
     TS_ANY,
     URL_HISTORY,
     URL_LOG,
+    URL_MANUAL,
     URL_NOTE,
     URL_PAGE,
 )
+from .entity import page_url
 from .modules import (
     enabled_reminders,
     enabled_tiles,
@@ -67,7 +69,9 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_MARKER = "__POOL_CONFIG__"
+MANUAL_MARKER = "__MANUAL_CONFIG__"
 PAGE_PATH = Path(__file__).parent / "frontend" / "page.html"
+MANUAL_PATH = Path(__file__).parent / "frontend" / "manual.html"
 STRINGS_DIR = Path(__file__).parent / "frontend" / "strings"
 
 SECURITY_HEADERS = {
@@ -115,6 +119,7 @@ def async_register_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PoolLogView())
     hass.http.register_view(PoolNoteView())
     hass.http.register_view(PoolHistoryView())
+    hass.http.register_view(PoolManualView())
     domain_data[DATA_VIEWS_REGISTERED] = True
 
 
@@ -282,13 +287,20 @@ def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
         state = hass.states.get(entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             continue
+        domain = entity_id.split(".")[0]
+        next_change = None
+        if domain == "schedule" and (next_event := state.attributes.get("next_event")):
+            next_change = (
+                next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
+            )
         extra.append(
             {
                 "entity_id": entity_id,
                 "name": state.attributes.get("friendly_name") or entity_id,
                 "state": state.state,
                 "unit": state.attributes.get("unit_of_measurement") or "",
-                "domain": entity_id.split(".")[0],
+                "domain": domain,
+                "next_change": next_change,
                 "last_changed": state.last_changed.isoformat(),
             }
         )
@@ -431,6 +443,10 @@ async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> 
         state = hass.states.get(entity_id)
         name = (state.attributes.get("friendly_name") if state else None) or entity_id
         domain = entity_id.split(".")[0]
+        if domain == "schedule":
+            # Schedules are configuration, not history — charting when they
+            # were "on" is meaningless; the report tab shows the next change.
+            continue
         if domain in ONOFF_DOMAINS or (state and state.state in ("on", "off")):
             # On/off runtime is limited by the recorder retention window.
             points = await _ontime_daily(hass, entity_id, max(start, end - timedelta(days=31)), end)
@@ -467,6 +483,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
         "note_endpoint": URL_NOTE.format(token=token),
         "history_endpoint": URL_HISTORY.format(token=token),
+        "manual_endpoint": URL_MANUAL.format(token=token),
         "history_periods": list(HISTORY_PERIODS),
         "report": (
             _build_report(hass, entry)
@@ -657,3 +674,39 @@ class PoolHistoryView(HomeAssistantView):
 
         data = await _build_history(hass, entry, days)
         return self.json(data)
+
+
+class PoolManualView(HomeAssistantView):
+    """Serve the printable machine-room manual (QR + NFC space + steps)."""
+
+    url = URL_MANUAL
+    name = "api:pool_maintenance_tracker:manual"
+    requires_auth = False
+
+    async def get(self, request: web.Request, token: str) -> web.Response:
+        hass = request.app[KEY_HASS]
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+
+        import segno
+
+        language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
+        strings = await _load_strings(hass, language)
+        url = page_url(hass, entry) or URL_PAGE.format(token=token)
+        qr_data_uri = await hass.async_add_executor_job(
+            lambda: segno.make(url, error="m").png_data_uri(scale=10, border=2)
+        )
+        config = {
+            "language": language,
+            "pool_name": entry.title,
+            "url": url,
+            "qr": qr_data_uri,
+            "strings": strings.get("manual", {}),
+        }
+        template = await hass.async_add_executor_job(MANUAL_PATH.read_text, "utf-8")
+        config_json = json.dumps(config, ensure_ascii=False).replace("</", "<\\/")
+        html = template.replace(f'"{MANUAL_MARKER}"', config_json)
+        headers = dict(SECURITY_HEADERS)
+        # The QR is embedded as a data: URI image.
+        return web.Response(text=html, content_type="text/html", charset="utf-8", headers=headers)

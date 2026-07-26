@@ -218,6 +218,57 @@ async def test_report_disabled_by_option(hass, salt_entry, hass_client_no_auth):
     assert config["report"] is None
 
 
+async def test_manual_page(hass, salt_entry, hass_client_no_auth):
+    from custom_components.pool_maintenance_tracker.const import URL_MANUAL
+
+    await setup_entry(hass, salt_entry)
+    client = await hass_client_no_auth()
+
+    response = await client.get(URL_MANUAL.format(token=TEST_TOKEN))
+    assert response.status == 200
+    html = await response.text()
+    assert "__MANUAL_CONFIG__" not in html
+    assert "data:image/png;base64," in html
+    assert "Cola aqui a tag NFC" in html  # PT strings for this entry
+
+    response = await client.get(URL_MANUAL.format(token="wrong"))
+    assert response.status == 404
+
+
+async def test_schedule_entity_in_report_not_history(hass, salt_entry, hass_client_no_auth):
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    from custom_components.pool_maintenance_tracker.const import URL_HISTORY
+
+    next_event = dt_util.utcnow() + timedelta(hours=3)
+    hass.states.async_set(
+        "schedule.filtracao",
+        "on",
+        {"friendly_name": "Filtração", "next_event": next_event},
+    )
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={**salt_entry.options, "report_sensors": ["schedule.filtracao"]},
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    item = config["report"]["extra"][0]
+    assert item["domain"] == "schedule"
+    assert item["state"] == "on"
+    assert item["next_change"] == next_event.isoformat()
+
+    response = await client.get(URL_HISTORY.format(token=TEST_TOKEN) + "?days=7")
+    assert response.status == 200
+    data = await response.json()
+    assert data["extra"] == []
+
+
 async def test_page_unknown_token_404(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()

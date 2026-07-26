@@ -127,7 +127,8 @@
     "just_now": "gerade eben",
     "ago_minutes": "vor {n} min",
     "ago_hours": "vor {n} h",
-    "next_due": "nächste {date}"
+    "next_due": "nächste {date}",
+    "next_change": "wechselt {date}"
   },
   "notes": {
     "title": "Notizen",
@@ -144,5 +145,25 @@
     "sensor": "Sonde (Tagesmittel)",
     "manual": "manuelle Messung",
     "on_hours": "Stunden ein pro Tag"
+  },
+  "print_manual": "🖨 Handbuch für den Technikraum drucken",
+  "manual": {
+    "title": "Poolwartung — Handbuch für den Technikraum",
+    "qr_title": "Zum Eintragen scannen",
+    "qr_caption": "Richte die Handykamera auf den Code, um die Seite zu öffnen.",
+    "nfc_title": "NFC-Tag",
+    "nfc_box": "NFC-Tag hier aufkleben",
+    "nfc_caption": "Schreibe die Seiten-URL auf einen NFC-Tag und klebe ihn in dieses Feld.",
+    "steps_title": "So trägst du eine Wartung ein",
+    "steps": [
+      "Öffne die Seite über den QR-Code (oder halte das Handy an den NFC-Tag).",
+      "Wähle in der Liste, wer du bist.",
+      "Bestätige Datum und Uhrzeit der Arbeit.",
+      "Tippe alles an, was du gemacht hast, und trage die gemessenen Werte ein — leere Felder ändern nichts.",
+      "Füge bei Bedarf eine Notiz hinzu (optional).",
+      "Tippe auf Eintrag speichern — alles wird im Haussystem gespeichert."
+    ],
+    "report_hint": "Der Bericht-Tab zeigt den Poolzustand, anstehende Wartungen und den Verlauf.",
+    "print": "Drucken"
   }
 }

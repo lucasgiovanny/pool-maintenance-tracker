@@ -127,7 +127,8 @@
     "just_now": "agora mesmo",
     "ago_minutes": "há {n} min",
     "ago_hours": "há {n} h",
-    "next_due": "próxima {date}"
+    "next_due": "próxima {date}",
+    "next_change": "muda {date}"
   },
   "notes": {
     "title": "Notas",
@@ -144,5 +145,25 @@
     "sensor": "sonda (média diária)",
     "manual": "medição manual",
     "on_hours": "horas ligado por dia"
+  },
+  "print_manual": "🖨 Imprimir manual para a casa das máquinas",
+  "manual": {
+    "title": "Manutenção da piscina — manual da casa das máquinas",
+    "qr_title": "Digitaliza para registar",
+    "qr_caption": "Aponta a câmara do telemóvel ao código para abrir a página de registo.",
+    "nfc_title": "Tag NFC",
+    "nfc_box": "Cola aqui a tag NFC",
+    "nfc_caption": "Grava o URL da página numa tag NFC e cola-a neste espaço.",
+    "steps_title": "Como registar uma manutenção",
+    "steps": [
+      "Abre a página com o QR code (ou encosta o telemóvel à tag NFC).",
+      "Escolhe quem és na lista.",
+      "Confirma a data e a hora do trabalho.",
+      "Toca em tudo o que fizeste e preenche os valores que mediste — campos vazios não alteram nada.",
+      "Escreve uma nota se houver algo a assinalar (opcional).",
+      "Carrega em Guardar registo — fica tudo no sistema da casa."
+    ],
+    "report_hint": "A aba Relatório mostra o estado da piscina, as próximas manutenções e os gráficos de histórico.",
+    "print": "Imprimir"
   }
 }

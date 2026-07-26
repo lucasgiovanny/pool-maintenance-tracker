@@ -127,7 +127,8 @@
     "just_now": "just now",
     "ago_minutes": "{n} min ago",
     "ago_hours": "{n} h ago",
-    "next_due": "next {date}"
+    "next_due": "next {date}",
+    "next_change": "changes {date}"
   },
   "notes": {
     "title": "Notes",
@@ -144,5 +145,25 @@
     "sensor": "probe (daily average)",
     "manual": "manual reading",
     "on_hours": "hours on per day"
+  },
+  "print_manual": "🖨 Print the machine-room manual",
+  "manual": {
+    "title": "Pool maintenance — machine-room manual",
+    "qr_title": "Scan to log maintenance",
+    "qr_caption": "Point your phone camera at the code to open the logging page.",
+    "nfc_title": "NFC tag",
+    "nfc_box": "Stick the NFC tag here",
+    "nfc_caption": "Write the page URL to an NFC tag and stick it in this space.",
+    "steps_title": "How to log maintenance",
+    "steps": [
+      "Open the page with the QR code (or tap your phone on the NFC tag).",
+      "Pick who you are from the list.",
+      "Confirm the date and time of the work.",
+      "Tap everything you did and fill in the values you measured — empty fields change nothing.",
+      "Add a note if there is anything worth flagging (optional).",
+      "Tap Save record — everything is stored in the home system."
+    ],
+    "report_hint": "The Report tab shows the pool status, upcoming maintenance and history charts.",
+    "print": "Print"
   }
 }

@@ -127,7 +127,8 @@
     "just_now": "ahora mismo",
     "ago_minutes": "hace {n} min",
     "ago_hours": "hace {n} h",
-    "next_due": "próxima {date}"
+    "next_due": "próxima {date}",
+    "next_change": "cambia {date}"
   },
   "notes": {
     "title": "Notas",
@@ -144,5 +145,25 @@
     "sensor": "sonda (media diaria)",
     "manual": "lectura manual",
     "on_hours": "horas encendido por día"
+  },
+  "print_manual": "🖨 Imprimir el manual para la sala de máquinas",
+  "manual": {
+    "title": "Mantenimiento de la piscina — manual de la sala de máquinas",
+    "qr_title": "Escanea para registrar",
+    "qr_caption": "Apunta la cámara del móvil al código para abrir la página de registro.",
+    "nfc_title": "Etiqueta NFC",
+    "nfc_box": "Pega aquí la etiqueta NFC",
+    "nfc_caption": "Graba la URL de la página en una etiqueta NFC y pégala en este espacio.",
+    "steps_title": "Cómo registrar un mantenimiento",
+    "steps": [
+      "Abre la página con el código QR (o acerca el móvil a la etiqueta NFC).",
+      "Elige quién eres en la lista.",
+      "Confirma la fecha y la hora del trabajo.",
+      "Toca todo lo que hiciste y rellena los valores medidos — los campos vacíos no cambian nada.",
+      "Añade una nota si hay algo que señalar (opcional).",
+      "Pulsa Guardar registro — todo queda en el sistema de la casa."
+    ],
+    "report_hint": "La pestaña Informe muestra el estado de la piscina, los próximos mantenimientos y el historial.",
+    "print": "Imprimir"
   }
 }

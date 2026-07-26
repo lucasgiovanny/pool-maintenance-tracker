@@ -52,7 +52,9 @@ append-only.
 Under **Configure → Linked sensors → Extra entities on the report tab**, pick
 any entities from other integrations (heat pump switch, power sensor, …). The
 report shows their current state formatted automatically — measurements with
-units, on/off with "since when".
+units, on/off with "since when", and `schedule` helpers with their next
+on/off change (schedules are configuration, so they are kept out of the
+history charts).
 
 ### History tab
 
@@ -157,6 +159,11 @@ After setup, the pool device provides:
   or scan it straight from the dashboard. Its `url` attribute holds the full
   URL, ready to copy into an NFC-writing app.
 - A **Visit** link on the device page that opens the maintenance page directly.
+
+There is also a **printable machine-room manual**: the link at the bottom of
+the logging page opens a print-ready sheet (A4) with the QR code, a marked
+space to stick your NFC tag, and step-by-step instructions for technicians —
+print it (or save as PDF) straight from the browser.
 
 The URL contains a random 256-bit token. Anyone with the URL can log
 maintenance (that's the point), but the endpoints are write-only, validated,

@@ -322,6 +322,11 @@
     <div class="sec-title"><h2 id="notes-title"></h2><small id="notes-hint"></small></div>
     <textarea id="note" maxlength="500"></textarea>
   </section>
+
+  <p class="hint" style="text-align:center;margin:26px 0 6px">
+    <a id="print-manual" target="_blank" rel="noopener"
+       style="color:var(--deep);font-weight:700"></a>
+  </p>
   </div><!-- /view-log -->
 </main>
 
@@ -385,6 +390,8 @@ setText("report-note-save", S.report.note_save);
 setText("report-history-title", S.report.history);
 setText("notes-title", S.notes.title);
 setText("notes-hint", S.notes.hint);
+setText("print-manual", S.print_manual);
+document.getElementById("print-manual").href = CFG.manual_endpoint;
 document.getElementById("note").placeholder = S.notes.placeholder;
 document.getElementById("report-note-text").placeholder = S.notes.placeholder;
 
@@ -501,11 +508,13 @@ function renderReport(){
       const holder = el("span", "v");
       const onOff = ["binary_sensor", "switch", "input_boolean", "light"].includes(item.domain)
         || item.state === "on" || item.state === "off";
-      if (onOff) {
+      if (onOff || item.domain === "schedule") {
         holder.appendChild(document.createTextNode(
           (item.state === "on" ? S.report.state_on : S.report.state_off) + " "));
-        const since = el("small", null, relTime(item.last_changed));
-        holder.appendChild(since);
+        const detail = item.next_change
+          ? S.report.next_change.replace("{date}", formatStamp(item.next_change))
+          : relTime(item.last_changed);
+        holder.appendChild(el("small", null, detail));
       } else if (!isNaN(parseFloat(item.state))) {
         holder.appendChild(document.createTextNode(
           item.state + (item.unit ? " " + item.unit : "")));
