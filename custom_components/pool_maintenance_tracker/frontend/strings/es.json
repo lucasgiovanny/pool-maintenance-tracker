@@ -126,7 +126,8 @@
     "state_off": "Apagado",
     "just_now": "ahora mismo",
     "ago_minutes": "hace {n} min",
-    "ago_hours": "hace {n} h"
+    "ago_hours": "hace {n} h",
+    "next_due": "próxima {date}"
   },
   "notes": {
     "title": "Notas",

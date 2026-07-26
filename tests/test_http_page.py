@@ -39,8 +39,8 @@ async def test_page_serves_injected_config(hass, salt_entry, hass_client_no_auth
     assert "chlorinator" in config["tiles"]
     assert config["strings"]["title"] == "Registo de manutenção da piscina"
     assert "salt_level" in config["limits"]
-    # technician chip is always the last person
-    assert config["people"][-1] == "Técnico"
+    # technician chip comes first and is therefore pre-selected
+    assert config["people"][0] == "Técnico"
 
 
 async def test_page_for_chlorine_pool_hides_salt_modules(hass, chlorine_entry, hass_client_no_auth):
@@ -55,7 +55,7 @@ async def test_page_for_chlorine_pool_hides_salt_modules(hass, chlorine_entry, h
     assert "acid_refill" not in config["tiles"]
     assert "salt_level" not in config["limits"]
     assert config["language"] == "en"
-    assert config["people"][-1] == "Technician"
+    assert config["people"][0] == "Technician"
 
 
 async def test_page_lists_ha_users(hass, salt_entry, hass_client_no_auth):
@@ -83,7 +83,7 @@ async def test_people_option_filters_users(hass, salt_entry, hass_client_no_auth
     config = extract_config(await response.text())
     assert "Maria" in config["people"]
     assert "João" not in config["people"]
-    assert config["people"][-1] == "Técnico"
+    assert config["people"][0] == "Técnico"
 
 
 async def test_page_has_date_picker(hass, salt_entry, hass_client_no_auth):
@@ -155,6 +155,13 @@ async def test_report_tab_data(hass, salt_entry, hass_client_no_auth):
     assert filter_task["last"] is not None
     assert filter_task["interval_days"] == 30
     assert filter_task["due"] is False
+    # next due = last done + interval
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    expected_next = dt_util.parse_datetime(filter_task["last"]) + timedelta(days=30)
+    assert dt_util.parse_datetime(filter_task["next"]) == expected_next
     assert report["records"][0]["person"] == "Lucas"
     assert report["records"][0]["categories"] == ["filter_wash"]
     assert report["last_maintenance"] is not None

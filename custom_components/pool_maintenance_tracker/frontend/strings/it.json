@@ -126,7 +126,8 @@
     "state_off": "Spento",
     "just_now": "proprio ora",
     "ago_minutes": "{n} min fa",
-    "ago_hours": "{n} h fa"
+    "ago_hours": "{n} h fa",
+    "next_due": "prossima {date}"
   },
   "notes": {
     "title": "Note",

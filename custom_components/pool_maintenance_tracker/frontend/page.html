@@ -473,14 +473,18 @@ function renderReport(){
     document.getElementById("report-tasks").style.display = "";
     report.tasks.forEach(task => {
       const row = el("div", "kv");
-      const label = el("span", "k", S.tiles[task.key] || task.key);
+      const label = el("span", "k",
+        S.tiles[task.key] || S.report.values[task.key] || task.key);
       row.appendChild(label);
       const value = el("span", "v");
       value.appendChild(document.createTextNode(daysAgoText(task.last) + " "));
       if (task.interval_days) {
         const badge = el("span", "badge " + (task.due ? "due" : "ok"),
-          task.due ? S.report.overdue
-                   : S.report.every_days.replace("{days}", task.interval_days));
+          task.due
+            ? S.report.overdue
+            : (task.next
+                ? S.report.next_due.replace("{date}", shortDate(task.next))
+                : S.report.every_days.replace("{days}", task.interval_days)));
         value.appendChild(badge);
       }
       row.appendChild(value);

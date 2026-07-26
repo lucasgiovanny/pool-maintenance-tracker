@@ -197,8 +197,9 @@ async def _page_people(hass: HomeAssistant, entry: ConfigEntry, technician_label
         ):
             people.append(user.name)
     people.sort(key=str.casefold)
-    people.append(technician_label)
-    return people
+    # Technician comes first and is therefore pre-selected on the page —
+    # the most common visitor without an HA account.
+    return [technician_label, *people]
 
 
 @callback
@@ -247,11 +248,17 @@ def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
             continue
         spec = reminders_by_key.get(ts_key)
         interval = int(entry.options.get(spec.conf_key, spec.default_days)) if spec else None
+        next_due = (
+            (runtime.reminders.overdue_since(ts_key) + timedelta(days=interval)).isoformat()
+            if spec
+            else None
+        )
         tasks.append(
             {
                 "key": ts_key,
                 "last": tracker.timestamps.get(ts_key),
                 "interval_days": interval,
+                "next": next_due,
                 "due": (runtime.reminders.is_overdue(ts_key, interval, now) if spec else False),
             }
         )

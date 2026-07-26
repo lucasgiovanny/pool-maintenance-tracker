@@ -126,7 +126,8 @@
     "state_off": "Off",
     "just_now": "just now",
     "ago_minutes": "{n} min ago",
-    "ago_hours": "{n} h ago"
+    "ago_hours": "{n} h ago",
+    "next_due": "next {date}"
   },
   "notes": {
     "title": "Notes",

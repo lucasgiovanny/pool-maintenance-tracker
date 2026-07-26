@@ -126,7 +126,8 @@
     "state_off": "Desligado",
     "just_now": "agora mesmo",
     "ago_minutes": "há {n} min",
-    "ago_hours": "há {n} h"
+    "ago_hours": "há {n} h",
+    "next_due": "próxima {date}"
   },
   "notes": {
     "title": "Notas",

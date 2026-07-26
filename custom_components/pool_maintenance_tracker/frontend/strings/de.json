@@ -126,7 +126,8 @@
     "state_off": "Aus",
     "just_now": "gerade eben",
     "ago_minutes": "vor {n} min",
-    "ago_hours": "vor {n} h"
+    "ago_hours": "vor {n} h",
+    "next_due": "nächste {date}"
   },
   "notes": {
     "title": "Notizen",
