@@ -69,7 +69,8 @@
           "ph_source": "pH sensor",
           "chlorine_source": "Free chlorine sensor",
           "salt_source": "Salt sensor",
-          "temperature_source": "Water temperature sensor"
+          "temperature_source": "Water temperature sensor",
+          "linked_mode": "Linked sensor behavior"
         }
       },
       "reminders": {
@@ -128,6 +129,13 @@
         "fr": "Français",
         "de": "Deutsch",
         "it": "Italiano"
+      }
+    },
+    "linked_mode": {
+      "options": {
+        "manual_only": "Show on page only (entities stay manual)",
+        "fill_on_record": "Fill entities from probe when a record is saved",
+        "mirror": "Mirror linked sensors continuously (overrides manual values)"
       }
     }
   },

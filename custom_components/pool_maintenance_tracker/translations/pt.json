@@ -69,7 +69,8 @@
           "ph_source": "Sensor de pH",
           "chlorine_source": "Sensor de cloro livre",
           "salt_source": "Sensor de sal",
-          "temperature_source": "Sensor de temperatura da água"
+          "temperature_source": "Sensor de temperatura da água",
+          "linked_mode": "Comportamento dos sensores ligados"
         }
       },
       "reminders": {
@@ -128,6 +129,13 @@
         "fr": "Français",
         "de": "Deutsch",
         "it": "Italiano"
+      }
+    },
+    "linked_mode": {
+      "options": {
+        "manual_only": "Só mostrar na página (entidades ficam manuais)",
+        "fill_on_record": "Preencher entidades com a sonda ao guardar um registo",
+        "mirror": "Espelhar continuamente (sobrepõe valores manuais)"
       }
     }
   },

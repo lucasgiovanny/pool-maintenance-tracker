@@ -6,12 +6,26 @@ from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_track_state_change_event,
+)
 
-from .const import CONF_TOKEN, DATA_TOKENS, DOMAIN
+from .const import (
+    CONF_LINKED_MODE,
+    CONF_TOKEN,
+    DATA_TOKENS,
+    DOMAIN,
+    LINKED_MODE_MANUAL,
+    LINKED_MODE_MIRROR,
+    LINKED_SOURCES,
+    LINKED_VALUE_KEYS,
+    NUMBER_RANGES,
+)
 from .http import async_register_views
-from .modules import active_entity_keys
+from .modules import active_entity_keys, enabled_value_keys
 from .reminders import ReminderEngine
 from .tracker import PoolTracker
 
@@ -52,8 +66,50 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     reminders.async_start()
 
+    if entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL) == LINKED_MODE_MIRROR:
+        _async_setup_linked_mirror(hass, entry, tracker)
+
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
+
+
+@callback
+def _async_setup_linked_mirror(
+    hass: HomeAssistant, entry: PoolConfigEntry, tracker: PoolTracker
+) -> None:
+    """Keep manual entities in sync with the linked sensors (mirror mode)."""
+    mapping: dict[str, str] = {}
+    value_keys = enabled_value_keys(entry.options)
+    for live_key, conf_key in LINKED_SOURCES.items():
+        entity_id = entry.options.get(conf_key)
+        value_key = LINKED_VALUE_KEYS.get(live_key)
+        if entity_id and value_key and value_key in value_keys:
+            mapping[entity_id] = value_key
+
+    if not mapping:
+        return
+
+    @callback
+    def _apply(entity_id: str) -> None:
+        state = hass.states.get(entity_id)
+        if state is None:
+            return
+        try:
+            value = float(state.state)
+        except ValueError:
+            return
+        value_key = mapping[entity_id]
+        minimum, maximum, _step = NUMBER_RANGES[value_key]
+        if minimum <= value <= maximum:
+            tracker.async_set_value(value_key, round(value, 2))
+
+    @callback
+    def _handle_change(event: Event[EventStateChangedData]) -> None:
+        _apply(event.data["entity_id"])
+
+    for entity_id in mapping:
+        _apply(entity_id)
+    entry.async_on_unload(async_track_state_change_event(hass, list(mapping), _handle_change))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool:

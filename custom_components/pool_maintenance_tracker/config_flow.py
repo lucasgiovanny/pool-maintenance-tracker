@@ -32,6 +32,7 @@ from .const import (
     CONF_CELL_DAYS,
     CONF_FILTER_DAYS,
     CONF_LANGUAGE,
+    CONF_LINKED_MODE,
     CONF_MODULES,
     CONF_NOTIFY_SERVICE,
     CONF_PEOPLE,
@@ -46,6 +47,8 @@ from .const import (
     DEFAULT_REMINDER_TIME,
     DOMAIN,
     LANGUAGES,
+    LINKED_MODE_MANUAL,
+    LINKED_MODES,
     LINKED_SOURCES,
     POOL_TYPE_SALT,
     POOL_TYPES,
@@ -225,6 +228,7 @@ class PoolOptionsFlow(OptionsFlow):
                     options[conf_key] = user_input[conf_key]
                 else:
                     options.pop(conf_key, None)
+            options[CONF_LINKED_MODE] = user_input[CONF_LINKED_MODE]
             return self.async_create_entry(data=options)
 
         schema: dict[vol.Marker, Any] = {}
@@ -235,6 +239,18 @@ class PoolOptionsFlow(OptionsFlow):
                     description={"suggested_value": options.get(conf_key)},
                 )
             ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
+        schema[
+            vol.Required(
+                CONF_LINKED_MODE,
+                default=options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
+            )
+        ] = SelectSelector(
+            SelectSelectorConfig(
+                options=LINKED_MODES,
+                mode=SelectSelectorMode.DROPDOWN,
+                translation_key="linked_mode",
+            )
+        )
         return self.async_show_form(step_id="sensors", data_schema=vol.Schema(schema))
 
     async def async_step_modules(

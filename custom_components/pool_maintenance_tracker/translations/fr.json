@@ -69,7 +69,8 @@
           "ph_source": "Capteur de pH",
           "chlorine_source": "Capteur de chlore libre",
           "salt_source": "Capteur de sel",
-          "temperature_source": "Capteur de température de l'eau"
+          "temperature_source": "Capteur de température de l'eau",
+          "linked_mode": "Comportement des capteurs liés"
         }
       },
       "reminders": {
@@ -128,6 +129,13 @@
         "fr": "Français",
         "de": "Deutsch",
         "it": "Italiano"
+      }
+    },
+    "linked_mode": {
+      "options": {
+        "manual_only": "Afficher sur la page uniquement (entités manuelles)",
+        "fill_on_record": "Compléter les entités depuis la sonde à l'enregistrement",
+        "mirror": "Refléter en continu (écrase les valeurs manuelles)"
       }
     }
   },

@@ -69,7 +69,8 @@
           "ph_source": "Sensore pH",
           "chlorine_source": "Sensore cloro libero",
           "salt_source": "Sensore sale",
-          "temperature_source": "Sensore temperatura dell'acqua"
+          "temperature_source": "Sensore temperatura dell'acqua",
+          "linked_mode": "Comportamento dei sensori collegati"
         }
       },
       "reminders": {
@@ -128,6 +129,13 @@
         "fr": "Français",
         "de": "Deutsch",
         "it": "Italiano"
+      }
+    },
+    "linked_mode": {
+      "options": {
+        "manual_only": "Mostrare solo nella pagina (entità manuali)",
+        "fill_on_record": "Compilare le entità dalla sonda al salvataggio",
+        "mirror": "Rispecchiare continuamente (sovrascrive i valori manuali)"
       }
     }
   },

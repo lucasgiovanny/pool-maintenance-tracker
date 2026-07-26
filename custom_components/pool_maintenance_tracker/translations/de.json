@@ -69,7 +69,8 @@
           "ph_source": "pH-Sensor",
           "chlorine_source": "Sensor für freies Chlor",
           "salt_source": "Salzsensor",
-          "temperature_source": "Wassertemperatursensor"
+          "temperature_source": "Wassertemperatursensor",
+          "linked_mode": "Verhalten der verknüpften Sensoren"
         }
       },
       "reminders": {
@@ -128,6 +129,13 @@
         "fr": "Français",
         "de": "Deutsch",
         "it": "Italiano"
+      }
+    },
+    "linked_mode": {
+      "options": {
+        "manual_only": "Nur auf der Seite anzeigen (Entitäten bleiben manuell)",
+        "fill_on_record": "Entitäten beim Speichern eines Eintrags von der Sonde füllen",
+        "mirror": "Fortlaufend spiegeln (überschreibt manuelle Werte)"
       }
     }
   },

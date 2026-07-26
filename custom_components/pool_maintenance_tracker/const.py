@@ -29,6 +29,13 @@ LINKED_SOURCES: Final[dict[str, str]] = {
     "salt": CONF_SALT_SOURCE,
     "temperature": CONF_TEMPERATURE_SOURCE,
 }
+
+# How linked sensors interact with the manual entities (per entry)
+CONF_LINKED_MODE: Final = "linked_mode"
+LINKED_MODE_MANUAL: Final = "manual_only"
+LINKED_MODE_ON_RECORD: Final = "fill_on_record"
+LINKED_MODE_MIRROR: Final = "mirror"
+LINKED_MODES: Final = [LINKED_MODE_MANUAL, LINKED_MODE_ON_RECORD, LINKED_MODE_MIRROR]
 CONF_NOTIFY_SERVICE: Final = "notify_service"
 CONF_FILTER_DAYS: Final = "filter_days"
 CONF_PROBE_DAYS: Final = "probe_days"
@@ -91,6 +98,14 @@ NUMBER_RANGES: Final[dict[str, tuple[float, float, float]]] = {
     KEY_SALT_LEVEL: (0.0, 10.0, 0.1),
     KEY_SALT_ADDED: (0.0, 500.0, 1.0),
     KEY_CHLORINATOR_OUTPUT: (0.0, 10.0, 0.5),
+}
+
+LINKED_VALUE_KEYS: Final[dict[str, str]] = {
+    # live-value key -> manual entity value key
+    "ph": KEY_PH,
+    "free_chlorine": KEY_FREE_CHLORINE,
+    "salt": KEY_SALT_LEVEL,
+    "temperature": KEY_WATER_TEMPERATURE,
 }
 
 PAYLOAD_VERSION: Final = 2

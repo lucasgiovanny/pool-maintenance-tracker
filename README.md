@@ -107,8 +107,15 @@ pool integration? Link those entities under **Configure → Linked sensors**
 - every record stores a snapshot of the probe values at log time — a handy
   audit trail of manual reading vs. probe (e.g. to spot calibration drift).
 
-The integration stays the *human logbook* on top of your telemetry; it never
-duplicates or polls those sensors.
+You also choose how linked sensors interact with the manual entities
+(**Linked sensor behavior**):
+
+- **Show on page only** (default) — entities stay purely manual; the probe's
+  own entity remains your live value.
+- **Fill on record** — when a record is saved without a manual reading for a
+  value, the probe's current value fills the entity. Manual readings always win.
+- **Mirror** — entities continuously follow the linked sensors (manual values
+  get overwritten on the next probe update).
 
 ## QR code / NFC tag
 

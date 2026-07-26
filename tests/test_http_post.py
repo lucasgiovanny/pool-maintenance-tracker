@@ -168,6 +168,66 @@ async def test_record_snapshot_from_linked_sensors(hass, salt_entry, hass_client
     assert record["snapshot"] == {"ph": 7.05}
 
 
+async def test_fill_on_record_mode(hass, salt_entry, hass_client_no_auth):
+    hass.states.async_set("sensor.probe_ph", "7.05")
+    hass.states.async_set("sensor.probe_temp", "26.8")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={
+            **salt_entry.options,
+            "ph_source": "sensor.probe_ph",
+            "temperature_source": "sensor.probe_temp",
+            "linked_mode": "fill_on_record",
+        },
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    # manual pH wins; temperature (not measured) is filled from the probe
+    response = await client.post(
+        LOG_URL, json={"categories": ["water_test"], "readings": {"ph": 7.4}}
+    )
+    assert response.status == 200
+    await hass.async_block_till_done()
+
+    tracker = salt_entry.runtime_data.tracker
+    assert tracker.values["ph"] == 7.4
+    assert tracker.values["water_temperature"] == 26.8
+
+
+async def test_mirror_mode_follows_sensor(hass, salt_entry):
+    hass.states.async_set("sensor.probe_temp", "25.0")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={
+            **salt_entry.options,
+            "temperature_source": "sensor.probe_temp",
+            "linked_mode": "mirror",
+        },
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+
+    tracker = salt_entry.runtime_data.tracker
+    # initial sync on setup
+    assert tracker.values["water_temperature"] == 25.0
+
+    hass.states.async_set("sensor.probe_temp", "26.3")
+    await hass.async_block_till_done()
+    assert tracker.values["water_temperature"] == 26.3
+
+    # out-of-range and non-numeric states are ignored
+    hass.states.async_set("sensor.probe_temp", "99")
+    await hass.async_block_till_done()
+    assert tracker.values["water_temperature"] == 26.3
+    hass.states.async_set("sensor.probe_temp", "unavailable")
+    await hass.async_block_till_done()
+    assert tracker.values["water_temperature"] == 26.3
+
+
 async def test_acid_alert_notification(hass, salt_entry, hass_client_no_auth):
     notifications = []
 

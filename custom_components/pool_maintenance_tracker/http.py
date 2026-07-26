@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant, callback
 
 from .const import (
     CONF_LANGUAGE,
+    CONF_LINKED_MODE,
     CONF_PEOPLE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
@@ -31,7 +32,10 @@ from .const import (
     DEFAULT_LANGUAGE,
     DOMAIN,
     KEY_ACID_TANK_LEVEL,
+    LINKED_MODE_MANUAL,
+    LINKED_MODE_ON_RECORD,
     LINKED_SOURCES,
+    LINKED_VALUE_KEYS,
     MAX_BODY_SIZE,
     NUMBER_RANGES,
     URL_LOG,
@@ -269,8 +273,20 @@ class PoolLogView(HomeAssistantView):
             and tracker.values.get(KEY_ACID_TANK_LEVEL) != "quarter"
         )
         # Audit trail: what the linked automatic sensors read at log time.
-        if snapshot := {key: item["value"] for key, item in _live_values(hass, entry).items()}:
+        live = _live_values(hass, entry)
+        if snapshot := {key: item["value"] for key, item in live.items()}:
             result.record["snapshot"] = snapshot
+        # In fill_on_record mode, probe values fill entities the person did
+        # not measure manually; manual readings always win.
+        if entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL) == LINKED_MODE_ON_RECORD:
+            allowed = enabled_value_keys(entry.options)
+            for live_key, item in live.items():
+                value_key = LINKED_VALUE_KEYS.get(live_key)
+                if not value_key or value_key not in allowed or value_key in result.values:
+                    continue
+                minimum, maximum, _step = NUMBER_RANGES[value_key]
+                if minimum <= item["value"] <= maximum:
+                    result.values[value_key] = item["value"]
         tracker.async_apply(result)
         if acid_alert:
             await runtime.reminders.async_send_acid_alert()
