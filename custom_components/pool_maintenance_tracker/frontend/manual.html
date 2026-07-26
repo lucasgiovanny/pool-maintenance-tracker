@@ -12,7 +12,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-    color:var(--ink);max-width:720px;margin:0 auto;padding:28px 24px;
+    color:var(--ink);max-width:680px;margin:0 auto;padding:30px 24px;
   }
   @page{size:A4;margin:16mm}
   .header-row{display:flex;align-items:center;gap:16px}
@@ -21,36 +21,54 @@
     font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
     color:var(--aqua);font-weight:700;margin-bottom:4px;
   }
-  h1{font-size:1.5rem;font-weight:800;color:var(--deep);line-height:1.15}
-  .rule{height:6px;margin:14px 0 24px;
+  h1{font-size:1.6rem;font-weight:800;color:var(--deep);line-height:1.15}
+  .rule{height:6px;margin:16px 0 26px;
     background:repeating-linear-gradient(-45deg,var(--aqua) 0 12px,transparent 12px 24px);
     opacity:.85;border-radius:3px;
   }
-  .grid{display:flex;gap:24px;align-items:stretch;flex-wrap:wrap}
-  .panel{
-    flex:1;min-width:260px;border:2px solid var(--line);border-radius:14px;
-    padding:20px;text-align:center;
+
+  .qr-wrap{text-align:center;margin-bottom:30px}
+  .qr-wrap h2{
+    font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--deep);font-weight:800;margin-bottom:14px;
   }
-  .panel h2{font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--deep);font-weight:800;margin-bottom:12px}
-  .panel img{width:200px;max-width:80%;height:auto;image-rendering:pixelated}
-  .url{font-size:.66rem;color:var(--muted);word-break:break-all;margin-top:10px;line-height:1.5}
-  .caption{font-size:.8rem;color:var(--muted);margin-top:10px;line-height:1.45}
-  .nfc-box{
-    border:3px dashed var(--aqua);border-radius:14px;height:170px;margin-top:6px;
+  .qr-wrap img{width:210px;height:auto;image-rendering:pixelated}
+
+  .steps h2{
+    font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--deep);font-weight:800;margin-bottom:18px;
+  }
+  .steps ol{list-style:none;counter-reset:step}
+  .steps li{
+    position:relative;padding:0 0 22px 46px;counter-increment:step;
+    font-size:.98rem;line-height:1.5;
+  }
+  .steps li::before{
+    content:counter(step);
+    position:absolute;left:0;top:-3px;width:30px;height:30px;border-radius:50%;
+    background:var(--deep);color:#fff;font-weight:800;font-size:.9rem;
     display:flex;align-items:center;justify-content:center;
-    color:var(--muted);font-weight:700;font-size:.9rem;
   }
-  .steps{margin-top:28px}
-  .steps h2{font-size:1rem;font-weight:800;color:var(--deep);margin-bottom:14px}
-  ol{padding-left:22px}
-  ol li{font-size:.92rem;line-height:1.5;margin-bottom:9px}
+  .steps li::after{
+    content:"";position:absolute;left:14px;top:29px;bottom:2px;width:2px;
+    background:var(--line);
+  }
+  .steps li:last-child{padding-bottom:0}
+  .steps li:last-child::after{display:none}
+
   .report-hint{
-    margin-top:18px;background:#E8F6F7;border:1px solid var(--aqua);border-radius:12px;
+    margin-top:24px;background:#E8F6F7;border:1px solid var(--aqua);border-radius:12px;
     padding:12px 16px;font-size:.85rem;line-height:1.5;color:var(--deep);
   }
-  footer{margin-top:30px;font-size:.7rem;color:var(--muted);
-    border-top:1px solid var(--line);padding-top:10px;display:flex;justify-content:space-between}
+
+  /* Discreet spot for a standard round NFC sticker (~25 mm) */
+  .nfc-spot{
+    position:fixed;right:6mm;bottom:6mm;width:30mm;height:30mm;border-radius:50%;
+    border:1.5px dashed var(--muted);opacity:.55;
+    display:flex;align-items:center;justify-content:center;
+    font-size:.6rem;font-weight:700;letter-spacing:.12em;color:var(--muted);
+  }
+
   .print-button{
     position:fixed;right:18px;top:18px;background:var(--deep);color:#fff;border:none;
     border-radius:12px;padding:12px 22px;font-size:.95rem;font-weight:700;
@@ -80,17 +98,9 @@
 </div>
 <div class="rule"></div>
 
-<div class="grid">
-  <div class="panel">
-    <h2 id="qr-title"></h2>
-    <img id="qr" alt="QR code">
-    <p class="caption" id="qr-caption"></p>
-  </div>
-  <div class="panel">
-    <h2 id="nfc-title"></h2>
-    <div class="nfc-box" id="nfc-box"></div>
-    <p class="caption" id="nfc-caption"></p>
-  </div>
+<div class="qr-wrap">
+  <h2 id="qr-title"></h2>
+  <img id="qr" alt="QR code">
 </div>
 
 <div class="steps">
@@ -99,10 +109,7 @@
   <div class="report-hint" id="report-hint"></div>
 </div>
 
-<footer>
-  <span>Pool Maintenance Tracker</span>
-  <span id="date"></span>
-</footer>
+<div class="nfc-spot">NFC</div>
 
 <script>
 "use strict";
@@ -116,14 +123,9 @@ function setText(id, value){ document.getElementById(id).textContent = value; }
 setText("pool-name", CFG.pool_name);
 setText("title", M.title);
 setText("qr-title", M.qr_title);
-setText("qr-caption", M.qr_caption);
-setText("nfc-title", M.nfc_title);
-setText("nfc-box", M.nfc_box);
-setText("nfc-caption", M.nfc_caption);
 setText("steps-title", M.steps_title);
 setText("report-hint", M.report_hint);
 setText("print", M.print);
-setText("date", new Date().toLocaleDateString(CFG.language === "pt" ? "pt-PT" : CFG.language));
 document.getElementById("qr").src = CFG.qr;
 
 const list = document.getElementById("steps");

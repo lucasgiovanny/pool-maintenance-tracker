@@ -230,7 +230,8 @@ async def test_manual_page(hass, salt_entry, hass_client_no_auth):
     html = await response.text()
     assert "__MANUAL_CONFIG__" not in html
     assert "data:image/png;base64," in html
-    assert "Cola aqui a tag NFC" in html  # PT strings for this entry
+    assert "Manutenção da piscina" in html  # PT strings for this entry
+    assert "nfc-spot" in html  # discreet round NFC sticker spot
 
     response = await client.get(URL_MANUAL.format(token="wrong"))
     assert response.status == 404

@@ -148,20 +148,15 @@
   },
   "print_manual": "🖨 Stampa il manuale per il locale tecnico",
   "manual": {
-    "title": "Manutenzione piscina — manuale del locale tecnico",
+    "title": "Manutenzione piscina",
     "qr_title": "Scansiona per registrare",
-    "qr_caption": "Punta la fotocamera del telefono sul codice per aprire la pagina.",
-    "nfc_title": "Tag NFC",
-    "nfc_box": "Attacca qui il tag NFC",
-    "nfc_caption": "Scrivi l'URL della pagina su un tag NFC e attaccalo in questo spazio.",
-    "steps_title": "Come registrare una manutenzione",
+    "steps_title": "Come registrare",
     "steps": [
-      "Apri la pagina con il codice QR (o avvicina il telefono al tag NFC).",
-      "Scegli chi sei nell'elenco.",
-      "Conferma la data e l'ora del lavoro.",
-      "Tocca tutto ciò che hai fatto e inserisci i valori misurati — i campi vuoti non cambiano nulla.",
-      "Aggiungi una nota se c'è qualcosa da segnalare (facoltativo).",
-      "Premi Salva registrazione — tutto resta nel sistema di casa."
+      "Punta la fotocamera sul codice QR (o avvicina il telefono al tag NFC).",
+      "Scegli chi sei.",
+      "Conferma data e ora.",
+      "Tocca ciò che hai fatto e inserisci i valori misurati.",
+      "Salva la registrazione."
     ],
     "report_hint": "La scheda Rapporto mostra lo stato della piscina, le prossime manutenzioni e lo storico.",
     "print": "Stampa"

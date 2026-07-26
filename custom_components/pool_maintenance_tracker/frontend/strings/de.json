@@ -148,20 +148,15 @@
   },
   "print_manual": "🖨 Handbuch für den Technikraum drucken",
   "manual": {
-    "title": "Poolwartung — Handbuch für den Technikraum",
+    "title": "Poolwartung",
     "qr_title": "Zum Eintragen scannen",
-    "qr_caption": "Richte die Handykamera auf den Code, um die Seite zu öffnen.",
-    "nfc_title": "NFC-Tag",
-    "nfc_box": "NFC-Tag hier aufkleben",
-    "nfc_caption": "Schreibe die Seiten-URL auf einen NFC-Tag und klebe ihn in dieses Feld.",
-    "steps_title": "So trägst du eine Wartung ein",
+    "steps_title": "So trägst du ein",
     "steps": [
-      "Öffne die Seite über den QR-Code (oder halte das Handy an den NFC-Tag).",
-      "Wähle in der Liste, wer du bist.",
-      "Bestätige Datum und Uhrzeit der Arbeit.",
-      "Tippe alles an, was du gemacht hast, und trage die gemessenen Werte ein — leere Felder ändern nichts.",
-      "Füge bei Bedarf eine Notiz hinzu (optional).",
-      "Tippe auf Eintrag speichern — alles wird im Haussystem gespeichert."
+      "Richte die Kamera auf den QR-Code (oder halte das Handy an den NFC-Tag).",
+      "Wähle, wer du bist.",
+      "Bestätige Datum und Uhrzeit.",
+      "Tippe an, was du gemacht hast, und trage die Messwerte ein.",
+      "Speichere den Eintrag."
     ],
     "report_hint": "Der Bericht-Tab zeigt den Poolzustand, anstehende Wartungen und den Verlauf.",
     "print": "Drucken"
