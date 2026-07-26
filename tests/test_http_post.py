@@ -74,7 +74,7 @@ async def test_event_entity_fires(hass, salt_entry, hass_client_no_auth):
     event_entity = entity_id_for(hass, "event", salt_entry, "maintenance_logged")
     assert hass.states.get(event_entity).state == "unknown"
 
-    response = await client.post(LOG_URL, json={"categories": ["other"]})
+    response = await client.post(LOG_URL, json={"categories": ["cleaning"]})
     assert response.status == 200
     await hass.async_block_till_done()
 
@@ -87,7 +87,7 @@ async def test_unknown_token_404(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()
     response = await client.post(
-        URL_LOG.format(token="wrong-token"), json={"categories": ["other"]}
+        URL_LOG.format(token="wrong-token"), json={"categories": ["cleaning"]}
     )
     assert response.status == 404
 
@@ -107,7 +107,7 @@ async def test_wrong_content_type_400(hass, salt_entry, hass_client_no_auth):
     client = await hass_client_no_auth()
     response = await client.post(
         LOG_URL,
-        data=json.dumps({"categories": ["other"]}),
+        data=json.dumps({"categories": ["cleaning"]}),
         headers={"Content-Type": "text/plain"},
     )
     assert response.status == 400

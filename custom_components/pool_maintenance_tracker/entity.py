@@ -5,16 +5,27 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_NAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.network import NoURLAvailableError, get_url
 
-from .const import DOMAIN, signal_updated
+from .const import CONF_TOKEN, DOMAIN, URL_PAGE, signal_updated
 
 if TYPE_CHECKING:
     from . import PoolConfigEntry
     from .tracker import PoolTracker
+
+
+def page_url(hass: HomeAssistant, entry: PoolConfigEntry) -> str | None:
+    """Full public URL of the maintenance page, or None if no URL is set up."""
+    path = URL_PAGE.format(token=entry.data[CONF_TOKEN])
+    try:
+        base = get_url(hass, prefer_external=True)
+    except NoURLAvailableError:
+        return None
+    return f"{base}{path}"
 
 
 class PoolBaseEntity(Entity):
@@ -33,6 +44,7 @@ class PoolBaseEntity(Entity):
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.data[CONF_NAME],
             manufacturer="Pool Maintenance Tracker",
+            configuration_url=page_url(entry.runtime_data.tracker.hass, entry),
         )
 
     async def async_added_to_hass(self) -> None:

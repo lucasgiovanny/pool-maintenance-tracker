@@ -18,7 +18,6 @@ from .const import (
     CATEGORY_CHLORINATOR,
     CATEGORY_CLEANING,
     CATEGORY_FILTER_WASH,
-    CATEGORY_OTHER,
     CATEGORY_PROBE_CALIBRATION,
     CATEGORY_SALT,
     CATEGORY_WATER_TEST,
@@ -127,9 +126,8 @@ MODULE_CLEANING = PoolModule(
 
 MODULE_CORE = PoolModule(
     key="core",
-    tiles=("other",),
+    tiles=(),
     timestamp_keys=(TS_ANY,),
-    categories=(CATEGORY_OTHER,),
     always_on=True,
 )
 
@@ -172,7 +170,6 @@ TILE_ORDER: tuple[str, ...] = (
     "probe_calibration",
     "acid_refill",
     "cleaning",
-    "other",
 )
 
 
@@ -213,7 +210,7 @@ def active_entity_keys(options: Mapping[str, Any]) -> set[str]:
 
     Used to prune stale registry entries when modules are disabled.
     """
-    keys: set[str] = {"last_record", "maintenance_logged", "access_qr", "access_url"}
+    keys: set[str] = {"last_record", "maintenance_logged", "access_qr"}
     keys.update(enabled_value_keys(options))
     for ts_key in enabled_timestamp_keys(options):
         keys.add(timestamp_sensor_key(ts_key))

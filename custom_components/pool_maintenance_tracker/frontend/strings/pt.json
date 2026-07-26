@@ -4,6 +4,7 @@
   "title": "Registo de manutenção da piscina",
   "intro": "Escolhe o que fizeste, confirma os valores e envia. Fica tudo guardado no sistema da casa.",
   "who": "Quem está a registar?",
+  "when": "Quando foi feito?",
   "what": "O que foi feito?",
   "what_hint": "toca em tudo o que se aplica",
   "tiles": {
@@ -14,8 +15,7 @@
     "cell_clean": "Célula limpa",
     "probe_calibration": "Sonda pH calibrada",
     "acid_refill": "Ácido atestado",
-    "cleaning": "Aspiração / limpeza",
-    "other": "Outro"
+    "cleaning": "Aspiração / limpeza"
   },
   "panels": {
     "water_test": {
@@ -53,10 +53,6 @@
     "cleaning": {
       "title": "Aspiração / limpeza",
       "what": "O que foi feito"
-    },
-    "other": {
-      "title": "Outro",
-      "hint": "Outra manutenção qualquer — ficam registados a data e quem fez."
     }
   },
   "acid_levels": {

@@ -68,6 +68,33 @@ async def test_page_lists_ha_users(hass, salt_entry, hass_client_no_auth):
     assert "Maria" in config["people"]
 
 
+async def test_people_option_filters_users(hass, salt_entry, hass_client_no_auth):
+    maria = await hass.auth.async_create_user("Maria")
+    await hass.auth.async_create_user("João")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry, options={**salt_entry.options, "people_users": [maria.id]}
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    response = await client.get(PAGE_URL)
+    config = extract_config(await response.text())
+    assert "Maria" in config["people"]
+    assert "João" not in config["people"]
+    assert config["people"][-1] == "Técnico"
+
+
+async def test_page_has_date_picker(hass, salt_entry, hass_client_no_auth):
+    await setup_entry(hass, salt_entry)
+    client = await hass_client_no_auth()
+    html = await (await client.get(PAGE_URL)).text()
+    assert 'type="date"' in html
+    config = extract_config(html)
+    assert "other" not in config["tiles"]
+
+
 async def test_page_unknown_token_404(hass, salt_entry, hass_client_no_auth):
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()

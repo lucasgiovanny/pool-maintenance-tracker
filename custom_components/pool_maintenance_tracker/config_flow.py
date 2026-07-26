@@ -19,6 +19,7 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
@@ -31,6 +32,7 @@ from .const import (
     CONF_LANGUAGE,
     CONF_MODULES,
     CONF_NOTIFY_SERVICE,
+    CONF_PEOPLE,
     CONF_POOL_TYPE,
     CONF_PROBE_DAYS,
     CONF_REMINDER_TIME,
@@ -206,7 +208,7 @@ class PoolOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["modules", "reminders", "page", "security"],
+            menu_options=["modules", "people", "reminders", "page", "security"],
         )
 
     async def async_step_modules(
@@ -222,6 +224,36 @@ class PoolOptionsFlow(OptionsFlow):
             step_id="modules",
             data_schema=vol.Schema(
                 {vol.Required(CONF_MODULES, default=current): _modules_selector(current)}
+            ),
+        )
+
+    async def async_step_people(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            options[CONF_PEOPLE] = user_input[CONF_PEOPLE]
+            return self.async_create_entry(data=options)
+
+        user_options = [
+            SelectOptionDict(value=user.id, label=user.name or user.id)
+            for user in await self.hass.auth.async_get_users()
+            if user.is_active and not user.system_generated and user.name
+        ]
+        known_ids = [option["value"] for option in user_options]
+        current = [
+            user_id for user_id in options.get(CONF_PEOPLE, ()) if user_id in known_ids
+        ] or known_ids
+        return self.async_show_form(
+            step_id="people",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_PEOPLE, default=current): SelectSelector(
+                        SelectSelectorConfig(
+                            options=user_options,
+                            multiple=True,
+                            mode=SelectSelectorMode.LIST,
+                        )
+                    )
+                }
             ),
         )
 

@@ -1,0 +1,90 @@
+{
+  "technician": "Tecnico",
+  "eyebrow": "Locale tecnico",
+  "title": "Registro manutenzione piscina",
+  "intro": "Scegli cosa hai fatto, conferma i valori e invia. Tutto viene salvato nel sistema di casa.",
+  "who": "Chi registra?",
+  "when": "Quando è stato fatto?",
+  "what": "Cosa è stato fatto?",
+  "what_hint": "tocca tutto ciò che si applica",
+  "tiles": {
+    "water_test": "Letture dell'acqua",
+    "chlorinator": "Clorinatore regolato",
+    "salt": "Sale aggiunto",
+    "filter_wash": "Filtro lavato",
+    "cell_clean": "Cella pulita",
+    "probe_calibration": "Sonda pH calibrata",
+    "acid_refill": "Acido rabboccato",
+    "cleaning": "Aspirazione / pulizia"
+  },
+  "panels": {
+    "water_test": {
+      "title": "Letture dell'acqua",
+      "ph": "pH misurato (striscia o kit)",
+      "free_chlorine": "Cloro libero",
+      "salt": "Sale (misura manuale)",
+      "hint": "Compila solo ciò che hai misurato. I campi vuoti non cambiano nulla."
+    },
+    "chlorinator": {
+      "title": "Clorinatore regolato",
+      "mode": "Modalità",
+      "output": "Produzione impostata"
+    },
+    "salt": {
+      "title": "Sale aggiunto",
+      "amount": "Quantità aggiunta alla piscina"
+    },
+    "filter_wash": {
+      "title": "Filtro lavato",
+      "hint": "Registra il lavaggio. La data viene salvata e il sistema avvisa quando serve il prossimo."
+    },
+    "cell_clean": {
+      "title": "Cella del clorinatore pulita",
+      "hint": "Ispezione o rimozione del calcare dagli elettrodi. La data viene registrata."
+    },
+    "probe_calibration": {
+      "title": "Sonda pH calibrata",
+      "hint": "Calibrazione con le soluzioni tampone. La data viene registrata."
+    },
+    "acid_refill": {
+      "title": "Serbatoio dell'acido rabboccato",
+      "level": "Livello dopo il rabbocco (circa)"
+    },
+    "cleaning": {
+      "title": "Aspirazione / pulizia",
+      "what": "Cosa è stato fatto"
+    }
+  },
+  "acid_levels": {
+    "full": "Pieno",
+    "three_quarters": "¾",
+    "half": "½",
+    "quarter": "¼"
+  },
+  "modes": {
+    "smart": "Smart",
+    "manual": "Manuale",
+    "boost": "Boost"
+  },
+  "cleaning_types": {
+    "vacuum": "Aspirazione",
+    "waterline": "Linea d'acqua",
+    "baskets": "Cestelli"
+  },
+  "units": {
+    "ph": "pH",
+    "free_chlorine": "ppm",
+    "salt_level": "g/L",
+    "salt_added": "kg",
+    "chlorinator_output": "g/h"
+  },
+  "save": "Salva registrazione",
+  "saving": "Salvataggio…",
+  "nothing_title": "Niente da registrare",
+  "nothing_text": "Tocca prima una delle schede di manutenzione.",
+  "success_title": "Registrazione salvata",
+  "success_text": "Il sistema di casa ha ricevuto questa manutenzione.",
+  "error_title": "Impossibile salvare",
+  "error_text": "Controlla la connessione a internet e riprova.",
+  "again": "Nuova registrazione"
+}

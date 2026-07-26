@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant, callback
 
 from .const import (
     CONF_LANGUAGE,
+    CONF_PEOPLE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
     DATA_TOKENS,
@@ -137,11 +138,22 @@ async def _load_strings(hass: HomeAssistant, language: str) -> dict[str, Any]:
     return json.loads(raw)
 
 
-async def _page_people(hass: HomeAssistant, technician_label: str) -> list[str]:
-    """Active human HA users plus a generic technician chip."""
+async def _page_people(hass: HomeAssistant, entry: ConfigEntry, technician_label: str) -> list[str]:
+    """Selected HA users plus a generic technician chip.
+
+    The ``people_users`` option limits which users appear; empty or absent
+    means every active human user.
+    """
+    selected_ids = set(entry.options.get(CONF_PEOPLE, ()))
     people: list[str] = []
     for user in await hass.auth.async_get_users():
-        if user.is_active and not user.system_generated and user.name and user.name not in people:
+        if (
+            user.is_active
+            and not user.system_generated
+            and user.name
+            and user.name not in people
+            and (not selected_ids or user.id in selected_ids)
+        ):
             people.append(user.name)
     people.sort(key=str.casefold)
     people.append(technician_label)
@@ -157,7 +169,7 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "endpoint": URL_LOG.format(token=token),
         "pool_name": entry.title,
         "language": language,
-        "people": await _page_people(hass, technician_label),
+        "people": await _page_people(hass, entry, technician_label),
         "tiles": enabled_tiles(entry.options),
         "strings": strings,
         # Only enabled value keys — the page uses presence here to decide

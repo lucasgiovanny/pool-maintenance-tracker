@@ -4,6 +4,7 @@
   "title": "Pool maintenance log",
   "intro": "Pick what you did, confirm the values and save. Everything is stored in the home system.",
   "who": "Who is logging?",
+  "when": "When was it done?",
   "what": "What was done?",
   "what_hint": "tap everything that applies",
   "tiles": {
@@ -14,8 +15,7 @@
     "cell_clean": "Cell cleaned",
     "probe_calibration": "pH probe calibrated",
     "acid_refill": "Acid topped up",
-    "cleaning": "Vacuum / cleaning",
-    "other": "Other"
+    "cleaning": "Vacuum / cleaning"
   },
   "panels": {
     "water_test": {
@@ -53,10 +53,6 @@
     "cleaning": {
       "title": "Vacuum / cleaning",
       "what": "What was done"
-    },
-    "other": {
-      "title": "Other",
-      "hint": "Any other maintenance — the date and the person are logged."
     }
   },
   "acid_levels": {

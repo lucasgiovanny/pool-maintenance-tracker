@@ -28,8 +28,9 @@ periodic tasks are overdue.
    (`/api/pool_maintenance_tracker/<token>/page`).
 2. You write that URL to an NFC tag or print the QR code (both are provided as
    entities) and stick it in the machine room.
-3. Anyone who opens the page picks who they are, taps the maintenance tiles,
-   fills in readings, and submits — works fine on mobile data.
+3. Anyone who opens the page picks who they are, optionally adjusts the date
+   (defaults to today), taps the maintenance tiles, fills in readings, and
+   submits — works fine on mobile data.
 4. The integration validates the submission, updates the entities, fires an
    event for your automations, appends to the log, and sends notifications
    when something needs attention.
@@ -67,9 +68,10 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
    | Cleaning tasks | Vacuum / waterline / basket logging |
 
    Water testing (pH, free chlorine) and the maintenance log are always on.
-3. **Page and reminders** — page language (English/Portuguese), optional
-   `notify.*` service for alerts, and reminder periods (defaults: filter 30 days,
-   pH probe 60 days, chlorinator cell 90 days).
+3. **Page and reminders** — page language (English, Portuguese, Spanish,
+   French, German, Italian), optional `notify.*` service for alerts, and
+   reminder periods (defaults: filter 30 days, pH probe 60 days, chlorinator
+   cell 90 days).
 
 Everything can be changed later via **Configure** on the integration — including
 disabling modules (their entities are removed) and regenerating the access token.
@@ -79,16 +81,18 @@ Multiple pools? Just add the integration again.
 ### People on the page
 
 The "who is logging" chips are your active Home Assistant users plus a generic
-**Technician** chip — no extra configuration needed. New HA users appear
-automatically.
+**Technician** chip — no configuration needed, and new HA users appear
+automatically. To show only some users, pick them under **Configure → People
+on the page**.
 
 ## QR code / NFC tag
 
-After setup, the pool device provides two diagnostic entities:
+After setup, the pool device provides:
 
 - `image.<pool>_page_qr_code` — a QR code of the page URL. Open it, print it,
-  or scan it straight from the dashboard.
-- `sensor.<pool>_page_url` — the full URL, ready to copy into an NFC-writing app.
+  or scan it straight from the dashboard. Its `url` attribute holds the full
+  URL, ready to copy into an NFC-writing app.
+- A **Visit** link on the device page that opens the maintenance page directly.
 
 The URL contains a random 256-bit token. Anyone with the URL can log
 maintenance (that's the point), but the endpoints are write-only, validated,
@@ -148,12 +152,16 @@ the endpoint directly (e.g. from a shortcut):
 }
 ```
 
+Valid `categories`: `water_test`, `chlorinator`, `salt`, `filter_wash`,
+`cell_clean`, `probe_calibration`, `acid_refill`, `cleaning` (limited to the
+enabled modules).
+
 Rules: every field is optional; `null`/absent fields change nothing;
 out-of-range values (pH 6–9, chlorine 0–10 ppm, salt 0–10 g/L, salt added
 0–500 kg, output 0–10 g/h) are ignored and echoed back in the `ignored` list;
 sections for disabled modules are ignored; a payload with nothing valid gets
-`400`. Timestamps older than 7 days or more than 1 hour in the future are
-replaced with server time.
+`400`. `logged_at` older than 7 days or more than 1 hour in the future is
+replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 

@@ -11,7 +11,7 @@ async def test_record_log_is_capped(hass, salt_entry):
     tracker = salt_entry.runtime_data.tracker
 
     for _ in range(MAX_RECORDS + 5):
-        result = process_payload({"categories": ["other"]}, SALT_OPTIONS)
+        result = process_payload({"categories": ["cleaning"]}, SALT_OPTIONS)
         tracker.async_apply(result)
     await hass.async_block_till_done()
 

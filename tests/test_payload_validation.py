@@ -127,7 +127,7 @@ def test_disabled_module_sections_ignored():
 
 def test_invalid_enum_ignored():
     result = process_payload(
-        {"categories": ["other"], "chlorinator": {"mode": "turbo"}},
+        {"categories": ["cleaning"], "chlorinator": {"mode": "turbo"}},
         SALT_OPTIONS,
         now=NOW,
     )
@@ -143,22 +143,28 @@ def test_cleaning_types_filtered():
 
 def test_logged_at_out_of_window_uses_server_time():
     stale = (NOW - timedelta(days=30)).isoformat()
-    result = process_payload({"categories": ["other"], "logged_at": stale}, SALT_OPTIONS, now=NOW)
+    result = process_payload(
+        {"categories": ["cleaning"], "logged_at": stale}, SALT_OPTIONS, now=NOW
+    )
     assert result.record["logged_at"] == NOW.isoformat()
 
 
 def test_logged_at_recent_is_kept():
     recent = (NOW - timedelta(hours=2)).isoformat()
-    result = process_payload({"categories": ["other"], "logged_at": recent}, SALT_OPTIONS, now=NOW)
+    result = process_payload(
+        {"categories": ["cleaning"], "logged_at": recent}, SALT_OPTIONS, now=NOW
+    )
     assert result.record["logged_at"] == recent
 
 
 def test_person_too_long_becomes_unknown():
-    result = process_payload({"person": "x" * 50, "categories": ["other"]}, SALT_OPTIONS, now=NOW)
+    result = process_payload(
+        {"person": "x" * 50, "categories": ["cleaning"]}, SALT_OPTIONS, now=NOW
+    )
     assert result.record["person"] == "unknown"
     assert "person" in result.ignored
 
 
 def test_unknown_top_level_keys_ignored_silently():
-    result = process_payload({"categories": ["other"], "hack": {"a": 1}}, SALT_OPTIONS, now=NOW)
-    assert result.record["categories"] == ["other"]
+    result = process_payload({"categories": ["cleaning"], "hack": {"a": 1}}, SALT_OPTIONS, now=NOW)
+    assert result.record["categories"] == ["cleaning"]

@@ -21,10 +21,10 @@ async def test_post_ip_rate_limit(hass, salt_entry, hass_client_no_auth):
     url = URL_LOG.format(token=TEST_TOKEN)
 
     for _ in range(10):
-        response = await client.post(url, json={"categories": ["other"]})
+        response = await client.post(url, json={"categories": ["cleaning"]})
         assert response.status == 200
 
-    response = await client.post(url, json={"categories": ["other"]})
+    response = await client.post(url, json={"categories": ["cleaning"]})
     assert response.status == 429
     assert (await response.json())["error"] == "rate_limited"
 

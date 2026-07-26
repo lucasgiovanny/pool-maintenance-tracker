@@ -73,6 +73,23 @@ async def test_regenerate_token(hass, salt_entry, hass_client_no_auth):
     assert response.status == 200
 
 
+async def test_people_options_step(hass, salt_entry):
+    maria = await hass.auth.async_create_user("Maria")
+    await hass.auth.async_create_user("João")
+    await setup_entry(hass, salt_entry)
+
+    result = await hass.config_entries.options.async_init(salt_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "people"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"people_users": [maria.id]}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert salt_entry.options["people_users"] == [maria.id]
+
+
 async def test_reminder_options_update(hass, salt_entry):
     await setup_entry(hass, salt_entry)
 

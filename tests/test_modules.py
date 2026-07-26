@@ -56,7 +56,6 @@ def test_chlorine_pool_is_reduced():
     assert "chlorinator" not in tiles
     assert "acid_refill" not in tiles
     assert "water_test" in tiles
-    assert "other" in tiles
     categories = enabled_categories(CHLORINE_OPTIONS)
     assert "chlorinator" not in categories
     assert "filter_wash" in categories
@@ -66,7 +65,6 @@ def test_active_entity_keys_salt():
     keys = active_entity_keys(SALT_OPTIONS)
     assert "last_record" in keys
     assert "access_qr" in keys
-    assert "access_url" in keys
     assert "maintenance_logged" in keys
     assert "last_maintenance" in keys
     assert "chlorinator_mode" in keys

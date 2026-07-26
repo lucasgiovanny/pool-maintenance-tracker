@@ -1,0 +1,90 @@
+{
+  "technician": "Techniker",
+  "eyebrow": "Technikraum",
+  "title": "Pool-Wartungsprotokoll",
+  "intro": "Wähle aus, was du gemacht hast, bestätige die Werte und sende ab. Alles wird im Haussystem gespeichert.",
+  "who": "Wer trägt ein?",
+  "when": "Wann wurde es gemacht?",
+  "what": "Was wurde gemacht?",
+  "what_hint": "tippe auf alles, was zutrifft",
+  "tiles": {
+    "water_test": "Wasserwerte",
+    "chlorinator": "Elektrolyseur eingestellt",
+    "salt": "Salz nachgefüllt",
+    "filter_wash": "Filter gereinigt",
+    "cell_clean": "Zelle gereinigt",
+    "probe_calibration": "pH-Sonde kalibriert",
+    "acid_refill": "Säure aufgefüllt",
+    "cleaning": "Absaugen / Reinigung"
+  },
+  "panels": {
+    "water_test": {
+      "title": "Wasserwerte",
+      "ph": "pH gemessen (Streifen oder Kit)",
+      "free_chlorine": "Freies Chlor",
+      "salt": "Salz (manuelle Messung)",
+      "hint": "Trage nur ein, was du gemessen hast. Leere Felder ändern nichts."
+    },
+    "chlorinator": {
+      "title": "Elektrolyseur eingestellt",
+      "mode": "Modus",
+      "output": "Eingestellte Leistung"
+    },
+    "salt": {
+      "title": "Salz nachgefüllt",
+      "amount": "In den Pool gegebene Menge"
+    },
+    "filter_wash": {
+      "title": "Filter gereinigt",
+      "hint": "Erfasst die Reinigung. Das Datum wird gespeichert und das System erinnert an die nächste."
+    },
+    "cell_clean": {
+      "title": "Elektrolysezelle gereinigt",
+      "hint": "Inspektion oder Entkalkung der Elektroden. Das Datum wird erfasst."
+    },
+    "probe_calibration": {
+      "title": "pH-Sonde kalibriert",
+      "hint": "Kalibrierung mit den Pufferlösungen. Das Datum wird erfasst."
+    },
+    "acid_refill": {
+      "title": "Säuretank aufgefüllt",
+      "level": "Füllstand nach dem Auffüllen (ca.)"
+    },
+    "cleaning": {
+      "title": "Absaugen / Reinigung",
+      "what": "Was wurde gemacht"
+    }
+  },
+  "acid_levels": {
+    "full": "Voll",
+    "three_quarters": "¾",
+    "half": "½",
+    "quarter": "¼"
+  },
+  "modes": {
+    "smart": "Smart",
+    "manual": "Manuell",
+    "boost": "Boost"
+  },
+  "cleaning_types": {
+    "vacuum": "Absaugen",
+    "waterline": "Wasserlinie",
+    "baskets": "Körbe"
+  },
+  "units": {
+    "ph": "pH",
+    "free_chlorine": "ppm",
+    "salt_level": "g/L",
+    "salt_added": "kg",
+    "chlorinator_output": "g/h"
+  },
+  "save": "Eintrag speichern",
+  "saving": "Speichern…",
+  "nothing_title": "Nichts einzutragen",
+  "nothing_text": "Tippe zuerst auf eine der Wartungskarten.",
+  "success_title": "Eintrag gespeichert",
+  "success_text": "Das Haussystem hat diese Wartung erhalten.",
+  "error_title": "Speichern fehlgeschlagen",
+  "error_text": "Prüfe die Internetverbindung und versuche es erneut.",
+  "again": "Neuer Eintrag"
+}

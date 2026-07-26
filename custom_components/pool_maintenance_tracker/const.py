@@ -13,6 +13,8 @@ CONF_TOKEN: Final = "token"
 CONF_POOL_TYPE: Final = "pool_type"
 CONF_MODULES: Final = "modules"
 CONF_LANGUAGE: Final = "language"
+# HA user ids allowed on the page; empty/absent means all active users
+CONF_PEOPLE: Final = "people_users"
 CONF_NOTIFY_SERVICE: Final = "notify_service"
 CONF_FILTER_DAYS: Final = "filter_days"
 CONF_PROBE_DAYS: Final = "probe_days"
@@ -24,7 +26,7 @@ POOL_TYPE_CHLORINE: Final = "chlorine"
 POOL_TYPE_OTHER: Final = "other"
 POOL_TYPES: Final = [POOL_TYPE_SALT, POOL_TYPE_CHLORINE, POOL_TYPE_OTHER]
 
-LANGUAGES: Final = ["en", "pt"]
+LANGUAGES: Final = ["en", "pt", "es", "fr", "de", "it"]
 DEFAULT_LANGUAGE: Final = "en"
 DEFAULT_FILTER_DAYS: Final = 30
 DEFAULT_PROBE_DAYS: Final = 60
@@ -58,7 +60,6 @@ CATEGORY_CELL_CLEAN: Final = "cell_clean"
 CATEGORY_PROBE_CALIBRATION: Final = "probe_calibration"
 CATEGORY_ACID_REFILL: Final = "acid_refill"
 CATEGORY_CLEANING: Final = "cleaning"
-CATEGORY_OTHER: Final = "other"
 
 # Enum values
 CHLORINATOR_MODES: Final = ["smart", "manual", "boost"]

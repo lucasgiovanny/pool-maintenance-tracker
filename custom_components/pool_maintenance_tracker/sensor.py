@@ -6,18 +6,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    CONF_TOKEN,
-    RECENT_RECORDS_ATTR_COUNT,
-    TS_CLEANING,
-    URL_PAGE,
-)
+from .const import RECENT_RECORDS_ATTR_COUNT, TS_CLEANING
 from .entity import PoolBaseEntity
 from .modules import enabled_timestamp_keys, timestamp_sensor_key
 
@@ -44,7 +37,6 @@ async def async_setup_entry(
         PoolTimestampSensor(entry, ts_key) for ts_key in enabled_timestamp_keys(entry.options)
     ]
     entities.append(PoolLastRecordSensor(entry))
-    entities.append(PoolAccessUrlSensor(entry))
     async_add_entities(entities)
 
 
@@ -107,22 +99,3 @@ class PoolLastRecordSensor(PoolBaseEntity, SensorEntity):
             "data": record.get("data", {}),
             "recent_records": recent,
         }
-
-
-class PoolAccessUrlSensor(PoolBaseEntity, SensorEntity):
-    """Full public URL of the maintenance page (for QR/NFC writing)."""
-
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_icon = "mdi:qrcode-scan"
-
-    def __init__(self, entry: PoolConfigEntry) -> None:
-        super().__init__(entry, "access_url")
-
-    @property
-    def native_value(self) -> str | None:
-        path = URL_PAGE.format(token=self.entry.data[CONF_TOKEN])
-        try:
-            base = get_url(self.hass, prefer_external=True)
-        except NoURLAvailableError:
-            return None
-        return f"{base}{path}"

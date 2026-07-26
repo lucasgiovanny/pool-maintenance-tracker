@@ -41,6 +41,7 @@
       "init": {
         "menu_options": {
           "modules": "Módulos de equipamento",
+          "people": "Pessoas na página",
           "reminders": "Lembretes",
           "page": "Página e notificações",
           "security": "Segurança"
@@ -51,6 +52,13 @@
         "description": "As entidades e cartões de módulos desativados são removidos.",
         "data": {
           "modules": "Módulos"
+        }
+      },
+      "people": {
+        "title": "Pessoas na página",
+        "description": "Escolhe que utilizadores do Home Assistant aparecem como opções na página de manutenção. O chip genérico Técnico aparece sempre. Selecionar todos (ou nenhum) mostra todos os utilizadores ativos.",
+        "data": {
+          "people_users": "Utilizadores"
         }
       },
       "reminders": {
@@ -101,17 +109,31 @@
     "language": {
       "options": {
         "en": "English",
-        "pt": "Português"
+        "pt": "Português",
+        "es": "Español",
+        "fr": "Français",
+        "de": "Deutsch",
+        "it": "Italiano"
       }
     }
   },
   "entity": {
     "number": {
-      "ph": { "name": "pH (medição manual)" },
-      "free_chlorine": { "name": "Cloro livre" },
-      "salt_level": { "name": "Sal (medição manual)" },
-      "salt_added": { "name": "Sal adicionado" },
-      "chlorinator_output": { "name": "Produção do clorador" }
+      "ph": {
+        "name": "pH (medição manual)"
+      },
+      "free_chlorine": {
+        "name": "Cloro livre"
+      },
+      "salt_level": {
+        "name": "Sal (medição manual)"
+      },
+      "salt_added": {
+        "name": "Sal adicionado"
+      },
+      "chlorinator_output": {
+        "name": "Produção do clorador"
+      }
     },
     "select": {
       "chlorinator_mode": {
@@ -133,26 +155,51 @@
       }
     },
     "sensor": {
-      "last_water_test": { "name": "Última análise da água" },
-      "last_filter_wash": { "name": "Última lavagem do filtro" },
-      "last_cell_clean": { "name": "Última limpeza da célula" },
-      "last_probe_calibration": { "name": "Última calibração da sonda de pH" },
-      "last_acid_refill": { "name": "Último atesto de ácido" },
-      "last_cleaning": { "name": "Última limpeza" },
-      "last_maintenance": { "name": "Última manutenção" },
-      "last_record": { "name": "Último registo" },
-      "access_url": { "name": "URL da página" }
+      "last_water_test": {
+        "name": "Última análise da água"
+      },
+      "last_filter_wash": {
+        "name": "Última lavagem do filtro"
+      },
+      "last_cell_clean": {
+        "name": "Última limpeza da célula"
+      },
+      "last_probe_calibration": {
+        "name": "Última calibração da sonda de pH"
+      },
+      "last_acid_refill": {
+        "name": "Último atesto de ácido"
+      },
+      "last_cleaning": {
+        "name": "Última limpeza"
+      },
+      "last_maintenance": {
+        "name": "Última manutenção"
+      },
+      "last_record": {
+        "name": "Último registo"
+      }
     },
     "binary_sensor": {
-      "filter_wash_due": { "name": "Lavagem do filtro em atraso" },
-      "cell_clean_due": { "name": "Limpeza da célula em atraso" },
-      "probe_calibration_due": { "name": "Calibração da sonda em atraso" }
+      "filter_wash_due": {
+        "name": "Lavagem do filtro em atraso"
+      },
+      "cell_clean_due": {
+        "name": "Limpeza da célula em atraso"
+      },
+      "probe_calibration_due": {
+        "name": "Calibração da sonda em atraso"
+      }
     },
     "event": {
-      "maintenance_logged": { "name": "Manutenção registada" }
+      "maintenance_logged": {
+        "name": "Manutenção registada"
+      }
     },
     "image": {
-      "access_qr": { "name": "QR code da página" }
+      "access_qr": {
+        "name": "QR code da página"
+      }
     }
   }
 }

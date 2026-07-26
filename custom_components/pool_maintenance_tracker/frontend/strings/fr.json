@@ -1,0 +1,90 @@
+{
+  "technician": "Technicien",
+  "eyebrow": "Local technique",
+  "title": "Journal d'entretien de la piscine",
+  "intro": "Choisissez ce que vous avez fait, confirmez les valeurs et envoyez. Tout est enregistré dans le système de la maison.",
+  "who": "Qui enregistre ?",
+  "when": "Quand cela a-t-il été fait ?",
+  "what": "Qu'est-ce qui a été fait ?",
+  "what_hint": "touchez tout ce qui s'applique",
+  "tiles": {
+    "water_test": "Analyses de l'eau",
+    "chlorinator": "Électrolyseur réglé",
+    "salt": "Sel ajouté",
+    "filter_wash": "Filtre lavé",
+    "cell_clean": "Cellule nettoyée",
+    "probe_calibration": "Sonde pH étalonnée",
+    "acid_refill": "Acide rempli",
+    "cleaning": "Aspiration / nettoyage"
+  },
+  "panels": {
+    "water_test": {
+      "title": "Analyses de l'eau",
+      "ph": "pH mesuré (bandelette ou kit)",
+      "free_chlorine": "Chlore libre",
+      "salt": "Sel (mesure manuelle)",
+      "hint": "Remplissez uniquement ce que vous avez mesuré. Les champs vides ne changent rien."
+    },
+    "chlorinator": {
+      "title": "Électrolyseur réglé",
+      "mode": "Mode",
+      "output": "Production réglée"
+    },
+    "salt": {
+      "title": "Sel ajouté",
+      "amount": "Quantité ajoutée à la piscine"
+    },
+    "filter_wash": {
+      "title": "Filtre lavé",
+      "hint": "Enregistre le lavage. La date est conservée et le système prévient quand le prochain est dû."
+    },
+    "cell_clean": {
+      "title": "Cellule de l'électrolyseur nettoyée",
+      "hint": "Inspection ou détartrage des électrodes. La date est enregistrée."
+    },
+    "probe_calibration": {
+      "title": "Sonde pH étalonnée",
+      "hint": "Étalonnage avec les solutions tampons. La date est enregistrée."
+    },
+    "acid_refill": {
+      "title": "Réservoir d'acide rempli",
+      "level": "Niveau après remplissage (approx.)"
+    },
+    "cleaning": {
+      "title": "Aspiration / nettoyage",
+      "what": "Ce qui a été fait"
+    }
+  },
+  "acid_levels": {
+    "full": "Plein",
+    "three_quarters": "¾",
+    "half": "½",
+    "quarter": "¼"
+  },
+  "modes": {
+    "smart": "Smart",
+    "manual": "Manuel",
+    "boost": "Boost"
+  },
+  "cleaning_types": {
+    "vacuum": "Aspiration",
+    "waterline": "Ligne d'eau",
+    "baskets": "Paniers"
+  },
+  "units": {
+    "ph": "pH",
+    "free_chlorine": "ppm",
+    "salt_level": "g/L",
+    "salt_added": "kg",
+    "chlorinator_output": "g/h"
+  },
+  "save": "Enregistrer",
+  "saving": "Enregistrement…",
+  "nothing_title": "Rien à enregistrer",
+  "nothing_text": "Touchez d'abord l'une des cartes d'entretien.",
+  "success_title": "Enregistré",
+  "success_text": "Le système de la maison a bien reçu cet entretien.",
+  "error_title": "Échec de l'enregistrement",
+  "error_text": "Vérifiez la connexion internet et réessayez.",
+  "again": "Nouvel enregistrement"
+}

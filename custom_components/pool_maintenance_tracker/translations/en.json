@@ -41,6 +41,7 @@
       "init": {
         "menu_options": {
           "modules": "Equipment modules",
+          "people": "People on the page",
           "reminders": "Reminders",
           "page": "Page and notifications",
           "security": "Security"
@@ -51,6 +52,13 @@
         "description": "Entities and page tiles of disabled modules are removed.",
         "data": {
           "modules": "Modules"
+        }
+      },
+      "people": {
+        "title": "People on the page",
+        "description": "Choose which Home Assistant users appear as chips on the maintenance page. The generic Technician chip is always shown. Selecting everyone (or no one) shows all active users.",
+        "data": {
+          "people_users": "Users"
         }
       },
       "reminders": {
@@ -101,17 +109,31 @@
     "language": {
       "options": {
         "en": "English",
-        "pt": "Português"
+        "pt": "Português",
+        "es": "Español",
+        "fr": "Français",
+        "de": "Deutsch",
+        "it": "Italiano"
       }
     }
   },
   "entity": {
     "number": {
-      "ph": { "name": "pH (manual reading)" },
-      "free_chlorine": { "name": "Free chlorine" },
-      "salt_level": { "name": "Salt (manual reading)" },
-      "salt_added": { "name": "Salt added" },
-      "chlorinator_output": { "name": "Chlorinator output" }
+      "ph": {
+        "name": "pH (manual reading)"
+      },
+      "free_chlorine": {
+        "name": "Free chlorine"
+      },
+      "salt_level": {
+        "name": "Salt (manual reading)"
+      },
+      "salt_added": {
+        "name": "Salt added"
+      },
+      "chlorinator_output": {
+        "name": "Chlorinator output"
+      }
     },
     "select": {
       "chlorinator_mode": {
@@ -133,26 +155,51 @@
       }
     },
     "sensor": {
-      "last_water_test": { "name": "Last water test" },
-      "last_filter_wash": { "name": "Last filter wash" },
-      "last_cell_clean": { "name": "Last cell cleaning" },
-      "last_probe_calibration": { "name": "Last pH probe calibration" },
-      "last_acid_refill": { "name": "Last acid refill" },
-      "last_cleaning": { "name": "Last cleaning" },
-      "last_maintenance": { "name": "Last maintenance" },
-      "last_record": { "name": "Last record" },
-      "access_url": { "name": "Page URL" }
+      "last_water_test": {
+        "name": "Last water test"
+      },
+      "last_filter_wash": {
+        "name": "Last filter wash"
+      },
+      "last_cell_clean": {
+        "name": "Last cell cleaning"
+      },
+      "last_probe_calibration": {
+        "name": "Last pH probe calibration"
+      },
+      "last_acid_refill": {
+        "name": "Last acid refill"
+      },
+      "last_cleaning": {
+        "name": "Last cleaning"
+      },
+      "last_maintenance": {
+        "name": "Last maintenance"
+      },
+      "last_record": {
+        "name": "Last record"
+      }
     },
     "binary_sensor": {
-      "filter_wash_due": { "name": "Filter wash due" },
-      "cell_clean_due": { "name": "Cell cleaning due" },
-      "probe_calibration_due": { "name": "pH probe calibration due" }
+      "filter_wash_due": {
+        "name": "Filter wash due"
+      },
+      "cell_clean_due": {
+        "name": "Cell cleaning due"
+      },
+      "probe_calibration_due": {
+        "name": "pH probe calibration due"
+      }
     },
     "event": {
-      "maintenance_logged": { "name": "Maintenance logged" }
+      "maintenance_logged": {
+        "name": "Maintenance logged"
+      }
     },
     "image": {
-      "access_qr": { "name": "Page QR code" }
+      "access_qr": {
+        "name": "Page QR code"
+      }
     }
   }
 }
