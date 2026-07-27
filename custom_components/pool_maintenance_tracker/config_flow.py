@@ -31,6 +31,7 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_CELL_DAYS,
     CONF_FILTER_DAYS,
+    CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_MODULES,
@@ -44,6 +45,7 @@ from .const import (
     CONF_TOKEN,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
+    DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
     DEFAULT_PROBE_DAYS,
     DEFAULT_REMINDER_TIME,
@@ -345,6 +347,7 @@ class PoolOptionsFlow(OptionsFlow):
                 options[CONF_LANGUAGE] = user_input[CONF_LANGUAGE]
                 options[CONF_NOTIFY_SERVICE] = notify_service
                 options[CONF_REPORT_ENABLED] = user_input[CONF_REPORT_ENABLED]
+                options[CONF_KIOSK_ENABLED] = user_input[CONF_KIOSK_ENABLED]
                 return self.async_create_entry(data=options)
 
         return self.async_show_form(
@@ -362,6 +365,10 @@ class PoolOptionsFlow(OptionsFlow):
                     vol.Required(
                         CONF_REPORT_ENABLED,
                         default=options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED),
+                    ): BooleanSelector(),
+                    vol.Required(
+                        CONF_KIOSK_ENABLED,
+                        default=options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED),
                     ): BooleanSelector(),
                 }
             ),

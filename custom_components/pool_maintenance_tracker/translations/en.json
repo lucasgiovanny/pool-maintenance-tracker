@@ -88,11 +88,13 @@
         "data": {
           "language": "Page language",
           "notify_service": "Notification service (optional)",
-          "report_enabled": "\"Status\" tab on the page"
+          "report_enabled": "\"Status\" tab on the page",
+          "kiosk_enabled": "Wall dashboard page"
         },
         "data_description": {
           "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations.",
-          "report_enabled": "Adds a read-only report tab to the public page: current values, task status and recent records. Anyone with the page URL can see it."
+          "report_enabled": "Adds a read-only report tab to the public page: current values, task status and recent records. Anyone with the page URL can see it.",
+          "kiosk_enabled": "A dark, display-only dashboard for a screen next to the pool (7\" landscape and up): water readings, equipment and a countdown to the next schedule change. No touch or navigation. Find its URL in the QR code entity's attributes."
         }
       },
       "security": {

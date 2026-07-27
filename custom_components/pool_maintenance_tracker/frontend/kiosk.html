@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<title>Pool</title>
+<style>
+  :root{
+    --bg:#071A21;
+    --card:#0E2A34;
+    --card-2:#123540;
+    --line:#1D4553;
+    --ink:#EAF6F9;
+    --muted:#7D9AA5;
+    --aqua:#22C3D6;
+    --deep:#0B4F6C;
+    --ok:#2FCC8B;
+    --warn:#F0A030;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    cursor:none;user-select:none;-webkit-user-select:none;
+    display:flex;flex-direction:column;gap:1.4vh;padding:2vh 1.8vw;
+  }
+
+  /* ---------- header ---------- */
+  header{display:flex;align-items:center;gap:1.4vw;flex:none}
+  header .logo{width:5.4vh;height:5.4vh;border-radius:1.2vh;flex:none}
+  header .name{font-size:3.2vh;font-weight:800;letter-spacing:-.01em;line-height:1}
+  header .sub{font-size:1.7vh;color:var(--muted);font-weight:600;margin-top:.4vh}
+  header .clock{margin-left:auto;text-align:right;line-height:1}
+  header .clock .time{font-size:4.4vh;font-weight:800;font-variant-numeric:tabular-nums}
+  header .clock .date{font-size:1.7vh;color:var(--muted);font-weight:600;margin-top:.5vh}
+  .dot{
+    display:inline-block;width:1.1vh;height:1.1vh;border-radius:50%;background:var(--ok);
+    margin-right:.7vh;vertical-align:middle;
+  }
+  .dot.stale{background:var(--warn)}
+
+  /* ---------- alerts ---------- */
+  .alerts{display:flex;gap:1vw;flex:none;flex-wrap:wrap}
+  .alert{
+    display:flex;align-items:center;gap:.8vw;background:rgba(240,160,48,.14);
+    border:1px solid var(--warn);border-radius:1.2vh;padding:.9vh 1.4vw;
+    font-size:1.9vh;font-weight:700;color:var(--warn);
+  }
+
+  /* ---------- hero countdown ---------- */
+  .hero{
+    flex:none;background:var(--card);border:1px solid var(--line);border-radius:1.6vh;
+    padding:1.4vh 1.8vw;display:flex;align-items:center;gap:1.6vw;
+  }
+  .hero .label{font-size:1.9vh;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .hero .value{
+    margin-left:auto;font-size:5.6vh;font-weight:800;color:var(--aqua);
+    font-variant-numeric:tabular-nums;line-height:1;
+  }
+  .hero .when{font-size:1.8vh;color:var(--muted);font-weight:600}
+  .hero.soon .value{color:var(--warn)}
+  .hero.imminent .value{color:var(--warn);animation:blink 1s step-start infinite}
+  @keyframes blink{50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.hero.imminent .value{animation:none}}
+
+  /* ---------- main grid ---------- */
+  main{flex:1;display:grid;grid-template-columns:1.15fr 1fr;gap:1.2vw;min-height:0}
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:1.6vh;
+    padding:1.4vh 1.4vw;display:flex;flex-direction:column;min-height:0;
+  }
+  .panel h2{
+    font-size:1.6vh;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--aqua);margin-bottom:1.2vh;flex:none;
+  }
+
+  .readings{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1vh 1vw;min-height:0}
+  .reading{
+    background:var(--card-2);border-radius:1.2vh;padding:1vh 1.1vw;
+    display:flex;flex-direction:column;justify-content:center;min-height:0;
+  }
+  .reading .k{font-size:1.75vh;color:var(--muted);font-weight:700;margin-bottom:.7vh}
+  .reading .v{font-size:6vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .reading .v small{font-size:2.2vh;font-weight:700;color:var(--muted);margin-left:.5vw}
+  /* always present so every tile aligns, even without a probe line */
+  .reading .src{font-size:1.5vh;color:var(--aqua);font-weight:700;margin-top:.7vh;min-height:1.9vh}
+
+  .equip{flex:1;display:flex;flex-direction:column;gap:.2vh;overflow:hidden}
+  .equip .row{
+    display:flex;align-items:center;gap:1vw;padding:.95vh 0;
+    border-bottom:1px solid var(--line);font-size:2vh;
+  }
+  .equip .row:last-child{border-bottom:none}
+  .equip .row .n{color:var(--muted);font-weight:600;flex:1;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .equip .row .s{font-weight:800;text-align:right;white-space:nowrap}
+  .equip .row .s small{color:var(--muted);font-weight:600;font-size:1.5vh;margin-left:.5vw}
+  .pill{
+    display:inline-block;border-radius:999px;padding:.35vh .9vw;font-size:1.6vh;font-weight:800;
+  }
+  .pill.on{background:rgba(47,204,139,.16);color:var(--ok)}
+  .pill.off{background:rgba(125,154,165,.16);color:var(--muted)}
+  .pill.info{background:rgba(34,195,214,.16);color:var(--aqua)}
+  .pill.warn{background:rgba(240,160,48,.16);color:var(--warn)}
+
+  /* ---------- tasks strip ---------- */
+  .tasks{
+    flex:none;display:flex;gap:.9vw;flex-wrap:wrap;
+  }
+  .task{
+    background:var(--card);border:1px solid var(--line);border-radius:1.2vh;
+    padding:.9vh 1.1vw;font-size:1.65vh;font-weight:700;display:flex;align-items:center;gap:.6vw;
+  }
+  .task.due{border-color:var(--warn);background:rgba(240,160,48,.12)}
+  .task .n{color:var(--muted);font-weight:600}
+  .task .d{font-weight:800}
+  .task.due .d{color:var(--warn)}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="logo" viewBox="0 0 256 256" aria-hidden="true">
+    <rect x="0" y="0" width="256" height="256" rx="58" fill="#0B4F6C"/>
+    <path d="M76 114l36 36 70-72" stroke="#EAF6F9" stroke-width="24" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M44 184q16-14 32 0t32 0t32 0t32 0t32 0" stroke="#22C3D6"
+          stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M60 212q16-11 32 0t32 0t32 0t32 0" stroke="#22C3D6" stroke-width="11"
+          fill="none" stroke-linecap="round" opacity="0.55"/>
+  </svg>
+  <div>
+    <div class="name" id="pool-name"></div>
+    <div class="sub"><span class="dot" id="dot"></span><span id="updated"></span></div>
+  </div>
+  <div class="clock">
+    <div class="time" id="clock-time"></div>
+    <div class="date" id="clock-date"></div>
+  </div>
+</header>
+
+<div class="alerts" id="alerts"></div>
+
+<div class="hero" id="hero" style="display:none">
+  <div>
+    <div class="label" id="hero-label"></div>
+    <div class="when" id="hero-when"></div>
+  </div>
+  <div class="value" id="hero-value"></div>
+</div>
+
+<main>
+  <section class="panel">
+    <h2 id="water-title"></h2>
+    <div class="readings" id="readings"></div>
+  </section>
+  <section class="panel">
+    <h2 id="equip-title"></h2>
+    <div class="equip" id="equip"></div>
+  </section>
+</main>
+
+<div class="tasks" id="tasks"></div>
+
+<script>
+"use strict";
+const CFG = "__KIOSK_CONFIG__";
+const S = CFG.strings;
+const LOCALE = CFG.language === "pt" ? "pt-PT" : CFG.language;
+
+let live = CFG.live || {};
+let report = CFG.report || {};
+let lastOk = Date.now();
+
+document.documentElement.lang = CFG.language;
+document.title = CFG.pool_name;
+function setText(id, value){ document.getElementById(id).textContent = value; }
+function el(tag, cls, text){
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+setText("pool-name", CFG.pool_name);
+setText("water-title", S.report.current);
+setText("equip-title", S.report.equipment);
+
+/* ---------- clock ---------- */
+function tickClock(){
+  const now = new Date();
+  setText("clock-time", now.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }));
+  setText("clock-date", now.toLocaleDateString(LOCALE, {
+    weekday: "long", day: "2-digit", month: "long" }));
+  const age = Math.floor((Date.now() - lastOk) / 1000);
+  const stale = age > 180;
+  document.getElementById("dot").classList.toggle("stale", stale);
+  setText("updated", stale ? S.kiosk.offline : S.kiosk.live);
+}
+
+/* ---------- helpers ---------- */
+const READINGS = [
+  { key: "ph", live: "ph" },
+  { key: "free_chlorine", live: "free_chlorine" },
+  { key: "salt_level", live: "salt" },
+  { key: "water_temperature", live: "temperature" }
+];
+
+function daysAgoText(iso){
+  if (!iso) return S.report.never;
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days <= 0) return S.report.today;
+  if (days === 1) return S.report.day_ago;
+  return S.report.days_ago.replace("{days}", days);
+}
+function relTime(iso){
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 90) return S.report.just_now;
+  if (seconds < 3600) return S.report.ago_minutes.replace("{n}", Math.floor(seconds / 60));
+  if (seconds < 86400) return S.report.ago_hours.replace("{n}", Math.floor(seconds / 3600));
+  return daysAgoText(iso);
+}
+/* Whole numbers read as measurements, not counts: 3 -> 3.0 */
+function decimal(value){
+  return Number.isInteger(value) ? value.toFixed(1) : String(value);
+}
+function clockDigits(totalSeconds){
+  let seconds = totalSeconds;
+  const days = Math.floor(seconds / 86400); seconds %= 86400;
+  return (days ? days + "d " : "")
+    + String(Math.floor(seconds / 3600)).padStart(2, "0") + ":"
+    + String(Math.floor((seconds % 3600) / 60)).padStart(2, "0") + ":"
+    + String(seconds % 60).padStart(2, "0");
+}
+
+/* ---------- water readings ---------- */
+function renderReadings(){
+  const box = document.getElementById("readings");
+  box.innerHTML = "";
+  READINGS.forEach(item => {
+    const declared = report.values ? report.values[item.key] : undefined;
+    const probe = live[item.live];
+    if (declared === undefined && !probe) return;
+    const tile = el("div", "reading");
+    tile.appendChild(el("div", "k", S.report.values[item.key] || item.key));
+    const value = el("div", "v");
+    const shown = probe ? probe.value : declared;
+    value.appendChild(document.createTextNode(decimal(shown)));
+    const unit = probe ? probe.unit : (S.units[item.key] || "");
+    if (unit) value.appendChild(el("small", null, unit));
+    tile.appendChild(value);
+    let source = "";
+    if (probe && declared !== undefined && declared !== probe.value) {
+      source = S.probe + " · " + S.kiosk.manual + " " + decimal(declared);
+    } else if (probe) {
+      source = S.probe;
+    }
+    tile.appendChild(el("div", "src", source));
+    box.appendChild(tile);
+  });
+  if (!box.childNodes.length) {
+    box.appendChild(el("div", "reading", "—"));
+  }
+}
+
+/* ---------- equipment ---------- */
+const ONOFF_DOMAINS = ["binary_sensor", "switch", "input_boolean", "light", "schedule"];
+
+function equipRow(name, pillText, pillClass, detail){
+  const row = el("div", "row");
+  row.appendChild(el("div", "n", name));
+  const state = el("div", "s");
+  if (pillClass) state.appendChild(el("span", "pill " + pillClass, pillText));
+  else state.appendChild(document.createTextNode(pillText));
+  if (detail) state.appendChild(el("small", null, detail));
+  row.appendChild(state);
+  return row;
+}
+
+function renderEquipment(){
+  const box = document.getElementById("equip");
+  box.innerHTML = "";
+  const values = report.values || {};
+  if (values.chlorinator_mode !== undefined) {
+    box.appendChild(equipRow(S.report.values.chlorinator_mode,
+      S.modes[values.chlorinator_mode] || values.chlorinator_mode, "info"));
+  }
+  if (values.chlorinator_output !== undefined) {
+    box.appendChild(equipRow(S.report.values.chlorinator_output,
+      values.chlorinator_output + " " + (S.units.chlorinator_output || ""), null));
+  }
+  if (values.acid_tank_level !== undefined) {
+    const level = values.acid_tank_level;
+    box.appendChild(equipRow(S.report.values.acid_tank_level,
+      S.acid_levels[level] || level,
+      level === "quarter" ? "warn" : level === "full" ? "on" : "info"));
+  }
+  (report.extra || []).forEach(item => {
+    const onOff = ONOFF_DOMAINS.includes(item.domain)
+      || item.state === "on" || item.state === "off";
+    if (onOff) {
+      box.appendChild(equipRow(item.name,
+        item.state === "on" ? S.report.state_on : S.report.state_off,
+        item.state === "on" ? "on" : "off",
+        item.domain === "schedule" ? "" : relTime(item.last_changed)));
+    } else if (!isNaN(parseFloat(item.state))) {
+      box.appendChild(equipRow(item.name,
+        item.state + (item.unit ? " " + item.unit : ""), null));
+    } else {
+      box.appendChild(equipRow(item.name, item.state, "info", relTime(item.last_changed)));
+    }
+  });
+  if (!box.childNodes.length) box.appendChild(el("div", "row", "—"));
+}
+
+/* ---------- periodic tasks ---------- */
+function renderTasks(){
+  const box = document.getElementById("tasks");
+  box.innerHTML = "";
+  (report.tasks || []).forEach(task => {
+    if (!task.interval_days) return;
+    const chip = el("div", "task" + (task.due ? " due" : ""));
+    chip.appendChild(el("span", "n", S.tiles[task.key] || S.report.values[task.key] || task.key));
+    chip.appendChild(el("span", "d",
+      task.due ? S.report.overdue : daysAgoText(task.last)));
+    box.appendChild(chip);
+  });
+}
+
+/* ---------- alerts ---------- */
+function renderAlerts(){
+  const box = document.getElementById("alerts");
+  box.innerHTML = "";
+  const messages = [];
+  (report.tasks || []).forEach(task => {
+    if (task.due) {
+      messages.push((S.tiles[task.key] || S.report.values[task.key] || task.key)
+        + " — " + S.report.overdue.toLowerCase());
+    }
+  });
+  if (report.values && report.values.acid_tank_level === "quarter") {
+    messages.push(S.report.alert_acid);
+  }
+  box.style.display = messages.length ? "" : "none";
+  messages.slice(0, 3).forEach(message => {
+    const alert = el("div", "alert");
+    alert.innerHTML = '<svg viewBox="0 0 24 24" style="width:2.1vh;height:2.1vh;stroke:currentColor;' +
+      'fill:none;stroke-width:2.2;stroke-linecap:round;flex:none">' +
+      '<path d="M12 8v5M12 17h.01"/>' +
+      '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+    alert.appendChild(document.createTextNode(message));
+    box.appendChild(alert);
+  });
+}
+
+/* ---------- hero countdown (only with a configured schedule) ---------- */
+function nextSchedule(){
+  const schedules = (report.extra || []).filter(
+    item => item.domain === "schedule" && item.next_change);
+  if (!schedules.length) return null;
+  return schedules.reduce((soonest, item) =>
+    new Date(item.next_change) < new Date(soonest.next_change) ? item : soonest);
+}
+
+function tickHero(){
+  const hero = document.getElementById("hero");
+  const item = nextSchedule();
+  if (!item) { hero.style.display = "none"; return; }
+  hero.style.display = "";
+  const target = new Date(item.next_change);
+  const total = Math.floor((target - Date.now()) / 1000);
+  setText("hero-label", item.state === "on" ? S.kiosk.turns_off : S.kiosk.turns_on);
+  setText("hero-when", item.name + " · " + target.toLocaleString(LOCALE, {
+    weekday: "short", hour: "2-digit", minute: "2-digit" }));
+  setText("hero-value", total > 0 ? clockDigits(total) : "…");
+  hero.classList.toggle("soon", total <= 3600 && total > 300);
+  hero.classList.toggle("imminent", total <= 300 && total > 0);
+  if (total <= 0 && !hero.dataset.fired) {
+    hero.dataset.fired = "1";
+    refresh();
+  }
+}
+
+/* ---------- refresh ---------- */
+function renderAll(){
+  renderAlerts();
+  renderReadings();
+  renderEquipment();
+  renderTasks();
+  tickHero();
+}
+
+let refreshing = false;
+async function refresh(){
+  if (refreshing) return;
+  refreshing = true;
+  try {
+    const response = await fetch(CFG.state_endpoint);
+    if (response.ok) {
+      const data = await response.json();
+      live = data.live || {};
+      report = data.report || {};
+      lastOk = Date.now();
+      delete document.getElementById("hero").dataset.fired;
+      renderAll();
+    }
+  } catch (error) { /* keep showing the last good data */ }
+  refreshing = false;
+}
+
+renderAll();
+tickClock();
+setInterval(tickClock, 1000);
+setInterval(tickHero, 1000);
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>

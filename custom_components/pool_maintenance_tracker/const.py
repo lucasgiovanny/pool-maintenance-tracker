@@ -37,6 +37,10 @@ DEFAULT_REPORT_ENABLED: Final = True
 # Extra entities (any integration) displayed on the report tab
 CONF_REPORT_SENSORS: Final = "report_sensors"
 
+# Display-only dashboard for a wall screen next to the pool
+CONF_KIOSK_ENABLED: Final = "kiosk_enabled"
+DEFAULT_KIOSK_ENABLED: Final = True
+
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"
 LINKED_MODE_MANUAL: Final = "manual_only"
@@ -141,6 +145,7 @@ URL_LOG: Final = "/api/pool_maintenance_tracker/{token}/log"
 URL_HISTORY: Final = "/api/pool_maintenance_tracker/{token}/history"
 URL_MANUAL: Final = "/api/pool_maintenance_tracker/{token}/manual"
 URL_STATE: Final = "/api/pool_maintenance_tracker/{token}/state"
+URL_KIOSK: Final = "/api/pool_maintenance_tracker/{token}/kiosk"
 HISTORY_PERIODS: Final = (7, 30, 180)
 
 TECHNICIAN_PERSON: Final = "technician"

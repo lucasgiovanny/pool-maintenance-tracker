@@ -343,8 +343,10 @@ async def test_state_endpoint_404_when_report_disabled(hass, salt_entry, hass_cl
     from custom_components.pool_maintenance_tracker.const import URL_STATE
 
     salt_entry.add_to_hass(hass)
+    # the kiosk also feeds off /state, so both have to be off
     hass.config_entries.async_update_entry(
-        salt_entry, options={**salt_entry.options, "report_enabled": False}
+        salt_entry,
+        options={**salt_entry.options, "report_enabled": False, "kiosk_enabled": False},
     )
     assert await hass.config_entries.async_setup(salt_entry.entry_id)
     await hass.async_block_till_done()

@@ -161,5 +161,12 @@
     ],
     "report_hint": "La pestaña Estado muestra el estado de la piscina, los próximos mantenimientos y el historial.",
     "print": "Imprimir"
+  },
+  "kiosk": {
+    "turns_on": "Se enciende en",
+    "turns_off": "Se apaga en",
+    "live": "En directo",
+    "offline": "Sin conexión",
+    "manual": "manual"
   }
 }

@@ -25,6 +25,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_PEOPLE,
@@ -34,6 +35,7 @@ from .const import (
     DATA_RATE_LIMITER,
     DATA_TOKENS,
     DATA_VIEWS_REGISTERED,
+    DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
     DEFAULT_REPORT_ENABLED,
     DOMAIN,
@@ -50,6 +52,7 @@ from .const import (
     RECENT_RECORDS_ATTR_COUNT,
     TS_ANY,
     URL_HISTORY,
+    URL_KIOSK,
     URL_LOG,
     URL_MANUAL,
     URL_PAGE,
@@ -73,6 +76,8 @@ CONFIG_MARKER = "__POOL_CONFIG__"
 MANUAL_MARKER = "__MANUAL_CONFIG__"
 PAGE_PATH = Path(__file__).parent / "frontend" / "page.html"
 MANUAL_PATH = Path(__file__).parent / "frontend" / "manual.html"
+KIOSK_PATH = Path(__file__).parent / "frontend" / "kiosk.html"
+KIOSK_MARKER = "__KIOSK_CONFIG__"
 STRINGS_DIR = Path(__file__).parent / "frontend" / "strings"
 
 SECURITY_HEADERS = {
@@ -121,6 +126,7 @@ def async_register_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PoolHistoryView())
     hass.http.register_view(PoolManualView())
     hass.http.register_view(PoolStateView())
+    hass.http.register_view(PoolKioskView())
     domain_data[DATA_VIEWS_REGISTERED] = True
 
 
@@ -135,6 +141,14 @@ def _entry_for_token(hass: HomeAssistant, token: str) -> ConfigEntry | None:
 
 def _limiter(hass: HomeAssistant) -> RateLimiter:
     return hass.data[DOMAIN][DATA_RATE_LIMITER]
+
+
+def _report_on(entry: ConfigEntry) -> bool:
+    return bool(entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED))
+
+
+def _kiosk_on(entry: ConfigEntry) -> bool:
+    return bool(entry.options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED))
 
 
 def _clean_person(raw: Any) -> str:
@@ -771,13 +785,49 @@ class PoolStateView(HomeAssistantView):
         entry = _check_token(hass, request, token)
         if isinstance(entry, web.Response):
             return entry
-        if not entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED):
+        # Both the status tab and the kiosk screen live off this endpoint.
+        if not (_report_on(entry) or _kiosk_on(entry)):
             return web.Response(status=404)
-        if not _limiter(hass).allow("state", token, 30, 300):
+        if not _limiter(hass).allow("state", token, 60, 300):
             return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
         return self.json(
             {
                 "live": _live_values(hass, entry),
                 "report": await _build_report(hass, entry),
             }
+        )
+
+
+class PoolKioskView(HomeAssistantView):
+    """Display-only dashboard for a screen next to the pool."""
+
+    url = URL_KIOSK
+    name = "api:pool_maintenance_tracker:kiosk"
+    requires_auth = False
+
+    async def get(self, request: web.Request, token: str) -> web.Response:
+        hass = request.app[KEY_HASS]
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+        if not _kiosk_on(entry):
+            return web.Response(status=404)
+
+        language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
+        config = {
+            "pool_name": entry.title,
+            "language": language,
+            "strings": await _load_strings(hass, language),
+            "state_endpoint": URL_STATE.format(token=token),
+            "live": _live_values(hass, entry),
+            "report": await _build_report(hass, entry),
+        }
+        template = await hass.async_add_executor_job(KIOSK_PATH.read_text, "utf-8")
+        config_json = json.dumps(config, ensure_ascii=False).replace("</", "<\\/")
+        html = template.replace(f'"{KIOSK_MARKER}"', config_json)
+        return web.Response(
+            text=html,
+            content_type="text/html",
+            charset="utf-8",
+            headers=SECURITY_HEADERS,
         )

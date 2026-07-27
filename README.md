@@ -57,6 +57,22 @@ units, on/off with "since when", and `schedule` helpers with *turns on/off at
 schedules; schedules are configuration, so they are kept out of the history
 charts).
 
+### Wall dashboard (kiosk)
+
+Got a small screen next to the pool? The integration also serves a **dark,
+display-only dashboard** designed for a 7-inch landscape screen (and up):
+
+- water readings (probe values when linked, your manual readings otherwise),
+- equipment states, including your extra entities,
+- periodic tasks and overdue alerts,
+- a big **countdown to the next schedule change** ("turns on in 03:41:04"),
+  shown only when a `schedule` entity is among your extra entities.
+
+It has no touch targets and no navigation — just point a browser at it in
+kiosk mode. It refreshes itself every 30 seconds. Find its URL in the
+`kiosk_url` attribute of the QR code entity; turn it off under
+**Configure → Page and notifications**.
+
 ### History tab
 
 A third tab charts the pool over time (7 days / 30 days / 6 months):

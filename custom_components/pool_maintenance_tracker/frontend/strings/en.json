@@ -161,5 +161,12 @@
     ],
     "report_hint": "The Status tab shows the pool status, upcoming maintenance and history charts.",
     "print": "Print"
+  },
+  "kiosk": {
+    "turns_on": "Turns on in",
+    "turns_off": "Turns off in",
+    "live": "Live",
+    "offline": "No connection",
+    "manual": "manual"
   }
 }

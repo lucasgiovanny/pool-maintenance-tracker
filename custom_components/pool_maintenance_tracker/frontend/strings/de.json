@@ -161,5 +161,12 @@
     ],
     "report_hint": "Der Status-Tab zeigt den Poolzustand, anstehende Wartungen und den Verlauf.",
     "print": "Drucken"
+  },
+  "kiosk": {
+    "turns_on": "Schaltet ein in",
+    "turns_off": "Schaltet aus in",
+    "live": "Live",
+    "offline": "Keine Verbindung",
+    "manual": "manuell"
   }
 }

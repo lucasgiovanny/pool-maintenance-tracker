@@ -88,11 +88,13 @@
         "data": {
           "language": "Idioma da página",
           "notify_service": "Serviço de notificação (opcional)",
-          "report_enabled": "Aba \"Estado\" na página"
+          "report_enabled": "Aba \"Estado\" na página",
+          "kiosk_enabled": "Página de dashboard de parede"
         },
         "data_description": {
           "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações.",
-          "report_enabled": "Adiciona uma aba de relatório (só leitura) à página pública: valores atuais, estado das tarefas e últimos registos. Visível para quem tiver o URL da página."
+          "report_enabled": "Adiciona uma aba de relatório (só leitura) à página pública: valores atuais, estado das tarefas e últimos registos. Visível para quem tiver o URL da página.",
+          "kiosk_enabled": "Um dashboard escuro, só de exibição, para um ecrã junto à piscina (7\" horizontal ou maior): leituras da água, equipamento e contagem decrescente para a próxima mudança do horário. Sem toque nem navegação. O URL está nos atributos da entidade do QR code."
         }
       },
       "security": {

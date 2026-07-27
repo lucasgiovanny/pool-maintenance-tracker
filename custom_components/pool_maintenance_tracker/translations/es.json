@@ -88,11 +88,13 @@
         "data": {
           "language": "Idioma de la página",
           "notify_service": "Servicio de notificación (opcional)",
-          "report_enabled": "Pestaña \"Estado\" en la página"
+          "report_enabled": "Pestaña \"Estado\" en la página",
+          "kiosk_enabled": "Página de panel de pared"
         },
         "data_description": {
           "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones.",
-          "report_enabled": "Añade una pestaña de informe (solo lectura) a la página pública: valores actuales, estado de las tareas y registros recientes. Visible para quien tenga la URL."
+          "report_enabled": "Añade una pestaña de informe (solo lectura) a la página pública: valores actuales, estado de las tareas y registros recientes. Visible para quien tenga la URL.",
+          "kiosk_enabled": "Un panel oscuro, solo de visualización, para una pantalla junto a la piscina (7\" horizontal o mayor): lecturas del agua, equipamiento y cuenta atrás para el próximo cambio del horario. Sin táctil ni navegación. La URL está en los atributos de la entidad del código QR."
         }
       },
       "security": {

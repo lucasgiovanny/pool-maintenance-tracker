@@ -161,5 +161,12 @@
     ],
     "report_hint": "A aba Estado mostra o estado da piscina, as próximas manutenções e os gráficos de histórico.",
     "print": "Imprimir"
+  },
+  "kiosk": {
+    "turns_on": "Liga em",
+    "turns_off": "Desliga em",
+    "live": "Em direto",
+    "offline": "Sem ligação",
+    "manual": "manual"
   }
 }
