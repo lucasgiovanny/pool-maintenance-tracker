@@ -20,5 +20,5 @@
   "requirements": [
     "segno>=1.6.1"
   ],
-  "version": "0.20.0"
+  "version": "0.20.1"
 }
