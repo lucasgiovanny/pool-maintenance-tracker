@@ -60,6 +60,7 @@ const EDITOR_TEXT = {
     countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
     layout: "Layout", layout_list: "List", layout_tiles: "Tiles",
     show_icons: "Show icons",
+    items: "Items shown, in this order",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -70,6 +71,7 @@ const EDITOR_TEXT = {
     acid_tank: "Depósito de ácido",
     layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
     show_icons: "Mostrar ícones",
+    items: "Itens exibidos, nesta ordem",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -80,6 +82,7 @@ const EDITOR_TEXT = {
     acid_tank: "Depósito de ácido",
     layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas",
     show_icons: "Mostrar iconos",
+    items: "Elementos mostrados, en este orden",
   },
   fr: {
     entry: "Piscine", entry_help: "Laissez vide pour utiliser votre seule piscine.",
@@ -90,6 +93,7 @@ const EDITOR_TEXT = {
     acid_tank: "Réservoir d'acide",
     layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes",
     show_icons: "Afficher les icônes",
+    items: "Éléments affichés, dans cet ordre",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -100,6 +104,7 @@ const EDITOR_TEXT = {
     acid_tank: "Säuretank",
     layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln",
     show_icons: "Symbole anzeigen",
+    items: "Angezeigte Elemente, in dieser Reihenfolge",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -111,6 +116,7 @@ const EDITOR_TEXT = {
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
     layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri",
     show_icons: "Mostra icone",
+    items: "Elementi mostrati, in questo ordine",
   },
 };
 
@@ -855,10 +861,6 @@ class PoolMaintenanceCard extends HTMLElement {
         flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color,rgba(127,127,127,.35));
         border-radius:12px;padding:10px 12px;cursor:pointer;
       }
-      .tile.on{border-color:var(--primary-color,#4fc3d7)}
-      @supports (background:color-mix(in srgb,red 10%,transparent)){
-        .tile.on{background:color-mix(in srgb,var(--primary-color,#4fc3d7) 8%,transparent)}
-      }
       .tile-top{display:flex;align-items:center;gap:8px}
       .tile-name{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .tile-sub{color:var(--secondary-text-color,#8a8f94);font-size:.88rem;margin-top:3px}
@@ -963,14 +965,6 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     this._update();
   }
 
-  _selectionFor(group) {
-    const available = this._available[group].map(item => item.value);
-    const items = this._config.items
-      || (this._data ? allItemValues(this._available)
-        .filter(value => !value.startsWith("extra:")) : []);
-    return items.filter(value => available.includes(value));
-  }
-
   _schema() {
     const text = editorText(this._hass);
     const schema = [
@@ -986,18 +980,24 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       { name: "title", selector: { text: {} } },
     ];
     if (this._available) {
+      /* One flat, reorderable list. Per-category lists read tidier but
+         freeze the categories into blocks — a task could never be dragged
+         above a reading, which makes ordering feel broken. The category
+         lives in the label instead. */
+      const options = [];
       GROUPS.forEach(group => {
-        if (!this._available[group].length) return;
-        schema.push({
-          name: "group_" + group,
-          selector: {
-            select: {
-              multiple: true, mode: "list", reorder: true,
-              options: this._available[group],
-            },
-          },
+        this._available[group].forEach(item => {
+          options.push({ value: item.value, label: text[group] + " · " + item.label });
         });
       });
+      if (options.length) {
+        schema.push({
+          name: "items",
+          selector: {
+            select: { multiple: true, mode: "list", reorder: true, options: options },
+          },
+        });
+      }
     }
     schema.push({
       name: "layout",
@@ -1025,9 +1025,10 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       only_due_tasks: this._config.only_due_tasks,
     };
     if (this._available) {
-      GROUPS.forEach(group => {
-        data["group_" + group] = this._selectionFor(group);
-      });
+      const valid = new Set(allItemValues(this._available));
+      data.items = (this._config.items
+        || allItemValues(this._available).filter(value => !value.startsWith("extra:")))
+        .filter(value => valid.has(value));
     }
     return data;
   }
@@ -1044,9 +1045,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     this._form.hass = this._hass;
     this._form.data = this._formData();
     this._form.schema = this._schema();
-    this._form.computeLabel = schema => schema.name.startsWith("group_")
-      ? text[schema.name.slice(6)]
-      : (text[schema.name] || schema.name);
+    this._form.computeLabel = schema => text[schema.name] || schema.name;
     this._form.computeHelper = schema =>
       schema.name === "entry" ? text.entry_help : undefined;
   }
@@ -1064,16 +1063,10 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     if (value.only_due_tasks) config.only_due_tasks = true;
     if (this._available) {
       /* Store one flat list, in the card's own render order. */
-      /* The form value arrays arrive in the user's (dragged) order —
+      /* The form array arrives in the user's (dragged) order —
          keep it, that order is the whole point of the handles. */
-      const items = [];
-      GROUPS.forEach(group => {
-        const valid = new Set(this._available[group].map(item => item.value));
-        (value["group_" + group] || []).forEach(item => {
-          if (valid.has(item)) items.push(item);
-        });
-      });
-      config.items = items;
+      const valid = new Set(allItemValues(this._available));
+      config.items = (value.items || []).filter(item => valid.has(item));
     } else if (this._config.items) {
       config.items = this._config.items;
     }

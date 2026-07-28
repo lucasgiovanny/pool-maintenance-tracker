@@ -211,22 +211,17 @@ type: custom:pool-maintenance-card
   <img src="assets/card-screenshot.png" alt="The dashboard card: temperature, schedule countdown, equipment toggles and maintenance tasks" width="420">
 </p>
 
-It has a **visual editor** where you tick exactly what the card shows, grouped
-by category:
-
-- **General** — water temperature in the header, alerts, a live **countdown**
-  to the next filtration-schedule change, and the **filtration suggestion**;
-- **Equipment** — one entry per role you configured (pool system, heat pump,
-  pump, light, cover), the chlorinator, the acid tank, and any extra entity;
-- **Water readings** — pH, free chlorine, salt, temperature, each with an
-  *ideal / low / high* badge against its band;
-- **Tasks** — every periodic task, individually, plus an *only overdue* filter.
-
-The items can be **reordered** — drag the handles in each category, and the
-card renders in exactly that order: equipment toggles, the alert banner, the
-water-temperature hero and the filtration cycle bar included. An optional
-**Show icons** toggle puts each item's icon next to its name (an icon set on
-the entity itself wins over the built-in choice).
+It has a **visual editor** with one list that does both jobs: tick exactly
+what the card shows and **drag it into order** — across categories, so a task
+can sit above a reading. Each entry is labelled with its category, and
+everything obeys the order: equipment toggles, the alert banner, the
+water-temperature hero and the filtration cycle bar included. Available items
+cover the temperature, alerts, the schedule countdown, the filtration
+suggestion, one entry per configured equipment role, the chlorinator, the acid
+tank, the filter pressure, any extra entity, every reading (with its
+*ideal / low / high* badge) and every periodic task, plus an *only overdue
+tasks* filter. An optional **Show icons** toggle puts each item's icon next to
+its name (an icon set on the entity itself wins over the built-in choice).
 
 There is also a **layout** choice: *List* (the default, compact rows for a
 column of cards) or *Tiles*, which spreads every item into kiosk-style minis —
