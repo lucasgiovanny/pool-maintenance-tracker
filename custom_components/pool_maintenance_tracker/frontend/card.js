@@ -564,7 +564,8 @@ class PoolMaintenanceCard extends HTMLElement {
          must stay one big figure, so the rest drops to a sub line. */
       const [main, ...aux] = String(row.value).split(" · ");
       return `<div class="mini" data-row="${rows.indexOf(row)}">
-        <div class="mini-name">${this._iconTag(row.key, row.entity)}${this._escape(row.name)}</div>
+        <div class="mini-name">${this._iconTag(row.key, row.entity)}<span class="nm">${
+          this._escape(row.name)}</span></div>
         <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(main)}</div>
         ${aux.length ? `<div class="mini-sub">${this._escape(aux.join(" · "))}</div>` : ""}
         ${row.badge ? `<div class="mini-badge"><span class="badge ${
@@ -582,8 +583,8 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
         <div class="tile-top">
-          <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}${
-            this._escape(item.name || S.roles[role])}</span>
+          <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}<span class="nm">${
+            this._escape(item.name || S.roles[role])}</span></span>
           <span class="switch ${on ? "on" : ""}"><i></i></span>
         </div>
         <div class="tile-sub">${this._escape(sub)}</div>
@@ -621,8 +622,8 @@ class PoolMaintenanceCard extends HTMLElement {
       if (hero) {
         put("water",
           `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
-            <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}${
-              this._escape(S.report.values.water_temperature)}</div>
+            <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}<span class="nm">${
+              this._escape(S.report.values.water_temperature)}</span></div>
             <div class="hero-value">${temp}<small>${tempUnit}</small></div>
           </div>`);
       }
@@ -633,8 +634,8 @@ class PoolMaintenanceCard extends HTMLElement {
         put("cycle",
           `<div class="mini cycle clickable" data-entity="${schedule.entity_id}">
             <div class="cycle-head">
-              <span class="mini-name">${this._iconTag("filtration", schedule.entity_id)}${
-                this._escape(S.kiosk.filtration_cycle)}</span>
+              <span class="mini-name">${this._iconTag("filtration", schedule.entity_id)}<span class="nm">${
+                this._escape(S.kiosk.filtration_cycle)}</span></span>
               <span class="cycle-hours">${this._escape(cycle.header)}</span>
             </div>
             <div class="cycle-track">
@@ -654,7 +655,8 @@ class PoolMaintenanceCard extends HTMLElement {
           }).join("")}</div>` : "";
     }
     const rowHtml = row => `<div class="row" data-row="${rows.indexOf(row)}">
-        <span class="row-name">${this._iconTag(row.key, row.entity)}${this._escape(row.name)}</span>
+        <span class="row-name">${this._iconTag(row.key, row.entity)}<span class="nm">${
+          this._escape(row.name)}</span></span>
         ${row.badge ? `<span class="badge ${row.badge.due ? "due" : (row.badge.status || "")}">${
           this._escape(row.badge.text)}</span>` : ""}
         <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
@@ -811,9 +813,9 @@ class PoolMaintenanceCard extends HTMLElement {
         padding:10px 12px;cursor:pointer;min-width:0;
       }
       .mini-name{
+        display:flex;align-items:center;gap:5px;min-width:0;
         font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
         color:var(--secondary-text-color,#8a8f94);
-        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       }
       .mini-value{font-size:1.1rem;font-weight:600;margin-top:4px;line-height:1.3}
       .mini-sub{
@@ -821,11 +823,9 @@ class PoolMaintenanceCard extends HTMLElement {
         margin-top:2px;line-height:1.35;
       }
       .mini-badge{margin-top:6px}
-      .item-icon{
-        --mdc-icon-size:15px;color:var(--state-icon-color,#44739E);
-        margin-right:5px;vertical-align:-2px;
-      }
-      .tile-name .item-icon,.row-name .item-icon{--mdc-icon-size:17px;vertical-align:-3px}
+      .item-icon{--mdc-icon-size:15px;color:var(--state-icon-color,#44739E);flex:none}
+      .tile-name .item-icon,.row-name .item-icon{--mdc-icon-size:17px}
+      .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
       .hero{grid-column:span 2;display:flex;flex-direction:column;justify-content:center}
       .hero-value{font-size:1.9rem;font-weight:600;line-height:1.15;margin-top:2px}
       .hero-value small{font-size:1rem;color:var(--secondary-text-color,#8a8f94);margin-left:4px}
@@ -865,7 +865,7 @@ class PoolMaintenanceCard extends HTMLElement {
         border-radius:12px;padding:10px 12px;cursor:pointer;
       }
       .tile-top{display:flex;align-items:center;gap:8px}
-      .tile-name{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .tile-name{flex:1;min-width:0;font-weight:500;display:inline-flex;align-items:center;gap:6px}
       .tile-sub{color:var(--secondary-text-color,#8a8f94);font-size:.88rem;margin-top:3px}
       .tile.on .tile-sub{color:var(--state-icon-color,#44739E)}
       .switch{
@@ -885,7 +885,7 @@ class PoolMaintenanceCard extends HTMLElement {
         border-bottom:1px solid var(--divider-color,rgba(127,127,127,.35));
       }
       .row:last-child{border-bottom:none}
-      .row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .row-name{flex:1;min-width:0;display:inline-flex;align-items:center;gap:6px}
       .row-value{font-weight:500;white-space:nowrap}
       .badge{
         border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:500;white-space:nowrap;

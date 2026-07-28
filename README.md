@@ -211,19 +211,18 @@ type: custom:pool-maintenance-card
   <img src="assets/card-screenshot.png" alt="The dashboard card: temperature, schedule countdown, equipment toggles and maintenance tasks" width="420">
 </p>
 
-It has a **visual editor** with one list that does both jobs: tick exactly
-what the card shows and **drag it into order**. In the tiles layout each
-category renders as its own full-width row — alerts, equipment, readings,
-tasks — placed where its best-ranked item sits in your list, with the items
-inside the row following your order. Each entry is labelled with its category, and
-everything obeys the order: equipment toggles, the alert banner, the
-water-temperature hero and the filtration cycle bar included. Available items
-cover the temperature, alerts, the schedule countdown, the filtration
-suggestion, one entry per configured equipment role, the chlorinator, the acid
-tank, the filter pressure, any extra entity, every reading (with its
-*ideal / low / high* badge) and every periodic task, plus an *only overdue
-tasks* filter. An optional **Show icons** toggle puts each item's icon next to
-its name (an icon set on the entity itself wins over the built-in choice).
+The card composes itself. It shows everything your pool is configured with,
+in a fixed order that reads top-down like a pool check: what needs attention,
+the water right now (temperature beside the readings), the equipment, the
+filtration plan (countdown and today's cycle bar), and the task history last.
+There is nothing to pick and nothing to sort — earlier versions shipped item
+selection and drag-ordering, and they produced configuration work instead of
+dashboards, so they were removed. `items`/`show_*` keys in old configs are
+ignored.
+
+The options that remain are display preferences: the pool, an optional title,
+the **layout** (list or tiles), **Show icons** (an icon set on the entity
+itself wins over the built-in choice), and **only overdue tasks**.
 
 There is also a **layout** choice: *List* (the default, compact rows for a
 column of cards) or *Tiles*, which spreads every item into kiosk-style minis —
