@@ -67,11 +67,12 @@ type: custom:pool-maintenance-card
 # entry: <config entry id>   # only needed when you have several pools
 ```
 
-It shows the pool name, water temperature, an alert box for overdue tasks,
-toggles for your pool system and heat pump, the chlorinator state and every
-periodic task with its next due date. Tapping a row opens the usual
-more-info dialog; the buttons at the bottom open the logging page and its
-history tab.
+It has a **visual editor**: pick the pool from a dropdown, set an optional
+title, and switch each section on or off (temperature, alerts, equipment
+toggles, chlorinator, tasks, only-overdue filter). It shows the pool name,
+water temperature, an alert box for overdue tasks, toggles for your pool
+system and heat pump, the chlorinator state and every periodic task with its
+next due date; tapping a row opens the usual more-info dialog.
 
 ### Equipment roles
 
