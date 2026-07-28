@@ -377,6 +377,7 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       if (bits.length) {
         rows.push({
+          key: "chlorinator",
           name: text.chlorinator, value: bits.join(" · "),
           entity: ids.chlorinator_mode || ids.chlorinator_output
         });
@@ -384,6 +385,7 @@ class PoolMaintenanceCard extends HTMLElement {
     }
     if (shown.has("acid_tank") && values.acid_tank_level !== undefined) {
       rows.push({
+        key: "acid_tank",
         name: S.report.values.acid_tank_level,
         value: S.acid_levels[values.acid_tank_level] || values.acid_tank_level,
         entity: ids.acid_tank_level,
@@ -416,6 +418,7 @@ class PoolMaintenanceCard extends HTMLElement {
       if (!shown.has("extra:" + item.entity_id)) return;
       const onOff = item.state === "on" || item.state === "off";
       rows.push({
+        key: "extra:" + item.entity_id,
         name: item.name, entity: item.entity_id,
         value: onOff
           ? (item.state === "on" ? S.report.state_on : S.report.state_off)
@@ -443,6 +446,7 @@ class PoolMaintenanceCard extends HTMLElement {
     if (shown.has("filter_pressure") && pressure
         && pressure.value !== null && pressure.value !== undefined) {
       rows.push({
+        key: "filter_pressure",
         name: S.report.filter_pressure,
         value: pressure.value + (pressure.unit ? " " + pressure.unit : "")
           + (pressure.rise_percent === null || pressure.rise_percent === undefined ? ""
@@ -464,14 +468,27 @@ class PoolMaintenanceCard extends HTMLElement {
         value += " · " + values.salt_added + " " + S.units.salt_added;
       }
       rows.push({
+        key: "task:" + task.key,
         name: this._taskLabel(task), value: value, badge: badge,
         entity: ids["last_" + task.key] || ids[task.key],
         warn: task.due || !task.last,
       });
     });
 
+    /* The config's item order is the display order — that is what makes
+       reordering in the editor mean something. Unlisted keys keep their
+       build order at the end. */
+    const position = new Map(this._selection(available).map((value, index) => [value, index]));
+    const rank = key => (position.has(key) ? position.get(key) : 1000);
+    rows.sort((a, b) => rank(a.key) - rank(b.key));
+    toggles.sort((a, b) => rank("role:" + a) - rank("role:" + b));
+
     /* html --------------------------------------------------------- */
     const tiles = config.layout === "tiles";
+    /* Set by Lovelace on panel ("single card") views — the hook the map
+       card uses to fill the screen. The grid stretches to the viewport
+       and each mini centers itself in its share of it. */
+    const panel = this.isPanel === true;
 
     /* Tiles layout borrows the kiosk's two anchors: the temperature as a
        hero tile, and today's filtration cycle as a bar. Both stay inside
@@ -512,7 +529,7 @@ class PoolMaintenanceCard extends HTMLElement {
       !(cycle && row.key === "filtration")
       && !(hero && row.key === "value:water_temperature"));
     this.shadowRoot.innerHTML = `
-      <ha-card class="${tiles ? "tiles-layout" : ""}">
+      <ha-card class="${tiles ? "tiles-layout" : ""}${panel ? " panel" : ""}">
         <div class="head">
           <div class="icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -651,7 +668,13 @@ class PoolMaintenanceCard extends HTMLElement {
   _styles() {
     return `<style>
       *{box-sizing:border-box}
+      :host{display:block;height:100%}
       ha-card{padding:16px;display:block}
+      ha-card.panel{height:100%;display:flex;flex-direction:column;overflow:auto}
+      .panel .grid{flex:1;grid-auto-rows:minmax(90px,1fr)}
+      .panel .mini{display:flex;flex-direction:column;justify-content:center}
+      .panel .hero-value{font-size:clamp(2.3rem,7vh,4rem)}
+      .panel .mini-value{font-size:clamp(1.25rem,3.2vh,1.9rem)}
       .empty{color:var(--secondary-text-color,#8a8f94);padding:8px 0}
       .clickable{cursor:pointer}
 
@@ -687,6 +710,18 @@ class PoolMaintenanceCard extends HTMLElement {
       .countdown.soon .cd-value{color:var(--warning-color,#E9B94F)}
 
       .toggles{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+
+      /* Tiles layout: the outer card dissolves and every mini takes the
+         theme's own card surface — so a tiles dashboard reads as native
+         HA cards on the transparent background, dark or light. */
+      ha-card.tiles-layout{background:none;border:none;box-shadow:none}
+      .tiles-layout .mini,.tiles-layout .tile,.tiles-layout .countdown{
+        background:var(--ha-card-background,var(--card-background-color,#fff));
+        border:var(--ha-card-border-width,1px) solid
+          var(--ha-card-border-color,var(--divider-color,rgba(127,127,127,.2)));
+        border-radius:var(--ha-card-border-radius,12px);
+        box-shadow:var(--ha-card-box-shadow,none);
+      }
 
       /* Tiles layout: kiosk-style minis for a single-card dashboard */
       .grid{
@@ -863,7 +898,8 @@ class PoolMaintenanceCardEditor extends HTMLElement {
           name: "group_" + group,
           selector: {
             select: {
-              multiple: true, mode: "list", options: this._available[group],
+              multiple: true, mode: "list", reorder: true,
+              options: this._available[group],
             },
           },
         });
@@ -931,11 +967,13 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     if (value.only_due_tasks) config.only_due_tasks = true;
     if (this._available) {
       /* Store one flat list, in the card's own render order. */
+      /* The form value arrays arrive in the user's (dragged) order —
+         keep it, that order is the whole point of the handles. */
       const items = [];
       GROUPS.forEach(group => {
-        const selected = value["group_" + group] || [];
-        this._available[group].forEach(item => {
-          if (selected.includes(item.value)) items.push(item.value);
+        const valid = new Set(this._available[group].map(item => item.value));
+        (value["group_" + group] || []).forEach(item => {
+          if (valid.has(item)) items.push(item);
         });
       });
       config.items = items;
