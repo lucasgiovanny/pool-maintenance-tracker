@@ -223,6 +223,17 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
 class PoolOptionsFlow(OptionsFlow):
     """Edit modules, reminders, page settings, or regenerate the token."""
 
+    async def _save(self, options: dict[str, Any]) -> ConfigFlowResult:
+        """Store the options and go back to the menu.
+
+        Home Assistant has no back button in options flows: finishing a step
+        with async_create_entry closes the dialog, so changing two sections
+        means reopening Configure. Persisting the options ourselves and
+        returning the menu keeps the dialog open where the user left off.
+        """
+        self.hass.config_entries.async_update_entry(self.config_entry, options=options)
+        return await self.async_step_init()
+
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
@@ -248,7 +259,7 @@ class PoolOptionsFlow(OptionsFlow):
                     options[conf_key] = user_input[conf_key]
                 else:
                     options.pop(conf_key, None)
-            return self.async_create_entry(data=options)
+            return await self._save(options)
 
         domains = {
             CONF_POOL_SYSTEM_ENTITY: ["switch", "input_boolean", "binary_sensor"],
@@ -287,7 +298,7 @@ class PoolOptionsFlow(OptionsFlow):
                 options[CONF_REPORT_SENSORS] = user_input[CONF_REPORT_SENSORS]
             else:
                 options.pop(CONF_REPORT_SENSORS, None)
-            return self.async_create_entry(data=options)
+            return await self._save(options)
 
         schema: dict[vol.Marker, Any] = {}
         for conf_key in LINKED_SOURCES.values():
@@ -323,7 +334,7 @@ class PoolOptionsFlow(OptionsFlow):
         options = dict(self.config_entry.options)
         if user_input is not None:
             options[CONF_MODULES] = user_input[CONF_MODULES]
-            return self.async_create_entry(data=options)
+            return await self._save(options)
 
         current = list(options.get(CONF_MODULES, ()))
         return self.async_show_form(
@@ -337,7 +348,7 @@ class PoolOptionsFlow(OptionsFlow):
         options = dict(self.config_entry.options)
         if user_input is not None:
             options[CONF_PEOPLE] = user_input[CONF_PEOPLE]
-            return self.async_create_entry(data=options)
+            return await self._save(options)
 
         user_options = [
             SelectOptionDict(value=user.id, label=user.name or user.id)
@@ -372,7 +383,7 @@ class PoolOptionsFlow(OptionsFlow):
                 if conf_key in user_input:
                     options[conf_key] = int(user_input[conf_key])
             options[CONF_REMINDER_TIME] = user_input[CONF_REMINDER_TIME]
-            return self.async_create_entry(data=options)
+            return await self._save(options)
 
         modules = list(options.get(CONF_MODULES, ()))
         schema: dict[vol.Marker, Any] = {}
@@ -397,7 +408,7 @@ class PoolOptionsFlow(OptionsFlow):
                 options[CONF_NOTIFY_SERVICE] = notify_service
                 options[CONF_REPORT_ENABLED] = user_input[CONF_REPORT_ENABLED]
                 options[CONF_KIOSK_ENABLED] = user_input[CONF_KIOSK_ENABLED]
-                return self.async_create_entry(data=options)
+                return await self._save(options)
 
         return self.async_show_form(
             step_id="page",
@@ -433,7 +444,7 @@ class PoolOptionsFlow(OptionsFlow):
                     self.config_entry,
                     data={**self.config_entry.data, CONF_TOKEN: _new_token()},
                 )
-            return self.async_create_entry(data=dict(self.config_entry.options))
+            return await self._save(dict(self.config_entry.options))
 
         return self.async_show_form(
             step_id="security",

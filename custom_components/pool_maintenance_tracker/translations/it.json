@@ -72,7 +72,7 @@
           "salt_source": "Sensore sale",
           "temperature_source": "Sensore temperatura dell'acqua",
           "linked_mode": "Comportamento dei sensori collegati",
-          "report_sensors": "Entità extra nella scheda rapporto"
+          "report_sensors": "Entità extra nella scheda Stato"
         }
       },
       "equipment": {

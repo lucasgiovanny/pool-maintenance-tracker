@@ -72,7 +72,7 @@
           "salt_source": "Capteur de sel",
           "temperature_source": "Capteur de température de l'eau",
           "linked_mode": "Comportement des capteurs liés",
-          "report_sensors": "Entités supplémentaires dans l'onglet rapport"
+          "report_sensors": "Entités supplémentaires dans l'onglet État"
         }
       },
       "equipment": {

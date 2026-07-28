@@ -72,7 +72,7 @@
           "salt_source": "Salt sensor",
           "temperature_source": "Water temperature sensor",
           "linked_mode": "Linked sensor behavior",
-          "report_sensors": "Extra entities on the report tab"
+          "report_sensors": "Extra entities on the Status tab"
         }
       },
       "equipment": {

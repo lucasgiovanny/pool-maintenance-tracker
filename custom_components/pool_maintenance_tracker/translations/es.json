@@ -72,7 +72,7 @@
           "salt_source": "Sensor de sal",
           "temperature_source": "Sensor de temperatura del agua",
           "linked_mode": "Comportamiento de los sensores vinculados",
-          "report_sensors": "Entidades extra en la pestaña de informe"
+          "report_sensors": "Entidades extra en la pestaña Estado"
         }
       },
       "equipment": {

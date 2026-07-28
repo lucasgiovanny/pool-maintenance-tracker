@@ -72,7 +72,7 @@
           "salt_source": "Salzsensor",
           "temperature_source": "Wassertemperatursensor",
           "linked_mode": "Verhalten der verknüpften Sensoren",
-          "report_sensors": "Zusätzliche Entitäten im Bericht-Tab"
+          "report_sensors": "Zusätzliche Entitäten im Status-Tab"
         }
       },
       "equipment": {
