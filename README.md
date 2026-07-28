@@ -69,7 +69,9 @@ type: custom:pool-maintenance-card
 
 It has a **visual editor**: pick the pool from a dropdown, set an optional
 title, and switch each section on or off (temperature, alerts, equipment
-toggles, chlorinator, tasks, only-overdue filter). It shows the pool name,
+toggles, chlorinator, tasks, only-overdue filter). The card speaks the
+**Home Assistant UI language** of whoever is looking at it, independently of
+the language you chose for the public page. It shows the pool name,
 water temperature, an alert box for overdue tasks, toggles for your pool
 system and heat pump, the chlorinator state and every periodic task with its
 next due date; tapping a row opens the usual more-info dialog.

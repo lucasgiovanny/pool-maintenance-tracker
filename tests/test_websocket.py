@@ -48,3 +48,40 @@ async def test_status_unknown_entry(hass, salt_entry, hass_ws_client):
     result = await client.receive_json()
     assert not result["success"]
     assert result["error"]["code"] == "not_found"
+
+
+async def test_status_follows_requested_language(hass, salt_entry, hass_ws_client):
+    """The card asks in the HA UI language; the page keeps its own."""
+    await setup_entry(hass, salt_entry)  # entry page language is "pt"
+    client = await hass_ws_client(hass)
+
+    await client.send_json(
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/status",
+            "entry_id": salt_entry.entry_id,
+            "language": "en-GB",
+        }
+    )
+    result = await client.receive_json()
+    assert result["success"]
+    assert result["result"]["language"] == "en"
+    assert result["result"]["strings"]["report"]["state_on"] == "On"
+
+    # unsupported UI language falls back to English, not to the page language
+    await client.send_json(
+        {
+            "id": 2,
+            "type": f"{DOMAIN}/status",
+            "entry_id": salt_entry.entry_id,
+            "language": "nl",
+        }
+    )
+    result = await client.receive_json()
+    assert result["result"]["language"] == "en"
+
+    # no language given: the pool's own language is used
+    await client.send_json({"id": 3, "type": f"{DOMAIN}/status", "entry_id": salt_entry.entry_id})
+    result = await client.receive_json()
+    assert result["result"]["language"] == "pt"
+    assert result["result"]["strings"]["report"]["state_on"] == "Ligado"

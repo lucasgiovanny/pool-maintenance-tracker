@@ -133,7 +133,11 @@ class PoolMaintenanceCard extends HTMLElement {
     try {
       const entryId = await this._entryId();
       this._data = await this._hass.callWS({
-        type: "pool_maintenance_tracker/status", entry_id: entryId
+        type: "pool_maintenance_tracker/status",
+        entry_id: entryId,
+        /* The card follows the Home Assistant UI language, not the
+           language configured for the public page. */
+        language: this._hass.language || "en",
       });
       this._error = null;
     } catch (error) {
@@ -145,6 +149,7 @@ class PoolMaintenanceCard extends HTMLElement {
 
   /* ---------------- helpers ---------------- */
   _locale() {
+    if (this._hass && this._hass.language) return this._hass.language;
     const language = (this._data && this._data.language) || "en";
     return language === "pt" ? "pt-PT" : language;
   }

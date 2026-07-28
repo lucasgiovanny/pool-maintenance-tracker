@@ -9,7 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, callback
 
-from .const import DOMAIN
+from .const import DEFAULT_LANGUAGE, DOMAIN, LANGUAGES
 from .entity import page_url
 
 WS_STATUS = f"{DOMAIN}/status"
@@ -39,7 +39,13 @@ def ws_pools(
     )
 
 
-@websocket_api.websocket_command({vol.Required("type"): WS_STATUS, vol.Required("entry_id"): str})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): WS_STATUS,
+        vol.Required("entry_id"): str,
+        vol.Optional("language"): str,
+    }
+)
 @websocket_api.async_response
 async def ws_status(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
@@ -52,7 +58,14 @@ async def ws_status(
         connection.send_error(msg["id"], "not_found", "Unknown or unloaded pool")
         return
 
-    language = entry.options.get("language", "en")
+    # The page speaks the language configured for the pool; the card lives
+    # inside Home Assistant, so it follows the language of whoever is
+    # looking at it (falling back to English when we don't ship it).
+    requested = (msg.get("language") or "").split("-")[0]
+    language = requested or entry.options.get("language", "en")
+    if language not in LANGUAGES:
+        language = DEFAULT_LANGUAGE
+
     connection.send_result(
         msg["id"],
         {
