@@ -46,8 +46,45 @@ def check_syntax(errors: list[str]) -> None:
         result = subprocess.run(["node", "--check", path], capture_output=True, text=True)
         Path(path).unlink()
         if result.returncode != 0:
-            detail = [line for line in result.stderr.splitlines() if "Error" in line]
-            errors.append(f"{label}: {detail[0] if detail else 'syntax error'}")
+            errors.append(f"{label}: {_first_useful_line(result.stderr)}")
+
+
+# Home Assistant loads card.js as an ES module, so it runs in strict mode.
+# Parsing it is not enough: a card that throws on load, or that stops
+# defining its element, shows up in Lovelace as "Custom element doesn't
+# exist" and nowhere else.
+CARD_HARNESS = """
+const defined = [];
+globalThis.HTMLElement = class {};
+globalThis.customElements = { define: (name) => defined.push(name), get: () => undefined };
+globalThis.window = globalThis;
+globalThis.document = { createElement: () => ({ style: {}, classList: { add() {} } }) };
+await import(SPECIFIER);
+if (!defined.includes("pool-maintenance-card")) {
+  console.error("card.js did not define pool-maintenance-card (defined: " + defined + ")");
+  process.exit(1);
+}
+"""
+
+
+def _first_useful_line(stderr: str) -> str:
+    """Node prints a banner and a stack; the first real line is the point."""
+    for line in stderr.splitlines():
+        if "did not define" in line or "Error" in line:
+            return line.strip()
+    return "failed to load as a module"
+
+
+def check_card_defines_its_element(errors: list[str]) -> None:
+    """Load the card the way a browser does and check it registers."""
+    with tempfile.TemporaryDirectory() as folder:
+        card = Path(folder) / "card.mjs"
+        card.write_text((FRONTEND / "card.js").read_text())
+        harness = Path(folder) / "harness.mjs"
+        harness.write_text(CARD_HARNESS.replace("SPECIFIER", json.dumps(card.as_uri())))
+        result = subprocess.run(["node", str(harness)], capture_output=True, text=True, cwd=folder)
+    if result.returncode != 0:
+        errors.append(f"card.js: {_first_useful_line(result.stderr)}")
 
 
 def check_strings(errors: list[str]) -> None:
@@ -70,6 +107,7 @@ def check_strings(errors: list[str]) -> None:
 def main() -> int:
     errors: list[str] = []
     check_syntax(errors)
+    check_card_defines_its_element(errors)
     check_strings(errors)
     if errors:
         for error in sorted(set(errors)):

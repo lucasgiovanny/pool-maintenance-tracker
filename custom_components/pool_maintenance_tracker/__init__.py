@@ -97,7 +97,14 @@ CARD_URL = f"/{DOMAIN}/card.js"
 
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
-    """Serve the Lovelace card and load it for the dashboards."""
+    """Serve the Lovelace card and load it for the dashboards.
+
+    Nothing here is fatal — the integration works fine without the card —
+    but it used to fail silently, and the only symptom was Lovelace saying
+    "Custom element doesn't exist" with nothing in the log to explain it.
+    Each step now reports its own failure, and a path some earlier setup
+    already registered is not treated as one.
+    """
     domain_data = hass.data[DOMAIN]
     if domain_data.get(DATA_FRONTEND_REGISTERED):
         return
@@ -108,14 +115,29 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         from homeassistant.components.frontend import add_extra_js_url
         from homeassistant.components.http import StaticPathConfig
         from homeassistant.loader import async_get_integration
+    except ImportError:
+        _LOGGER.warning("Home Assistant frontend unavailable; the pool card was not loaded")
+        return
 
+    try:
         await hass.http.async_register_static_paths([StaticPathConfig(CARD_URL, str(card), True)])
+    except (RuntimeError, ValueError) as err:
+        # Already served from an earlier setup in this session — harmless.
+        _LOGGER.debug("Card already served at %s (%s)", CARD_URL, err)
+
+    try:
         integration = await async_get_integration(hass, DOMAIN)
         add_extra_js_url(hass, f"{CARD_URL}?v={integration.version}")
     except Exception:
-        _LOGGER.debug("Lovelace card not registered", exc_info=True)
+        _LOGGER.warning(
+            "Could not add %s to the dashboards - the Pool Maintenance card will show "
+            "'Custom element does not exist'",
+            CARD_URL,
+            exc_info=True,
+        )
         return
     domain_data[DATA_FRONTEND_REGISTERED] = True
+    _LOGGER.debug("Lovelace card registered at %s", CARD_URL)
 
 
 SERVICE_DELETE_RECORD = "delete_record"

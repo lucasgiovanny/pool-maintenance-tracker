@@ -31,3 +31,25 @@ async def test_two_entries_share_views(hass, salt_entry, chlorine_entry):
     assert await hass.config_entries.async_unload(salt_entry.entry_id)
     await hass.async_block_till_done()
     assert len(hass.data[DOMAIN][DATA_TOKENS]) == 1
+
+
+async def test_the_lovelace_card_is_served_and_registered(
+    hass, salt_entry, hass_client_no_auth, monkeypatch
+):
+    """The card failing to register used to be silent and invisible."""
+    import homeassistant.components.frontend as frontend
+
+    urls: list[str] = []
+    monkeypatch.setattr(
+        frontend, "add_extra_js_url", lambda _hass, url: urls.append(url), raising=False
+    )
+
+    await setup_entry(hass, salt_entry)
+
+    assert any(url.startswith("/pool_maintenance_tracker/card.js?v=") for url in urls)
+
+    client = await hass_client_no_auth()
+    response = await client.get("/pool_maintenance_tracker/card.js")
+    assert response.status == 200
+    body = await response.text()
+    assert 'customElements.define("pool-maintenance-card"' in body

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_TOKEN
+from .const import CONF_TOKEN, DOMAIN
 
 if TYPE_CHECKING:
     from . import PoolConfigEntry
@@ -24,8 +24,13 @@ async def async_get_config_entry_diagnostics(
             "data": async_redact_data(dict(entry.data), TO_REDACT),
             "options": dict(entry.options),
         },
+        # Whether the Lovelace card made it onto the dashboards, so
+        # "Custom element does not exist" can be answered without log digging.
+        "card_registered": bool(hass.data.get(DOMAIN, {}).get("frontend_registered")),
         "state": {
             "values": tracker.values,
+            "values_at": tracker.values_at,
+            "metrics": tracker.metrics,
             "timestamps": tracker.timestamps,
             "installed_at": tracker.installed_at,
             "records_count": len(tracker.records),
