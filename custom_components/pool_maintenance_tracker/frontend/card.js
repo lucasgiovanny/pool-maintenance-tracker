@@ -576,11 +576,8 @@ class PoolMaintenanceCard extends HTMLElement {
     const toggleHtml = (role, index) => {
       const item = roles[role];
       const on = item.state === "on" || item.state === "open";
-      let sub = on ? S.report.state_on : S.report.state_off;
-      if (role === "pool_system" && on && schedule && schedule.next_change) {
-        sub = S.kiosk.until.replace("{time}", new Date(schedule.next_change)
-          .toLocaleTimeString(this._locale(), { hour: "2-digit", minute: "2-digit" }));
-      }
+      /* Just the state: the countdown strip already owns "until when" */
+      const sub = on ? S.report.state_on : S.report.state_off;
       return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
         <div class="tile-top">
           <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}<span class="nm">${
