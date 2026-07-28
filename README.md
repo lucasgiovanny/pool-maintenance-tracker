@@ -223,7 +223,10 @@ by category:
 - **Tasks** — every periodic task, individually, plus an *only overdue* filter.
 
 The items can be **reordered** — drag the handles in each category, and the
-card renders in exactly that order (equipment toggles included).
+card renders in exactly that order: equipment toggles, the alert banner, the
+water-temperature hero and the filtration cycle bar included. An optional
+**Show icons** toggle puts each item's icon next to its name (an icon set on
+the entity itself wins over the built-in choice).
 
 There is also a **layout** choice: *List* (the default, compact rows for a
 column of cards) or *Tiles*, which spreads every item into kiosk-style minis —

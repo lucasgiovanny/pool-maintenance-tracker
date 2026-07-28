@@ -5,6 +5,31 @@
 
 const TOGGLE_DOMAINS = ["switch", "input_boolean", "light", "fan"];
 const TOGGLE_ROLES = ["pool_system", "heat_pump", "pump", "pool_light", "cover"];
+/* One MDI icon per item key. An icon set on the entity itself wins. */
+const ITEM_ICONS = {
+  temperature: "mdi:thermometer-water",
+  "value:water_temperature": "mdi:thermometer-water",
+  "value:ph": "mdi:ph",
+  "value:free_chlorine": "mdi:test-tube",
+  "value:salt_level": "mdi:shaker-outline",
+  chlorinator: "mdi:waves",
+  acid_tank: "mdi:cup-water",
+  filter_pressure: "mdi:gauge",
+  filtration: "mdi:autorenew",
+  "task:water_test": "mdi:test-tube",
+  "task:salt_added": "mdi:shaker",
+  "task:filter_wash": "mdi:air-filter",
+  "task:cell_clean": "mdi:lightning-bolt",
+  "task:probe_calibration": "mdi:tune-variant",
+  "task:acid_refill": "mdi:cup-water",
+  "task:cleaning": "mdi:broom",
+  "role:pool_system": "mdi:power",
+  "role:heat_pump": "mdi:heat-pump",
+  "role:pump": "mdi:pump",
+  "role:pool_light": "mdi:lightbulb",
+  "role:cover": "mdi:window-shutter",
+};
+
 /* An empty drum needs refilling; no drum at all is a decision, not a fault */
 const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
 
@@ -19,6 +44,7 @@ const DEFAULTS = {
   title: "",
   items: undefined,   /* undefined = everything the pool offers */
   only_due_tasks: false,
+  show_icons: false,
   /* "list" packs rows for a column of cards; "tiles" spreads everything
      into kiosk-style minis, for a dashboard made of this card alone. */
   layout: "list",
@@ -33,6 +59,7 @@ const EDITOR_TEXT = {
     temperature: "Water temperature (header)", alerts: "Alerts",
     countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
     layout: "Layout", layout_list: "List", layout_tiles: "Tiles",
+    show_icons: "Show icons",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -42,6 +69,7 @@ const EDITOR_TEXT = {
     countdown: "Contagem decrescente do horário", filtration: "Sugestão de filtração", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
     layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
+    show_icons: "Mostrar ícones",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -51,6 +79,7 @@ const EDITOR_TEXT = {
     countdown: "Cuenta atrás del horario", filtration: "Sugerencia de filtración", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
     layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas",
+    show_icons: "Mostrar iconos",
   },
   fr: {
     entry: "Piscine", entry_help: "Laissez vide pour utiliser votre seule piscine.",
@@ -60,6 +89,7 @@ const EDITOR_TEXT = {
     countdown: "Compte à rebours de l'horaire", filtration: "Suggestion de filtration", chlorinator: "Électrolyseur",
     acid_tank: "Réservoir d'acide",
     layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes",
+    show_icons: "Afficher les icônes",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -69,6 +99,7 @@ const EDITOR_TEXT = {
     countdown: "Countdown des Zeitplans", filtration: "Filtrationsempfehlung", chlorinator: "Elektrolyseur",
     acid_tank: "Säuretank",
     layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln",
+    show_icons: "Symbole anzeigen",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -79,6 +110,7 @@ const EDITOR_TEXT = {
     filtration: "Suggerimento di filtrazione",
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
     layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri",
+    show_icons: "Mostra icone",
   },
 };
 
@@ -251,6 +283,17 @@ class PoolMaintenanceCard extends HTMLElement {
     if (value < band.min) return "low";
     if (value > band.max) return "high";
     return "ideal";
+  }
+
+  /* The tag for an item's icon, or "" with icons off / nothing sensible */
+  _iconTag(key, entityId) {
+    if (!this._config.show_icons) return "";
+    const state = entityId && this._hass && this._hass.states
+      ? this._hass.states[entityId] : null;
+    const icon = (state && state.attributes && state.attributes.icon)
+      || ITEM_ICONS[key]
+      || (key && key.startsWith("extra:") ? "mdi:shape-outline" : "");
+    return icon ? `<ha-icon class="item-icon" icon="${icon}"></ha-icon>` : "";
   }
 
   _daysAgo(iso) {
@@ -530,6 +573,80 @@ class PoolMaintenanceCard extends HTMLElement {
     const gridRows = rows.filter(row =>
       !(cycle && row.key === "filtration")
       && !(hero && row.key === "value:water_temperature"));
+
+    /* Every block is placed by its rank in the configured order — the
+       alert banner and the cycle bar included, or reordering them in the
+       editor would silently do nothing. */
+    const alertHtml = alertLines.length ? `<div class="alert">
+          <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <div>${alertLines.map(line => `<div>${this._escape(line)}</div>`).join("")}</div>
+        </div>` : "";
+    const miniHtml = row => {
+      /* Rows join auxiliary facts with " · " — in a tile the value
+         must stay one big figure, so the rest drops to a sub line. */
+      const [main, ...aux] = String(row.value).split(" · ");
+      return `<div class="mini" data-row="${rows.indexOf(row)}">
+        <div class="mini-name">${this._iconTag(row.key, row.entity)}${this._escape(row.name)}</div>
+        <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(main)}</div>
+        ${aux.length ? `<div class="mini-sub">${this._escape(aux.join(" · "))}</div>` : ""}
+        ${row.badge ? `<div class="mini-badge"><span class="badge ${
+          row.badge.due ? "due" : (row.badge.status || "")}">${
+          this._escape(row.badge.text)}</span></div>` : ""}
+      </div>`;
+    };
+    let gridHtml = "";
+    if (tiles) {
+      const entries = [];
+      if (hero) {
+        entries.push({ rank: rank("temperature"), html:
+          `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
+            <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}${
+              this._escape(S.report.values.water_temperature)}</div>
+            <div class="hero-value">${temp}<small>${tempUnit}</small></div>
+          </div>` });
+      }
+      if (alertHtml) entries.push({ rank: rank("alerts"), html: alertHtml });
+      gridRows.forEach(row => entries.push({ rank: rank(row.key), html: miniHtml(row) }));
+      if (cycle) {
+        entries.push({ rank: rank("filtration"), html:
+          `<div class="mini cycle clickable" data-entity="${schedule.entity_id}">
+            <div class="cycle-head">
+              <span class="mini-name">${this._iconTag("filtration", schedule.entity_id)}${
+                this._escape(S.kiosk.filtration_cycle)}</span>
+              <span class="cycle-hours">${this._escape(cycle.header)}</span>
+            </div>
+            <div class="cycle-track">
+              ${cycle.blocks.map(block => `<i style="left:${block.left}%;width:${block.width}%"></i>`).join("")}
+              <b style="left:${cycle.now}%"></b>
+            </div>
+            <div class="cycle-axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
+            ${cycle.sub ? `<div class="mini-sub">${this._escape(cycle.sub)}</div>` : ""}
+          </div>` });
+      }
+      entries.sort((a, b) => a.rank - b.rank);
+      gridHtml = entries.length
+        ? `<div class="grid">${entries.map(entry => entry.html).join("")}</div>` : "";
+    }
+    const rowHtml = row => `<div class="row" data-row="${rows.indexOf(row)}">
+        <span class="row-name">${this._iconTag(row.key, row.entity)}${this._escape(row.name)}</span>
+        ${row.badge ? `<span class="badge ${row.badge.due ? "due" : (row.badge.status || "")}">${
+          this._escape(row.badge.text)}</span>` : ""}
+        <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
+      </div>`;
+    let listHtml = "";
+    if (!tiles) {
+      const block = list => (list.length
+        ? `<div class="rows">${list.map(rowHtml).join("")}</div>` : "");
+      if (alertHtml) {
+        const alertRank = rank("alerts");
+        listHtml = block(rows.filter(row => rank(row.key) < alertRank))
+          + alertHtml
+          + block(rows.filter(row => rank(row.key) >= alertRank));
+      } else {
+        listHtml = block(rows);
+      }
+    }
     this.shadowRoot.innerHTML = `
       <ha-card class="${tiles ? "tiles-layout" : ""}${panel ? " panel" : ""}">
         <div class="head">
@@ -548,12 +665,6 @@ class PoolMaintenanceCard extends HTMLElement {
             ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
         </div>
 
-        ${alertLines.length ? `<div class="alert">
-          <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>
-            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-          <div>${alertLines.map(line => `<div>${this._escape(line)}</div>`).join("")}</div>
-        </div>` : ""}
-
         ${countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
           <span class="cd-label">${this._escape(countdown.state === "on"
             ? S.card.turns_off : S.card.turns_on)}</span>
@@ -570,54 +681,15 @@ class PoolMaintenanceCard extends HTMLElement {
           }
           return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
             <div class="tile-top">
-              <span class="tile-name">${this._escape(item.name || S.roles[role])}</span>
+              <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}${
+                this._escape(item.name || S.roles[role])}</span>
               <span class="switch ${on ? "on" : ""}"><i></i></span>
             </div>
             <div class="tile-sub">${this._escape(sub)}</div>
           </div>`;
         }).join("")}</div>` : ""}
 
-        ${tiles && (hero || cycle || gridRows.length) ? `<div class="grid">
-          ${hero ? `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
-            <div class="mini-name">${this._escape(S.report.values.water_temperature)}</div>
-            <div class="hero-value">${temp}<small>${tempUnit}</small></div>
-          </div>` : ""}
-          ${gridRows.map(row => {
-            /* Rows join auxiliary facts with " · " — in a tile the value
-               must stay one big figure, so the rest drops to a sub line. */
-            const [main, ...aux] = String(row.value).split(" · ");
-            return `
-            <div class="mini" data-row="${rows.indexOf(row)}">
-              <div class="mini-name">${this._escape(row.name)}</div>
-              <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(main)}</div>
-              ${aux.length ? `<div class="mini-sub">${this._escape(aux.join(" · "))}</div>` : ""}
-              ${row.badge ? `<div class="mini-badge"><span class="badge ${
-                row.badge.due ? "due" : (row.badge.status || "")}">${
-                this._escape(row.badge.text)}</span></div>` : ""}
-            </div>`;
-          }).join("")}
-          ${cycle ? `<div class="mini cycle clickable" data-entity="${schedule.entity_id}">
-            <div class="cycle-head">
-              <span class="mini-name">${this._escape(S.kiosk.filtration_cycle)}</span>
-              <span class="cycle-hours">${this._escape(cycle.header)}</span>
-            </div>
-            <div class="cycle-track">
-              ${cycle.blocks.map(block => `<i style="left:${block.left}%;width:${block.width}%"></i>`).join("")}
-              <b style="left:${cycle.now}%"></b>
-            </div>
-            <div class="cycle-axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
-            ${cycle.sub ? `<div class="mini-sub">${this._escape(cycle.sub)}</div>` : ""}
-          </div>` : ""}
-        </div>` : ""}
-        ${rows.length && !tiles ? `<div class="rows">
-          ${rows.map((row, index) => `
-            <div class="row" data-row="${index}">
-              <span class="row-name">${this._escape(row.name)}</span>
-              ${row.badge ? `<span class="badge ${row.badge.due ? "due" : (row.badge.status || "")}">${
-                this._escape(row.badge.text)}</span>` : ""}
-              <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
-            </div>`).join("")}
-        </div>` : ""}
+        ${tiles ? gridHtml : listHtml}
         ${this._styles()}
       </ha-card>`;
 
@@ -750,6 +822,11 @@ class PoolMaintenanceCard extends HTMLElement {
         margin-top:2px;line-height:1.35;
       }
       .mini-badge{margin-top:6px}
+      .item-icon{
+        --mdc-icon-size:15px;color:var(--secondary-text-color,#8a8f94);
+        margin-right:5px;vertical-align:-2px;
+      }
+      .tile-name .item-icon,.row-name .item-icon{--mdc-icon-size:17px;vertical-align:-3px}
       .hero{grid-column:span 2;display:flex;flex-direction:column;justify-content:center}
       .hero-value{font-size:1.9rem;font-weight:600;line-height:1.15;margin-top:2px}
       .hero-value small{font-size:1rem;color:var(--secondary-text-color,#8a8f94);margin-left:4px}
@@ -768,6 +845,7 @@ class PoolMaintenanceCard extends HTMLElement {
         position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
         background:var(--primary-text-color,#333);
       }
+      .grid .alert{grid-column:1/-1;margin-top:0}
       .cycle-axis{
         display:flex;justify-content:space-between;margin-top:4px;
         font-size:.68rem;font-weight:600;color:var(--secondary-text-color,#8a8f94);
@@ -933,6 +1011,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
         },
       },
     });
+    schema.push({ name: "show_icons", selector: { boolean: {} } });
     schema.push({ name: "only_due_tasks", selector: { boolean: {} } });
     return schema;
   }
@@ -942,6 +1021,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       entry: this._config.entry,
       title: this._config.title,
       layout: this._config.layout || "list",
+      show_icons: !!this._config.show_icons,
       only_due_tasks: this._config.only_due_tasks,
     };
     if (this._available) {
@@ -980,6 +1060,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     if (value.entry) config.entry = value.entry;
     if (value.title) config.title = value.title;
     if (value.layout && value.layout !== "list") config.layout = value.layout;
+    if (value.show_icons) config.show_icons = true;
     if (value.only_due_tasks) config.only_due_tasks = true;
     if (this._available) {
       /* Store one flat list, in the card's own render order. */
@@ -997,8 +1078,9 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       config.items = this._config.items;
     }
     this._config = Object.assign({}, this._config, config);
-    /* Back to the default: the stale value must not shadow the emitted one */
+    /* Back to the default: stale values must not shadow the emitted ones */
     if (!config.layout) delete this._config.layout;
+    if (!config.show_icons) delete this._config.show_icons;
     if (config.entry !== this._loadedFor) this._loadAvailable();
     fireEvent(this, "config-changed", { config: config });
   }
