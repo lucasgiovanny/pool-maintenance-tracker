@@ -506,15 +506,18 @@ class PoolMaintenanceCardEditor extends HTMLElement {
   _valueChanged(event) {
     event.stopPropagation();
     const value = Object.assign({}, event.detail.value);
-    /* Keep the stored YAML tidy: only what differs from the defaults. */
-    const config = { type: (this._config && this._config.type) || "custom:pool-maintenance-card" };
+    /* Keep the stored YAML tidy: the card type plus only what differs
+       from the defaults. The type must always be there — without it the
+       dashboard cannot build the card. */
+    const config = {
+      type: (this._config && this._config.type) || "custom:pool-maintenance-card",
+    };
     Object.keys(DEFAULTS).forEach(key => {
       const current = value[key];
       if (current === undefined || current === null || current === "") return;
       if (current === DEFAULTS[key]) return;
       config[key] = current;
     });
-    delete config.type;
     fireEvent(this, "config-changed", { config: config });
   }
 }
