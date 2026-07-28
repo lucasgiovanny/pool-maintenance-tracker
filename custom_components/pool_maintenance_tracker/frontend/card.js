@@ -601,9 +601,37 @@ class PoolMaintenanceCard extends HTMLElement {
           this._escape(row.badge.text)}</span></div>` : ""}
       </div>`;
     };
+    const toggleHtml = (role, index) => {
+      const item = roles[role];
+      const on = item.state === "on" || item.state === "open";
+      let sub = on ? S.report.state_on : S.report.state_off;
+      if (role === "pool_system" && on && schedule && schedule.next_change) {
+        sub = S.kiosk.until.replace("{time}", new Date(schedule.next_change)
+          .toLocaleTimeString(this._locale(), { hour: "2-digit", minute: "2-digit" }));
+      }
+      return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
+        <div class="tile-top">
+          <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}${
+            this._escape(item.name || S.roles[role])}</span>
+          <span class="switch ${on ? "on" : ""}"><i></i></span>
+        </div>
+        <div class="tile-sub">${this._escape(sub)}</div>
+      </div>`;
+    };
+    const countdownHtml = countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
+          <span class="cd-label">${this._escape(countdown.state === "on"
+            ? S.card.turns_off : S.card.turns_on)}</span>
+          <span class="cd-value" id="cd">—</span>
+        </div>` : "";
     let gridHtml = "";
     if (tiles) {
+      /* Everything is a ranked grid entry — the countdown strip and the
+         equipment toggles included. Anything rendered outside the grid
+         would sit above it no matter where the user dragged it. */
       const entries = [];
+      if (countdownHtml) entries.push({ rank: rank("countdown"), html: countdownHtml });
+      toggles.forEach((role, index) =>
+        entries.push({ rank: rank("role:" + role), html: toggleHtml(role, index) }));
       if (hero) {
         entries.push({ rank: rank("temperature"), html:
           `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
@@ -612,7 +640,14 @@ class PoolMaintenanceCard extends HTMLElement {
             <div class="hero-value">${temp}<small>${tempUnit}</small></div>
           </div>` });
       }
-      if (alertHtml) entries.push({ rank: rank("alerts"), html: alertHtml });
+      /* One tile per alert: a full-width banner in a grid of even tiles
+         claims a whole stretched row for a single sentence. */
+      alertLines.forEach(line => entries.push({ rank: rank("alerts"), html:
+        `<div class="mini alert-mini">
+          <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <div class="alert-text">${this._escape(line)}</div>
+        </div>` }));
       gridRows.forEach(row => entries.push({ rank: rank(row.key), html: miniHtml(row) }));
       if (cycle) {
         entries.push({ rank: rank("filtration"), html:
@@ -671,29 +706,10 @@ class PoolMaintenanceCard extends HTMLElement {
             ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
         </div>
 
-        ${countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
-          <span class="cd-label">${this._escape(countdown.state === "on"
-            ? S.card.turns_off : S.card.turns_on)}</span>
-          <span class="cd-value" id="cd">—</span>
-        </div>` : ""}
+        ${!tiles && countdown ? countdownHtml : ""}
 
-        ${toggles.length ? `<div class="toggles">${toggles.map((role, index) => {
-          const item = roles[role];
-          const on = item.state === "on" || item.state === "open";
-          let sub = on ? S.report.state_on : S.report.state_off;
-          if (role === "pool_system" && on && schedule && schedule.next_change) {
-            sub = S.kiosk.until.replace("{time}", new Date(schedule.next_change)
-              .toLocaleTimeString(this._locale(), { hour: "2-digit", minute: "2-digit" }));
-          }
-          return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
-            <div class="tile-top">
-              <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}${
-                this._escape(item.name || S.roles[role])}</span>
-              <span class="switch ${on ? "on" : ""}"><i></i></span>
-            </div>
-            <div class="tile-sub">${this._escape(sub)}</div>
-          </div>`;
-        }).join("")}</div>` : ""}
+        ${!tiles && toggles.length
+          ? `<div class="toggles">${toggles.map(toggleHtml).join("")}</div>` : ""}
 
         ${tiles ? gridHtml : listHtml}
         ${this._styles()}
@@ -786,7 +802,7 @@ class PoolMaintenanceCard extends HTMLElement {
       .cd-label{color:var(--secondary-text-color,#8a8f94);font-size:.92rem;font-weight:500;flex:1}
       .cd-value{
         font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;
-        color:var(--primary-color,#4fc3d7);
+        color:var(--state-icon-color,#44739E);
       }
       .countdown.soon .cd-value{color:var(--warning-color,#E9B94F)}
 
@@ -851,7 +867,17 @@ class PoolMaintenanceCard extends HTMLElement {
         position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
         background:var(--primary-text-color,#333);
       }
-      .grid .alert{grid-column:1/-1;margin-top:0}
+      .grid .countdown{grid-column:1/-1;margin-top:0}
+      .grid .tile{grid-column:span 2}
+      .alert-mini{
+        display:flex;align-items:center;gap:8px;
+        color:var(--warning-color,#E9B94F);
+      }
+      .alert-mini svg{
+        width:18px;height:18px;flex:none;stroke:currentColor;fill:none;
+        stroke-width:2;stroke-linecap:round;
+      }
+      .alert-text{font-size:.85rem;font-weight:500;line-height:1.35}
       .cycle-axis{
         display:flex;justify-content:space-between;margin-top:4px;
         font-size:.68rem;font-weight:600;color:var(--secondary-text-color,#8a8f94);
@@ -864,12 +890,12 @@ class PoolMaintenanceCard extends HTMLElement {
       .tile-top{display:flex;align-items:center;gap:8px}
       .tile-name{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .tile-sub{color:var(--secondary-text-color,#8a8f94);font-size:.88rem;margin-top:3px}
-      .tile.on .tile-sub{color:var(--primary-color,#4fc3d7)}
+      .tile.on .tile-sub{color:var(--state-icon-color,#44739E)}
       .switch{
         width:38px;height:22px;border-radius:11px;background:var(--disabled-text-color,#8c8c8c);
         flex:none;position:relative;transition:background .15s;
       }
-      .switch.on{background:var(--primary-color,#4fc3d7)}
+      .switch.on{background:var(--state-icon-color,#44739E)}
       .switch i{
         position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
         background:#fff;transition:transform .15s;
