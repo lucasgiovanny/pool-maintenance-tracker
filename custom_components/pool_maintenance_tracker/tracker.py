@@ -43,6 +43,9 @@ class PoolTracker:
         self.pool_name = pool_name
         self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.{entry_id}")
         self.values: dict[str, Any] = {}
+        # When each value was last set — a manual reading and a probe both
+        # claim to be "the" temperature, so freshness has to decide.
+        self.values_at: dict[str, str] = {}
         self.timestamps: dict[str, str] = {}
         self.last_record: dict[str, Any] | None = None
         self.records: list[dict[str, Any]] = []
@@ -60,6 +63,7 @@ class PoolTracker:
             self.async_save()
             return
         self.values = data.get("values", {})
+        self.values_at = data.get("values_at", {})
         self.timestamps = data.get("timestamps", {})
         self.last_record = data.get("last_record")
         self.records = data.get("records", [])
@@ -83,6 +87,7 @@ class PoolTracker:
     def _data_to_save(self) -> dict[str, Any]:
         return {
             "values": self.values,
+            "values_at": self.values_at,
             "timestamps": self.timestamps,
             "last_record": self.last_record,
             "records": self.records,
@@ -104,6 +109,7 @@ class PoolTracker:
     def async_set_value(self, key: str, value: Any) -> None:
         """Set a declarative value (used by number/select entities in the UI)."""
         self.values[key] = value
+        self.values_at[key] = dt_util.utcnow().isoformat()
         self.async_update_listeners()
         self.async_save()
 
@@ -111,6 +117,10 @@ class PoolTracker:
     def async_apply(self, result: ProcessResult) -> None:
         """Apply an accepted maintenance record and notify all consumers."""
         self.values.update(result.values)
+        # Back-dated records really are older; the timestamp says so.
+        logged_at = result.record["logged_at"]
+        for key in result.values:
+            self.values_at[key] = logged_at
         self.timestamps.update(result.timestamps)
         self.last_record = result.record
         self.records.append(result.record)

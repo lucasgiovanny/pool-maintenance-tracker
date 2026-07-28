@@ -85,6 +85,17 @@
   .kv .probe{display:block;font-size:.75rem;font-weight:700;color:var(--aqua);text-align:right}
   .kv .v .why{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-align:right}
 
+  .runbar{padding:0 0 11px}
+  .runbar .track{
+    position:relative;height:8px;border-radius:999px;background:var(--bg);
+    border:1px solid var(--line);overflow:hidden;
+  }
+  .runbar .fill{height:100%;background:var(--aqua);border-radius:999px;transition:width .4s ease}
+  .runbar.done .fill{background:#2FCC8B}
+  .runbar .tick{position:absolute;top:0;bottom:0;width:2px;background:var(--white);opacity:.9}
+  .runbar .legend{margin-top:5px;font-size:.72rem;font-weight:700;color:var(--muted)}
+  .runbar.done .legend{color:#14684A}
+
   .badge{
     display:inline-block;border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:700;
   }
@@ -548,23 +559,28 @@ function renderReport(){
   const currentBody = document.getElementById("report-current-body");
   let currentAny = false;
   WATER_KEYS.forEach(key => {
+    /* The server already decided which of the probe and the manual entry
+       is the current one — whichever was measured last. */
+    const reading = (report.current || {})[key];
     const declared = report.values ? report.values[key] : undefined;
-    const live = LIVE_FOR[key] ? CFG.live[LIVE_FOR[key]] : null;
-    if (declared === undefined && !live) return;
+    if (!reading && declared === undefined) return;
     currentAny = true;
     const row = el("div", "kv");
     row.appendChild(el("span", "k", S.report.values[key] || key));
     let holder;
-    const shown = declared !== undefined ? declared : live.value;
-    if (declared !== undefined) {
-      holder = el("span", "v", formatValue(key, declared));
-      if (live) {
-        holder.appendChild(el("span", "probe",
-          S.probe + ": " + live.value + (live.unit ? " " + live.unit : "")));
+    let shown;
+    if (reading) {
+      shown = reading.value;
+      holder = el("span", "v", reading.unit
+        ? reading.value + " " + reading.unit : formatValue(key, reading.value));
+      if (reading.source === "probe") {
+        holder.appendChild(el("span", "probe", S.probe));
+      } else if (reading.other !== null && reading.other !== undefined) {
+        holder.appendChild(el("span", "probe", S.probe + ": " + reading.other));
       }
     } else {
-      holder = el("span", "v", live.value + (live.unit ? " " + live.unit : ""));
-      holder.appendChild(el("span", "probe", S.probe));
+      shown = declared;
+      holder = el("span", "v", formatValue(key, declared));
     }
     const status = rangeStatus(key, shown);
     if (status) {
@@ -590,6 +606,32 @@ function renderReport(){
     return parts.join(" · ");
   }
 
+  /* How much of today's recommendation the pump has actually delivered.
+     Reading a bar is quicker than comparing two numbers, and going past
+     the target should look finished rather than merely larger. */
+  function runBar(f){
+    const actual = f.actual_hours;
+    if (actual === null || actual === undefined) return null;
+    const target = f.recommended_hours;
+    const scale = Math.max(target, actual) || 1;
+    const done = actual >= target;
+    const wrap = el("div", "runbar" + (done ? " done" : ""));
+    const track = el("div", "track");
+    const fill = el("div", "fill");
+    fill.style.width = Math.min(100, actual / scale * 100) + "%";
+    track.appendChild(fill);
+    if (actual > target) {
+      /* Where the target was, now that the fill has run past it */
+      const tick = el("div", "tick");
+      tick.style.left = (target / scale * 100) + "%";
+      track.appendChild(tick);
+    }
+    wrap.appendChild(track);
+    wrap.appendChild(el("div", "legend",
+      S.report.actual_today.replace("{h}", actual)));
+    return wrap;
+  }
+
   /* Filtration suggestion — never a command, just the rule of thumb */
   const filtration = report.filtration;
   if (filtration) {
@@ -600,16 +642,19 @@ function renderReport(){
       hasSchedule ? S.report.filtration : S.report.filtration_recommended));
     const holder = el("span", "v", S.report.hours.replace("{h}",
       hasSchedule ? scheduled : filtration.recommended_hours));
-    const advice = [];
-    if (hasSchedule) advice.push(S.report.recommended.replace("{h}", filtration.recommended_hours));
-    if (filtration.actual_hours !== null && filtration.actual_hours !== undefined) {
-      advice.push(S.report.actual_today.replace("{h}", filtration.actual_hours));
+    if (hasSchedule) {
+      holder.appendChild(el("span", "probe",
+        S.report.recommended.replace("{h}", filtration.recommended_hours)));
     }
-    if (advice.length) holder.appendChild(el("span", "probe", advice.join(" · ")));
     const why = filtrationBasis(filtration);
     if (why) holder.appendChild(el("small", "why", why));
     row.appendChild(holder);
     currentBody.appendChild(row);
+    const bar = runBar(filtration);
+    if (bar) {
+      row.classList.add("with-countdown");
+      currentBody.appendChild(bar);
+    }
     currentAny = true;
   }
   if (currentAny) document.getElementById("report-current").style.display = "";

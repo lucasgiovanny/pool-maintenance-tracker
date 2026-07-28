@@ -207,7 +207,8 @@
     "no_visits": "Ainda não há intervenções.",
     "overdue_count": "em atraso",
     "recommended": "Recomendado",
-    "at_temperature": "a {t} °C"
+    "at_temperature": "a {t} °C",
+    "blocks_total": "{n} blocos · {h} h"
   },
   "roles": {
     "pool_system": "Sistema",

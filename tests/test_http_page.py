@@ -115,8 +115,12 @@ async def test_linked_sensors_live_values(hass, salt_entry, hass_client_no_auth)
 
     response = await client.get(PAGE_URL)
     config = extract_config(await response.text())
-    assert config["live"]["ph"] == {"value": 7.13, "unit": ""}
-    assert config["live"]["temperature"] == {"value": 28.4, "unit": "°C"}
+    assert config["live"]["ph"]["value"] == 7.13
+    assert config["live"]["ph"]["unit"] == ""
+    # the freshness stamp is what lets the report pick between probe and manual
+    assert config["live"]["ph"]["at"]
+    assert config["live"]["temperature"]["value"] == 28.4
+    assert config["live"]["temperature"]["unit"] == "°C"
     # unavailable source is skipped entirely
     assert "salt" not in config["live"]
     assert config["linked_mode"] == "manual_only"

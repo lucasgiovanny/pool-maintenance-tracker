@@ -59,6 +59,7 @@ from .const import (
     KEY_FREE_CHLORINE,
     KEY_PH,
     KEY_SALT_LEVEL,
+    KEY_WATER_TEMPERATURE,
     LINKED_MODE_MANUAL,
     LINKED_MODE_ON_RECORD,
     LINKED_SOURCES,
@@ -89,6 +90,8 @@ from .processor import PayloadError, process_payload
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
+
+    from .tracker import PoolTracker
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -257,6 +260,7 @@ def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str,
         live[key] = {
             "value": round(value, 2),
             "unit": state.attributes.get("unit_of_measurement") or "",
+            "at": state.last_updated.isoformat(),
         }
     return live
 
@@ -424,6 +428,47 @@ def _today_scheduled_hours(week: list[list[list[str]]] | None) -> float | None:
 
 
 @callback
+def _current_readings(
+    tracker: PoolTracker, values: dict[str, Any], live: dict[str, dict[str, Any]]
+) -> dict[str, dict[str, Any]]:
+    """The freshest reading for each key, whoever took it.
+
+    A linked probe and a manual entry both claim to be "the" temperature.
+    Neither wins by rank — the most recent one wins, which is what somebody
+    standing at the pool means by "the current value". Without a timestamp
+    on the manual side we trust the probe, which at least knows when it
+    last spoke.
+    """
+    current: dict[str, dict[str, Any]] = {}
+    for live_key, value_key in LINKED_VALUE_KEYS.items():
+        probe = live.get(live_key)
+        declared = values.get(value_key)
+        declared_at = tracker.values_at.get(value_key)
+        if probe is None and declared is None:
+            continue
+        use_probe = probe is not None and (
+            declared is None or not declared_at or probe["at"] >= declared_at
+        )
+        if use_probe:
+            current[value_key] = {
+                "value": probe["value"],
+                "unit": probe["unit"],
+                "source": "probe",
+                "at": probe["at"],
+                "other": declared,
+            }
+        else:
+            current[value_key] = {
+                "value": declared,
+                "unit": "",
+                "source": "manual",
+                "at": declared_at,
+                "other": probe["value"] if probe else None,
+            }
+    return current
+
+
+@callback
 def _cover_closed(roles: dict[str, Any]) -> bool:
     """Whether the pool is covered right now.
 
@@ -557,12 +602,12 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
             extra.append(item)
 
     live = _live_values(hass, entry)
-    temperature = (
-        live["temperature"]["value"] if "temperature" in live else values.get("water_temperature")
-    )
+    current = _current_readings(tracker, values, live)
+    temperature = (current.get(KEY_WATER_TEMPERATURE) or {}).get("value")
 
     return {
         "values": values,
+        "current": current,
         "ranges": _ideal_ranges(entry),
         "volume": entry.options.get(CONF_POOL_VOLUME),
         "filtration": await _filtration_hint(hass, entry, temperature, roles),

@@ -135,7 +135,10 @@ automation.
 
 **What it actually ran** — with a pump or pool-system entity configured, the
 surfaces also show how long the filtration really ran today, taken from the
-recorder. Schedules get overridden; this is the honest comparison.
+recorder. Schedules get overridden; this is the honest comparison. On the page
+it is a progress bar against the recommendation, which turns green once the
+target is met and keeps a tick where the target was when the pump runs past
+it.
 
 ### Filter pressure
 
@@ -300,6 +303,11 @@ pool integration? Link those entities under **Configure → Linked sensors**
 
 - the maintenance page shows the live probe values right next to the manual
   readings, so whoever is testing can compare on the spot;
+- the current value on every surface is whichever of the two was **measured
+  most recently** — a probe reading now beats last week's manual entry, and a
+  manual reading taken this morning beats a probe that has not updated since.
+  Back-dating a record puts it in the past, so it does not override a live
+  probe;
 - every record stores a snapshot of the probe values at log time — a handy
   audit trail of manual reading vs. probe (e.g. to spot calibration drift).
 

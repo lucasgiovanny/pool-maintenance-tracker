@@ -207,7 +207,8 @@
     "no_visits": "Noch keine Einsätze.",
     "overdue_count": "überfällig",
     "recommended": "Empfohlen",
-    "at_temperature": "bei {t} °C"
+    "at_temperature": "bei {t} °C",
+    "blocks_total": "{n} Blöcke · {h} h"
   },
   "roles": {
     "pool_system": "System",

@@ -311,8 +311,10 @@ class PoolMaintenanceCard extends HTMLElement {
 
     /* header ------------------------------------------------------- */
     const probe = (data.live || {}).temperature;
-    const temp = probe ? probe.value : values.water_temperature;
-    const tempUnit = (probe && probe.unit) || S.units.water_temperature;
+    const reading = (report.current || {}).water_temperature;
+    const temp = reading ? reading.value : values.water_temperature;
+    const tempUnit = (reading && reading.unit) || (probe && probe.unit)
+      || S.units.water_temperature;
     const showTemp = shown.has("temperature") && temp !== undefined && temp !== null;
 
     const due = tasks.filter(task => task.due);
@@ -376,8 +378,9 @@ class PoolMaintenanceCard extends HTMLElement {
       if (!shown.has("value:" + key)) return;
       const liveKey = key === "salt_level" ? "salt"
         : key === "water_temperature" ? "temperature" : key;
+      const reading = (report.current || {})[key];
       const liveValue = (data.live || {})[liveKey];
-      const value = liveValue ? liveValue.value : values[key];
+      const value = reading ? reading.value : values[key];
       if (value === undefined || value === null) return;
       const name = S.report.values[key] || key;
       const unit = (liveValue && liveValue.unit) || S.units[key] || "";

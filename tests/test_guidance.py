@@ -294,3 +294,96 @@ async def test_acid_tank_covers_empty_and_missing(hass, salt_entry, hass_client_
 
     config = extract_config(await (await client.get(PAGE_URL)).text())
     assert config["strings"]["acid_levels"]["none"]
+
+
+async def test_the_freshest_reading_wins(hass, salt_entry, hass_client_no_auth):
+    """A probe reading now beats last week's manual entry, and vice versa."""
+    hass.states.async_set("sensor.probe_temperature", "27.4", {"unit_of_measurement": "°C"})
+    await setup_with_options(
+        hass, salt_entry, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
+    )
+    client = await hass_client_no_auth()
+
+    # nothing logged yet: the probe is all there is
+    current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
+    assert current["water_temperature"] == {
+        "value": 27.4,
+        "unit": "°C",
+        "source": "probe",
+        "at": current["water_temperature"]["at"],
+        "other": None,
+    }
+
+    # a manual reading taken now is the newer of the two
+    await client.post(
+        f"/api/pool_maintenance_tracker/{TEST_TOKEN}/log",
+        json={
+            "person": "technician",
+            "categories": ["water_test"],
+            "readings": {"temperature": 25.0},
+        },
+    )
+    await hass.async_block_till_done()
+    current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
+    assert current["water_temperature"]["value"] == 25.0
+    assert current["water_temperature"]["source"] == "manual"
+    assert current["water_temperature"]["other"] == 27.4
+
+    # ...until the probe speaks again
+    hass.states.async_set("sensor.probe_temperature", "26.2", {"unit_of_measurement": "°C"})
+    await hass.async_block_till_done()
+    current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
+    assert current["water_temperature"]["value"] == 26.2
+    assert current["water_temperature"]["source"] == "probe"
+    assert current["water_temperature"]["other"] == 25.0
+
+
+async def test_a_back_dated_reading_does_not_beat_the_probe(hass, salt_entry, hass_client_no_auth):
+    """Logging yesterday's measurement should not override a live probe."""
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    hass.states.async_set("sensor.probe_temperature", "27.4", {"unit_of_measurement": "°C"})
+    await setup_with_options(
+        hass, salt_entry, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
+    )
+    client = await hass_client_no_auth()
+    await client.post(
+        f"/api/pool_maintenance_tracker/{TEST_TOKEN}/log",
+        json={
+            "person": "technician",
+            "categories": ["water_test"],
+            "readings": {"temperature": 21.0},
+            "logged_at": (dt_util.utcnow() - timedelta(days=1)).isoformat(),
+        },
+    )
+    await hass.async_block_till_done()
+
+    current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
+    assert current["water_temperature"]["value"] == 27.4
+    assert current["water_temperature"]["source"] == "probe"
+
+
+async def test_the_filtration_advice_uses_the_same_temperature(
+    hass, salt_entry, hass_client_no_auth
+):
+    """One resolved reading feeds the display and the maths alike."""
+    hass.states.async_set("sensor.probe_temperature", "27.4", {"unit_of_measurement": "°C"})
+    await setup_with_options(
+        hass, salt_entry, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
+    )
+    client = await hass_client_no_auth()
+    await client.post(
+        f"/api/pool_maintenance_tracker/{TEST_TOKEN}/log",
+        json={
+            "person": "technician",
+            "categories": ["water_test"],
+            "readings": {"temperature": 20.0},
+        },
+    )
+    await hass.async_block_till_done()
+
+    report = extract_config(await (await client.get(PAGE_URL)).text())["report"]
+    assert report["current"]["water_temperature"]["value"] == 20.0
+    assert report["filtration"]["temperature"] == 20.0

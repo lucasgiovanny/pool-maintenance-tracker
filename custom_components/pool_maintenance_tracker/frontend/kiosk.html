@@ -78,7 +78,7 @@
 
   .cycle{margin-top:auto}
   .cycle .head{display:flex;align-items:baseline;justify-content:space-between}
-  .cycle .head .hours{font-size:1.9vh;font-weight:700;color:var(--ink)}
+  .cycle .head .hours{font-size:1.9vh;font-weight:700;color:var(--ink);white-space:nowrap}
   .cycle .track{
     position:relative;height:1.4vh;background:var(--panel);border-radius:.7vh;margin-top:1vh;
   }
@@ -88,6 +88,8 @@
     font-size:1.3vh;color:var(--muted);font-weight:600}
   .cycle-hint{font-size:1.4vh;color:var(--muted);font-weight:600;margin-top:.8vh}
   .cycle-hint b{color:var(--aqua)}
+  .cycle-hint .met{color:var(--green);font-weight:700}
+  .cycle-hint .short{color:var(--amber);font-weight:700}
 
   /* ---------- attention + tasks ---------- */
   .attention{
@@ -282,15 +284,17 @@ function tickClock(){
 /* ---------- left column ---------- */
 function renderTemperature(){
   const probe = live.temperature;
+  const reading = (report.current || {}).water_temperature;
   const declared = report.values ? report.values.water_temperature : undefined;
-  const value = probe ? probe.value : declared;
+  const value = reading ? reading.value : declared;
   const box = document.getElementById("temp");
   box.textContent = "";
   if (value === undefined || value === null) {
     box.textContent = "—";
   } else {
     box.appendChild(document.createTextNode(decimal(value)));
-    box.appendChild(el("small", null, (probe && probe.unit) || S.units.water_temperature));
+    box.appendChild(el("small", null,
+      (reading && reading.unit) || (probe && probe.unit) || S.units.water_temperature));
   }
 
   const parts = [];
@@ -353,7 +357,8 @@ function renderMinis(){
   [["ph", "ph", S.report.values.ph, ""],
    ["free_chlorine", "free_chlorine", S.report.values.free_chlorine, S.units.free_chlorine],
    ["salt_level", "salt", K.salt, S.units.salt_level]].forEach(([key, liveKey, label, unit]) => {
-    const value = live[liveKey] ? live[liveKey].value : values[key];
+    const reading = (report.current || {})[key];
+    const value = reading ? reading.value : values[key];
     if (value === undefined || value === null) return;
     const status = rangeStatus(key, value);
     const band = (report.ranges || {})[key];
@@ -393,19 +398,23 @@ function renderFiltrationHint(){
   const strong = document.createElement("b");
   strong.textContent = S.report.hours.replace("{h}", filtration.recommended_hours);
   hint.appendChild(strong);
-  const tail = [];
-  if (filtration.basis === "turnover" && filtration.flow) {
-    tail.push(S.report.turnovers_basis
-      .replace("{n}", String(filtration.turnovers)).replace("{flow}", String(filtration.flow)));
+  /* One extra fact, not three: read across a room, what the pump actually
+     did beats the arithmetic behind the target. */
+  const actual = filtration.actual_hours;
+  hint.appendChild(document.createTextNode(" · "));
+  if (actual !== null && actual !== undefined) {
+    hint.appendChild(el("span", actual >= filtration.recommended_hours ? "met" : "short",
+      S.report.actual_today.replace("{h}", actual)));
+  } else if (filtration.basis === "turnover" && filtration.flow) {
+    hint.appendChild(document.createTextNode(S.report.turnovers_basis
+      .replace("{n}", String(filtration.turnovers)).replace("{flow}", String(filtration.flow))));
   } else if (filtration.basis === "chlorination" && filtration.cell_output) {
-    tail.push(S.report.chlorination_basis.replace("{cell}", decimal(filtration.cell_output)));
+    hint.appendChild(document.createTextNode(
+      S.report.chlorination_basis.replace("{cell}", String(filtration.cell_output))));
   } else {
-    tail.push(K.at_temperature.replace("{t}", filtration.temperature));
+    hint.appendChild(document.createTextNode(
+      K.at_temperature.replace("{t}", filtration.temperature)));
   }
-  if (filtration.actual_hours !== null && filtration.actual_hours !== undefined) {
-    tail.push(S.report.actual_today.replace("{h}", filtration.actual_hours));
-  }
-  hint.appendChild(document.createTextNode(" · " + tail.join(" · ")));
 }
 
 function renderCycle(){
@@ -425,7 +434,17 @@ function renderCycle(){
   const blocks = week[todayIndex] || [];
   if (!blocks.length) { cycle.style.display = "none"; return; }
   cycle.style.display = "";
-  setText("cycle-hours", blocks.map(([from, to]) => from + " – " + to).join("  ·  "));
+  /* Three blocks of times wrap onto two lines and read as noise. Past two,
+     the bar below already shows the shape — the header just totals it. */
+  if (blocks.length <= 2) {
+    setText("cycle-hours", blocks.map(([from, to]) => from + " – " + to).join("  ·  "));
+  } else {
+    const minutes = blocks.reduce(
+      (total, [from, to]) => total + Math.max(0, minutesOf(to) - minutesOf(from)), 0);
+    setText("cycle-hours", K.blocks_total
+      .replace("{n}", blocks.length)
+      .replace("{h}", Math.round(minutes / 6) / 10));
+  }
 
   const track = document.getElementById("cycle-track");
   track.innerHTML = "";
