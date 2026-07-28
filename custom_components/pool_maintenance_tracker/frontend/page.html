@@ -83,7 +83,6 @@
   .kv .v{font-size:1rem;font-weight:700;color:var(--ink);text-align:right}
   .kv .v small{font-weight:600;color:var(--muted);font-size:.78rem}
   .kv .probe{display:block;font-size:.75rem;font-weight:700;color:var(--aqua);text-align:right}
-  .kv .v .why{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-align:right}
 
   .runbar{padding:12px 0 11px}
   .runbar .track{
@@ -594,29 +593,6 @@ function renderReport(){
 
   /* Why the recommendation says what it says. Nothing for the rule of
      thumb: "temperature / 2" explains itself and the row is small. */
-  function filtrationBasis(f){
-    const parts = [];
-    /* Show a configured constraint even when it is not the one binding —
-       otherwise the pump you told us about looks quietly ignored. */
-    if (f.flow) {
-      let text = S.report.turnovers_basis
-        .replace("{n}", decimal(f.turnovers)).replace("{flow}", decimal(f.flow));
-      if (f.basis !== "turnover") {
-        text += " · " + S.report.asks.replace("{h}", f.turnover_hours);
-      }
-      parts.push(text);
-    }
-    if (f.cell_output) {
-      let text = S.report.chlorination_basis.replace("{cell}", decimal(f.cell_output));
-      if (f.basis !== "chlorination") {
-        text += " · " + S.report.asks.replace("{h}", f.chlorine_hours);
-      }
-      parts.push(text);
-    }
-    if (f.low_speed_hours) parts.push(S.report.low_speed.replace("{h}", f.low_speed_hours));
-    return parts.join(" · ");
-  }
-
   /* How much of today's recommendation the pump has actually delivered.
      Reading a bar is quicker than comparing two numbers, and going past
      the target should look finished rather than merely larger. */
@@ -654,11 +630,14 @@ function renderReport(){
     const holder = el("span", "v", S.report.hours.replace("{h}",
       hasSchedule ? scheduled : filtration.recommended_hours));
     if (hasSchedule) {
-      holder.appendChild(el("span", "probe",
-        S.report.recommended.replace("{h}", filtration.recommended_hours)));
+      /* The alternative for a pump with a low speed is still advice, not
+         an explanation of where the number came from. */
+      const advice = [S.report.recommended.replace("{h}", filtration.recommended_hours)];
+      if (filtration.low_speed_hours) {
+        advice.push(S.report.low_speed.replace("{h}", filtration.low_speed_hours));
+      }
+      holder.appendChild(el("span", "probe", advice.join(" · ")));
     }
-    const why = filtrationBasis(filtration);
-    if (why) holder.appendChild(el("small", "why", why));
     row.appendChild(holder);
     currentBody.appendChild(row);
     const bar = runBar(filtration);

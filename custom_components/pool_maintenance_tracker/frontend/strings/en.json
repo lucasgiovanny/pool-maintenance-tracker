@@ -149,8 +149,7 @@
     "actual_today": "ran {h} h today",
     "filter_pressure": "Filter pressure",
     "pressure_rise": "+{p}% since the wash",
-    "wash_filter": "wash",
-    "asks": "asks {h} h"
+    "wash_filter": "wash"
   },
   "notes": {
     "title": "Notes",

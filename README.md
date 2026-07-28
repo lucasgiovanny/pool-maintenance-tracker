@@ -103,8 +103,9 @@ depends on how much you have told it — see below.
 
 The baseline is the usual rule of thumb, *water temperature ÷ 2* hours a day,
 and it always applies. Everything below is optional and can only ask for
-**more** hours, never fewer — the surfaces show which constraint is binding, so
-you can disagree with something concrete.
+**more** hours, never fewer. The surfaces show the recommendation itself, not
+the arithmetic behind it — the reasoning is in this README, where you can
+argue with it once, rather than on a row you read every day.
 
 That ordering is deliberate. A pump's nameplate flow is measured at a generous
 point on its curve, and a real installation with a filter and pipework delivers
@@ -129,8 +130,7 @@ speed*.
 **Chlorinator cell output (g/h)**, on salt pools — from the cell's label. The
 chlorinator only makes chlorine while the pump runs, so there is a second
 constraint: enough hours to produce what the day burns (which rises with the
-water temperature). The suggestion is whichever of the two is longer, and the
-surfaces say which one is binding.
+water temperature). The suggestion is whichever constraint asks for most.
 
 **UV index** — an optional sensor or weather entity, under *Configure → Linked
 sensors*. The water temperature already carries most of the weather (a pool at
