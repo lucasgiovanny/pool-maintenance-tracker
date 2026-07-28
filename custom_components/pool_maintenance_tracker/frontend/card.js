@@ -19,6 +19,9 @@ const DEFAULTS = {
   title: "",
   items: undefined,   /* undefined = everything the pool offers */
   only_due_tasks: false,
+  /* "list" packs rows for a column of cards; "tiles" spreads everything
+     into kiosk-style minis, for a dashboard made of this card alone. */
+  layout: "list",
 };
 
 /* Editor labels — same six languages as the pages. */
@@ -29,6 +32,7 @@ const EDITOR_TEXT = {
     general: "General", equipment: "Equipment", readings: "Water readings", tasks: "Tasks",
     temperature: "Water temperature (header)", alerts: "Alerts",
     countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
+    layout: "Layout", layout_list: "List", layout_tiles: "Tiles (like the wall dashboard)",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -37,6 +41,7 @@ const EDITOR_TEXT = {
     temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
     countdown: "Contagem decrescente do horário", filtration: "Sugestão de filtração", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
+    layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões (como o painel de parede)",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -45,6 +50,7 @@ const EDITOR_TEXT = {
     temperature: "Temperatura del agua (encabezado)", alerts: "Alertas",
     countdown: "Cuenta atrás del horario", filtration: "Sugerencia de filtración", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
+    layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas (como el panel de pared)",
   },
   fr: {
     entry: "Piscine", entry_help: "Laissez vide pour utiliser votre seule piscine.",
@@ -53,6 +59,7 @@ const EDITOR_TEXT = {
     temperature: "Température de l'eau (en-tête)", alerts: "Alertes",
     countdown: "Compte à rebours de l'horaire", filtration: "Suggestion de filtration", chlorinator: "Électrolyseur",
     acid_tank: "Réservoir d'acide",
+    layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes (comme l'écran mural)",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -61,6 +68,7 @@ const EDITOR_TEXT = {
     temperature: "Wassertemperatur (Kopfzeile)", alerts: "Warnungen",
     countdown: "Countdown des Zeitplans", filtration: "Filtrationsempfehlung", chlorinator: "Elektrolyseur",
     acid_tank: "Säuretank",
+    layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln (wie das Wanddisplay)",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -70,6 +78,7 @@ const EDITOR_TEXT = {
     alerts: "Avvisi", countdown: "Conto alla rovescia dell'orario",
     filtration: "Suggerimento di filtrazione",
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
+    layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri (come il pannello a parete)",
   },
 };
 
@@ -460,8 +469,9 @@ class PoolMaintenanceCard extends HTMLElement {
     });
 
     /* html --------------------------------------------------------- */
+    const tiles = config.layout === "tiles";
     this.shadowRoot.innerHTML = `
-      <ha-card>
+      <ha-card class="${tiles ? "tiles-layout" : ""}">
         <div class="head">
           <div class="icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -507,7 +517,16 @@ class PoolMaintenanceCard extends HTMLElement {
           </div>`;
         }).join("")}</div>` : ""}
 
-        ${rows.length ? `<div class="rows">
+        ${rows.length ? (tiles ? `<div class="grid">
+          ${rows.map((row, index) => `
+            <div class="mini" data-row="${index}">
+              <div class="mini-name">${this._escape(row.name)}</div>
+              <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</div>
+              ${row.badge ? `<div class="mini-badge"><span class="badge ${
+                row.badge.due ? "due" : (row.badge.status || "")}">${
+                this._escape(row.badge.text)}</span></div>` : ""}
+            </div>`).join("")}
+        </div>` : `<div class="rows">
           ${rows.map((row, index) => `
             <div class="row" data-row="${index}">
               <span class="row-name">${this._escape(row.name)}</span>
@@ -515,7 +534,7 @@ class PoolMaintenanceCard extends HTMLElement {
                 this._escape(row.badge.text)}</span>` : ""}
               <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
             </div>`).join("")}
-        </div>` : ""}
+        </div>`) : ""}
         ${this._styles()}
       </ha-card>`;
 
@@ -606,6 +625,25 @@ class PoolMaintenanceCard extends HTMLElement {
       .countdown.soon .cd-value{color:var(--warning-color,#E9B94F)}
 
       .toggles{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+
+      /* Tiles layout: kiosk-style minis for a single-card dashboard */
+      .grid{
+        display:grid;gap:10px;margin-top:14px;
+        grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+      }
+      .mini{
+        border:1px solid var(--divider-color,#e0e0e0);border-radius:12px;
+        padding:10px 12px;cursor:pointer;min-width:0;
+      }
+      .mini-name{
+        font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+        color:var(--secondary-text-color,#8a8f94);
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      }
+      .mini-value{font-size:1.25rem;font-weight:600;margin-top:4px;line-height:1.25}
+      .mini-value.warn{color:var(--warning-color,#E9B94F)}
+      .mini-badge{margin-top:6px}
+      .tiles-layout .toggles .tile{flex:1 1 150px}
       .tile{
         flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color,rgba(127,127,127,.35));
         border-radius:12px;padding:10px 12px;cursor:pointer;
@@ -747,6 +785,18 @@ class PoolMaintenanceCardEditor extends HTMLElement {
         });
       });
     }
+    schema.push({
+      name: "layout",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "list", label: text.layout_list },
+            { value: "tiles", label: text.layout_tiles },
+          ],
+        },
+      },
+    });
     schema.push({ name: "only_due_tasks", selector: { boolean: {} } });
     return schema;
   }
@@ -755,6 +805,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     const data = {
       entry: this._config.entry,
       title: this._config.title,
+      layout: this._config.layout || "list",
       only_due_tasks: this._config.only_due_tasks,
     };
     if (this._available) {

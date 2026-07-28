@@ -222,6 +222,11 @@ by category:
   *ideal / low / high* badge against its band;
 - **Tasks** — every periodic task, individually, plus an *only overdue* filter.
 
+There is also a **layout** choice: *List* (the default, compact rows for a
+column of cards) or *Tiles*, which spreads every item into kiosk-style minis —
+made for a dashboard built from this card alone, as a lightweight take on the
+wall dashboard inside Home Assistant.
+
 You can also override the title and pick the pool when you have several.
 Tapping a row opens the usual more-info dialog, the toggles switch your
 equipment, and the card speaks the **Home Assistant UI language** of whoever is
