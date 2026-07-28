@@ -69,6 +69,12 @@
   .mini .v.ideal{color:var(--green)}
   .mini .v.low,.mini .v.high{color:var(--amber)}
   .mini .s{font-size:1.5vh;color:var(--muted);font-weight:600;margin-top:.3vh}
+  .mini .s .tag{
+    display:inline-block;border-radius:999px;padding:.2vh .7vw;margin-right:.5vw;
+    font-size:1.3vh;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  }
+  .mini .s .tag.low,.mini .s .tag.high{background:rgba(233,185,79,.18);color:var(--amber)}
+  .mini .s .tag.ideal{background:rgba(47,204,139,.16);color:var(--green)}
 
   .cycle{margin-top:auto}
   .cycle .head{display:flex;align-items:baseline;justify-content:space-between}
@@ -301,11 +307,14 @@ function renderTemperature(){
   }
 }
 
-function miniCard(key, value, valueClass, sub){
+function miniCard(key, value, valueClass, sub, tag){
   const card = el("div", "mini");
   card.appendChild(el("div", "k", key));
   card.appendChild(el("div", "v" + (valueClass ? " " + valueClass : ""), value));
-  card.appendChild(el("div", "s", sub || ""));
+  const line = el("div", "s");
+  if (tag) line.appendChild(el("span", "tag " + tag.status, tag.text));
+  if (sub) line.appendChild(document.createTextNode(sub));
+  card.appendChild(line);
   return card;
 }
 
@@ -348,10 +357,11 @@ function renderMinis(){
     if (value === undefined || value === null) return;
     const status = rangeStatus(key, value);
     const band = (report.ranges || {})[key];
-    const sub = status && status !== "ideal" && band
-      ? S.report.status[status] + " · " + band.min + "–" + band.max + " " + unit
-      : (unit || (status ? S.report.status[status] : ""));
-    box.appendChild(miniCard(label, decimal(value), status, sub));
+    const sub = status && band
+      ? band.min + "–" + band.max + (unit ? " " + unit : "")
+      : unit;
+    box.appendChild(miniCard(label, decimal(value), status, sub,
+      status ? { text: S.report.status[status], status: status } : null));
   });
   ["pump", "pool_light", "cover"].forEach(role => {
     if (!roles[role]) return;

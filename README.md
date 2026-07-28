@@ -95,9 +95,10 @@ simply doesn't appear.
 **Filtration suggestion.** The usual rule of thumb is to run the filtration
 about *water temperature ÷ 2* hours a day. When a water temperature is known
 (from a linked probe or your last manual reading) the surfaces show that
-suggestion next to the hours your filtration schedule actually runs today —
-*13.5 h/day · scheduled 4 h*. It is a suggestion for you to act on: the
-integration never touches the pump.
+suggestion under the hours your filtration schedule actually runs today —
+*4 h/day*, and below it *recommended 13.5 h*. Without a schedule the row
+becomes *Recommended filtration* and shows the suggestion on its own. It is a
+suggestion for you to act on: the integration never touches the pump.
 
 ## Dashboard card
 

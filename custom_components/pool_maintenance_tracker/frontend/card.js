@@ -398,11 +398,13 @@ class PoolMaintenanceCard extends HTMLElement {
     /* Filtration rule of thumb — a suggestion, never a command */
     const filtration = report.filtration;
     if (shown.has("filtration") && filtration) {
+      const scheduled = filtration.scheduled_hours;
+      const hasSchedule = scheduled !== null && scheduled !== undefined;
       rows.push({
-        name: S.report.filtration,
-        value: S.report.hours.replace("{h}", filtration.recommended_hours)
-          + (filtration.scheduled_hours !== null && filtration.scheduled_hours !== undefined
-            ? " · " + S.report.scheduled.replace("{h}", filtration.scheduled_hours) : ""),
+        name: hasSchedule ? S.report.filtration : S.report.filtration_recommended,
+        value: S.report.hours.replace("{h}", hasSchedule ? scheduled : filtration.recommended_hours)
+          + (hasSchedule
+            ? " · " + S.report.recommended.replace("{h}", filtration.recommended_hours) : ""),
         entity: (roles.filtration_schedule || {}).entity_id,
       });
     }

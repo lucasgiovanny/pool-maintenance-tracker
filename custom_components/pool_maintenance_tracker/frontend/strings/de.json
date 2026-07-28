@@ -138,7 +138,9 @@
       "low": "niedrig",
       "high": "hoch",
       "ideal": "ideal"
-    }
+    },
+    "filtration_recommended": "Empfohlene Filtration",
+    "recommended": "empfohlen {h} h"
   },
   "notes": {
     "title": "Notizen",

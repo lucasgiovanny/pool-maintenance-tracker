@@ -555,7 +555,7 @@ function renderReport(){
     if (status) {
       const badge = el("span", "badge " + status, S.report.status[status]);
       badge.style.marginRight = "8px";
-      row.appendChild(badge);
+      holder.insertBefore(badge, holder.firstChild);
     }
     row.appendChild(holder);
     currentBody.appendChild(row);
@@ -564,13 +564,16 @@ function renderReport(){
   /* Filtration suggestion — never a command, just the rule of thumb */
   const filtration = report.filtration;
   if (filtration) {
+    const scheduled = filtration.scheduled_hours;
+    const hasSchedule = scheduled !== null && scheduled !== undefined;
     const row = el("div", "kv");
-    row.appendChild(el("span", "k", S.report.filtration));
-    const holder = el("span", "v",
-      S.report.hours.replace("{h}", filtration.recommended_hours));
-    if (filtration.scheduled_hours !== null && filtration.scheduled_hours !== undefined) {
+    row.appendChild(el("span", "k",
+      hasSchedule ? S.report.filtration : S.report.filtration_recommended));
+    const holder = el("span", "v", S.report.hours.replace("{h}",
+      hasSchedule ? scheduled : filtration.recommended_hours));
+    if (hasSchedule) {
       holder.appendChild(el("span", "probe",
-        S.report.scheduled.replace("{h}", filtration.scheduled_hours)));
+        S.report.recommended.replace("{h}", filtration.recommended_hours)));
     }
     row.appendChild(holder);
     currentBody.appendChild(row);
