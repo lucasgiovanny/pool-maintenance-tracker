@@ -43,6 +43,7 @@
           "modules": "Modules d'équipement",
           "people": "Personnes sur la page",
           "sensors": "Capteurs liés",
+          "equipment": "Équipement",
           "reminders": "Rappels",
           "page": "Page et notifications",
           "security": "Sécurité"
@@ -72,6 +73,18 @@
           "temperature_source": "Capteur de température de l'eau",
           "linked_mode": "Comportement des capteurs liés",
           "report_sensors": "Entités supplémentaires dans l'onglet rapport"
+        }
+      },
+      "equipment": {
+        "title": "Équipement",
+        "description": "Indiquez les entités qui jouent un rôle connu, au lieu de laisser les tableaux de bord deviner via la liste d'entités supplémentaires.",
+        "data": {
+          "pool_system_entity": "Interrupteur du système",
+          "heat_pump_entity": "Pompe à chaleur",
+          "filtration_schedule_entity": "Horaire de filtration",
+          "pump_entity": "Pompe de filtration",
+          "pool_light_entity": "Éclairage de la piscine",
+          "cover_entity": "Couverture"
         }
       },
       "reminders": {

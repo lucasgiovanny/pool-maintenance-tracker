@@ -8,16 +8,15 @@
 <title>Pool</title>
 <style>
   :root{
-    --bg:#071A21;
-    --card:#0E2A34;
-    --card-2:#123540;
-    --line:#1D4553;
-    --ink:#EAF6F9;
-    --muted:#7D9AA5;
-    --aqua:#22C3D6;
-    --deep:#0B4F6C;
-    --ok:#2FCC8B;
-    --warn:#F0A030;
+    --bg:#0A0B0C;
+    --panel:#141719;
+    --panel-2:#1B1F22;
+    --line:#252B2F;
+    --ink:#F2F6F7;
+    --muted:#8A979C;
+    --aqua:#6FD8EC;
+    --green:#79E0A8;
+    --amber:#E9B94F;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden}
@@ -25,158 +24,185 @@
     background:var(--bg);color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
     cursor:none;user-select:none;-webkit-user-select:none;
-    display:flex;flex-direction:column;gap:1.4vh;padding:2vh 1.8vw;
+    display:flex;flex-direction:column;padding:2.2vh 1.8vw 1.8vh;
+  }
+  .title{
+    font-size:1.5vh;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:1.4vh;
   }
 
   /* ---------- header ---------- */
-  header{display:flex;align-items:center;gap:1.4vw;flex:none}
-  header .logo{width:5.4vh;height:5.4vh;border-radius:1.2vh;flex:none}
-  header .name{font-size:3.2vh;font-weight:800;letter-spacing:-.01em;line-height:1}
-  header .sub{font-size:1.7vh;color:var(--muted);font-weight:600;margin-top:.4vh}
-  header .clock{margin-left:auto;text-align:right;line-height:1}
-  header .clock .time{font-size:4.4vh;font-weight:800;font-variant-numeric:tabular-nums}
-  header .clock .date{font-size:1.7vh;color:var(--muted);font-weight:600;margin-top:.5vh}
-  .dot{
-    display:inline-block;width:1.1vh;height:1.1vh;border-radius:50%;background:var(--ok);
-    margin-right:.7vh;vertical-align:middle;
+  header{
+    display:flex;align-items:baseline;gap:1.2vw;flex:none;
+    padding-bottom:1.6vh;border-bottom:1px solid var(--line);
   }
-  .dot.stale{background:var(--warn)}
+  header h1{font-size:3.6vh;font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+  header .date{font-size:1.9vh;color:var(--muted);font-weight:600}
+  header .conn{
+    margin-left:auto;font-size:1.5vh;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.6vw;
+  }
+  header .conn .dot{width:1vh;height:1vh;border-radius:50%;background:var(--green)}
+  header .conn.stale .dot{background:var(--amber)}
+  header .clock{font-size:4.6vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;margin-left:1.4vw}
 
-  /* ---------- alerts ---------- */
-  .alerts{display:flex;gap:1vw;flex:none;flex-wrap:wrap}
-  .alert{
-    display:flex;align-items:center;gap:.8vw;background:rgba(240,160,48,.14);
-    border:1px solid var(--warn);border-radius:1.2vh;padding:.9vh 1.4vw;
-    font-size:1.9vh;font-weight:700;color:var(--warn);
-  }
+  /* ---------- 3 columns ---------- */
+  main{flex:1;display:grid;grid-template-columns:1.05fr 1.2fr .9fr;min-height:0}
+  main > section{padding:1.8vh 1.6vw;min-height:0;display:flex;flex-direction:column}
+  main > section + section{border-left:1px solid var(--line)}
+  main > section:first-child{padding-left:0}
+  main > section:last-child{padding-right:0}
 
-  /* ---------- hero countdown ---------- */
-  .hero{
-    flex:none;background:var(--card);border:1px solid var(--line);border-radius:1.6vh;
-    padding:1.4vh 1.8vw;display:flex;align-items:center;gap:1.6vw;
-  }
-  .hero .label{font-size:1.9vh;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-  .hero .value{
-    margin-left:auto;font-size:5.6vh;font-weight:800;color:var(--aqua);
-    font-variant-numeric:tabular-nums;line-height:1;
-  }
-  .hero .when{font-size:1.8vh;color:var(--muted);font-weight:600}
-  .hero.soon .value{color:var(--warn)}
-  .hero.imminent .value{color:var(--warn);animation:blink 1s step-start infinite}
-  @keyframes blink{50%{opacity:.25}}
-  @media (prefers-reduced-motion: reduce){.hero.imminent .value{animation:none}}
+  /* ---------- temperature ---------- */
+  .temp{font-size:12vh;font-weight:800;color:var(--aqua);line-height:.92;
+        font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .temp small{font-size:3.4vh;font-weight:700;margin-left:.6vw}
+  .temp-sub{font-size:1.75vh;color:var(--muted);font-weight:600;margin-top:1.2vh}
+  .temp-sub b{color:var(--green);font-weight:700}
 
-  /* ---------- main grid ---------- */
-  main{flex:1;display:grid;grid-template-columns:1.15fr 1fr;gap:1.2vw;min-height:0}
-  .panel{
-    background:var(--card);border:1px solid var(--line);border-radius:1.6vh;
-    padding:1.4vh 1.4vw;display:flex;flex-direction:column;min-height:0;
-  }
-  .panel h2{
-    font-size:1.6vh;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--aqua);margin-bottom:1.2vh;flex:none;
-  }
+  .minis{display:grid;grid-template-columns:1fr 1fr;gap:1vh 1vw;margin-top:2.2vh}
+  .mini{background:var(--panel);border:1px solid var(--line);border-radius:1.2vh;padding:1.1vh 1vw}
+  .mini .k{font-size:1.35vh;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .mini .v{font-size:3.2vh;font-weight:800;line-height:1.1;margin-top:.5vh}
+  .mini .v.on{color:var(--green)}
+  .mini .v.off{color:var(--muted)}
+  .mini .s{font-size:1.5vh;color:var(--muted);font-weight:600;margin-top:.3vh}
 
-  .readings{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1vh 1vw;min-height:0}
-  .reading{
-    background:var(--card-2);border-radius:1.2vh;padding:1vh 1.1vw;
-    display:flex;flex-direction:column;justify-content:center;min-height:0;
+  .cycle{margin-top:auto}
+  .cycle .head{display:flex;align-items:baseline;justify-content:space-between}
+  .cycle .head .hours{font-size:1.9vh;font-weight:700;color:var(--ink)}
+  .cycle .track{
+    position:relative;height:1.4vh;background:var(--panel);border-radius:.7vh;margin-top:1vh;
   }
-  .reading .k{font-size:1.75vh;color:var(--muted);font-weight:700;margin-bottom:.7vh}
-  .reading .v{font-size:6vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-  .reading .v small{font-size:2.2vh;font-weight:700;color:var(--muted);margin-left:.5vw}
-  /* always present so every tile aligns, even without a probe line */
-  .reading .src{font-size:1.5vh;color:var(--aqua);font-weight:700;margin-top:.7vh;min-height:1.9vh}
+  .cycle .block{position:absolute;top:0;bottom:0;background:#2E7E8C;border-radius:.7vh}
+  .cycle .now{position:absolute;top:-.35vh;bottom:-.35vh;width:.35vh;background:var(--ink);border-radius:2px}
+  .cycle .axis{display:flex;justify-content:space-between;margin-top:.7vh;
+    font-size:1.3vh;color:var(--muted);font-weight:600}
 
-  .equip{flex:1;display:flex;flex-direction:column;gap:.2vh;overflow:hidden}
-  .equip .row{
-    display:flex;align-items:center;gap:1vw;padding:.95vh 0;
-    border-bottom:1px solid var(--line);font-size:2vh;
+  /* ---------- attention + tasks ---------- */
+  .attention{
+    background:rgba(233,185,79,.10);border:1px solid rgba(233,185,79,.55);
+    border-radius:1.4vh;padding:1.4vh 1.4vw;margin-bottom:2vh;flex:none;
   }
-  .equip .row:last-child{border-bottom:none}
-  .equip .row .n{color:var(--muted);font-weight:600;flex:1;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .equip .row .s{font-weight:800;text-align:right;white-space:nowrap}
-  .equip .row .s small{color:var(--muted);font-weight:600;font-size:1.5vh;margin-left:.5vw}
-  .pill{
-    display:inline-block;border-radius:999px;padding:.35vh .9vw;font-size:1.6vh;font-weight:800;
+  .attention .h{
+    display:flex;align-items:center;gap:.7vw;font-size:2.2vh;font-weight:800;
+    color:var(--amber);letter-spacing:.04em;text-transform:uppercase;margin-bottom:1.1vh;
   }
-  .pill.on{background:rgba(47,204,139,.16);color:var(--ok)}
-  .pill.off{background:rgba(125,154,165,.16);color:var(--muted)}
-  .pill.info{background:rgba(34,195,214,.16);color:var(--aqua)}
-  .pill.warn{background:rgba(240,160,48,.16);color:var(--warn)}
+  .attention .h svg{width:2.2vh;height:2.2vh;stroke:var(--amber);fill:none;stroke-width:2.2;stroke-linecap:round}
+  .attention .items{display:flex;gap:2vw;flex-wrap:wrap}
+  .attention .item .n{font-size:1.9vh;font-weight:700}
+  .attention .item .d{font-size:1.6vh;color:var(--amber);font-weight:600;margin-top:.2vh}
 
-  /* ---------- tasks strip ---------- */
-  .tasks{
-    flex:none;display:flex;gap:.9vw;flex-wrap:wrap;
-  }
+  .tasks{display:grid;grid-template-columns:1fr 1fr;gap:0 2vw;flex:none}
   .task{
-    background:var(--card);border:1px solid var(--line);border-radius:1.2vh;
-    padding:.9vh 1.1vw;font-size:1.65vh;font-weight:700;display:flex;align-items:center;gap:.6vw;
+    display:flex;align-items:center;gap:.7vw;padding:1.05vh 0;
+    border-bottom:1px solid var(--line);font-size:1.85vh;
   }
-  .task.due{border-color:var(--warn);background:rgba(240,160,48,.12)}
-  .task .n{color:var(--muted);font-weight:600}
-  .task .d{font-weight:800}
-  .task.due .d{color:var(--warn)}
+  .task .dot{width:.9vh;height:.9vh;border-radius:50%;background:#3C4548;flex:none}
+  .task.due .dot{background:var(--amber)}
+  .task .n{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .task .d{font-weight:700;color:var(--muted);white-space:nowrap}
+  .task.due .d{color:var(--amber)}
+
+  .chart{margin-top:auto}
+  .chart .head{display:flex;align-items:baseline;justify-content:space-between}
+  .chart .legend{font-size:1.4vh;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:.5vw}
+  .chart .legend i{width:.9vh;height:.9vh;border-radius:50%;background:var(--amber);display:inline-block}
+  .chart svg{width:100%;height:11vh;display:block;margin-top:1vh}
+
+  /* ---------- visits + QR ---------- */
+  .visit{padding:1.1vh 0;border-bottom:1px solid var(--line)}
+  .visit:last-of-type{border-bottom:none}
+  .visit .top{display:flex;justify-content:space-between;gap:1vw;align-items:baseline}
+  .visit .who{font-size:2vh;font-weight:800}
+  .visit .when{font-size:1.5vh;color:var(--muted);font-weight:600;white-space:nowrap}
+  .visit .what{font-size:1.6vh;color:var(--muted);font-weight:600;margin-top:.3vh;line-height:1.35}
+
+  .register{
+    margin-top:auto;background:var(--panel);border:1px solid var(--line);border-radius:1.4vh;
+    padding:1.4vh 1.2vw;display:flex;align-items:center;gap:1.2vw;
+  }
+  .register img{width:11vh;height:11vh;flex:none;border-radius:.8vh;background:#fff;padding:.5vh;image-rendering:pixelated}
+  .register .t{font-size:2.1vh;font-weight:800;letter-spacing:.04em;text-transform:uppercase;line-height:1.1}
+  .register .s{font-size:1.5vh;color:var(--muted);font-weight:600;margin-top:.6vh;line-height:1.35}
 </style>
 </head>
 <body>
 
 <header>
-  <svg class="logo" viewBox="0 0 256 256" aria-hidden="true">
-    <rect x="0" y="0" width="256" height="256" rx="58" fill="#0B4F6C"/>
-    <path d="M76 114l36 36 70-72" stroke="#EAF6F9" stroke-width="24" fill="none"
-          stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M44 184q16-14 32 0t32 0t32 0t32 0t32 0" stroke="#22C3D6"
-          stroke-width="14" fill="none" stroke-linecap="round"/>
-    <path d="M60 212q16-11 32 0t32 0t32 0t32 0" stroke="#22C3D6" stroke-width="11"
-          fill="none" stroke-linecap="round" opacity="0.55"/>
-  </svg>
-  <div>
-    <div class="name" id="pool-name"></div>
-    <div class="sub"><span class="dot" id="dot"></span><span id="updated"></span></div>
-  </div>
-  <div class="clock">
-    <div class="time" id="clock-time"></div>
-    <div class="date" id="clock-date"></div>
-  </div>
+  <h1 id="pool-name"></h1>
+  <div class="date" id="date"></div>
+  <div class="conn" id="conn"><span class="dot"></span><span id="conn-label"></span></div>
+  <div class="clock" id="clock"></div>
 </header>
 
-<div class="alerts" id="alerts"></div>
-
-<div class="hero" id="hero" style="display:none">
-  <div>
-    <div class="label" id="hero-label"></div>
-    <div class="when" id="hero-when"></div>
-  </div>
-  <div class="value" id="hero-value"></div>
-</div>
-
 <main>
-  <section class="panel">
-    <h2 id="water-title"></h2>
-    <div class="readings" id="readings"></div>
+  <!-- left ------------------------------------------------------------- -->
+  <section>
+    <div class="title" id="temp-title"></div>
+    <div class="temp" id="temp">—</div>
+    <div class="temp-sub" id="temp-sub"></div>
+    <div class="minis" id="minis"></div>
+    <div class="cycle" id="cycle" style="display:none">
+      <div class="head">
+        <span class="title" style="margin:0" id="cycle-title"></span>
+        <span class="hours" id="cycle-hours"></span>
+      </div>
+      <div class="track" id="cycle-track"></div>
+      <div class="axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
+    </div>
   </section>
-  <section class="panel">
-    <h2 id="equip-title"></h2>
-    <div class="equip" id="equip"></div>
+
+  <!-- middle ----------------------------------------------------------- -->
+  <section>
+    <div class="attention" id="attention" style="display:none">
+      <div class="h">
+        <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>
+          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <span id="attention-title"></span>
+      </div>
+      <div class="items" id="attention-items"></div>
+    </div>
+    <div class="title" id="tasks-title"></div>
+    <div class="tasks" id="tasks"></div>
+    <div class="chart" id="chart" style="display:none">
+      <div class="head">
+        <span class="title" style="margin:0" id="chart-title"></span>
+        <span class="legend"><i></i><span id="chart-legend"></span></span>
+      </div>
+      <svg id="chart-svg" viewBox="0 0 300 70" preserveAspectRatio="none"></svg>
+    </div>
+  </section>
+
+  <!-- right ------------------------------------------------------------ -->
+  <section>
+    <div class="title" id="visits-title"></div>
+    <div id="visits"></div>
+    <div class="register">
+      <img id="qr" alt="">
+      <div>
+        <div class="t" id="register-title"></div>
+        <div class="s" id="register-hint"></div>
+      </div>
+    </div>
   </section>
 </main>
-
-<div class="tasks" id="tasks"></div>
 
 <script>
 "use strict";
 const CFG = "__KIOSK_CONFIG__";
 const S = CFG.strings;
+const K = S.kiosk;
 const LOCALE = CFG.language === "pt" ? "pt-PT" : CFG.language;
 
 let live = CFG.live || {};
 let report = CFG.report || {};
+let temperature = CFG.temperature || {series: [], delta_24h: null};
 let lastOk = Date.now();
 
 document.documentElement.lang = CFG.language;
 document.title = CFG.pool_name;
+
 function setText(id, value){ document.getElementById(id).textContent = value; }
 function el(tag, cls, text){
   const node = document.createElement(tag);
@@ -184,212 +210,284 @@ function el(tag, cls, text){
   if (text !== undefined) node.textContent = text;
   return node;
 }
-setText("pool-name", CFG.pool_name);
-setText("water-title", S.report.current);
-setText("equip-title", S.report.equipment);
-
-/* ---------- clock ---------- */
-function tickClock(){
-  const now = new Date();
-  setText("clock-time", now.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }));
-  setText("clock-date", now.toLocaleDateString(LOCALE, {
-    weekday: "long", day: "2-digit", month: "long" }));
-  const age = Math.floor((Date.now() - lastOk) / 1000);
-  const stale = age > 180;
-  document.getElementById("dot").classList.toggle("stale", stale);
-  setText("updated", stale ? S.kiosk.offline : S.kiosk.live);
+function svgEl(tag, attrs){
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attrs || {}).forEach(([k, v]) => node.setAttribute(k, v));
+  return node;
 }
-
-/* ---------- helpers ---------- */
-const READINGS = [
-  { key: "ph", live: "ph" },
-  { key: "free_chlorine", live: "free_chlorine" },
-  { key: "salt_level", live: "salt" },
-  { key: "water_temperature", live: "temperature" }
-];
-
-function daysAgoText(iso){
-  if (!iso) return S.report.never;
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days <= 0) return S.report.today;
-  if (days === 1) return S.report.day_ago;
-  return S.report.days_ago.replace("{days}", days);
-}
-function relTime(iso){
-  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (seconds < 90) return S.report.just_now;
-  if (seconds < 3600) return S.report.ago_minutes.replace("{n}", Math.floor(seconds / 60));
-  if (seconds < 86400) return S.report.ago_hours.replace("{n}", Math.floor(seconds / 3600));
-  return daysAgoText(iso);
-}
-/* Whole numbers read as measurements, not counts: 3 -> 3.0 */
 function decimal(value){
   return Number.isInteger(value) ? value.toFixed(1) : String(value);
 }
-function clockDigits(totalSeconds){
-  let seconds = totalSeconds;
-  const days = Math.floor(seconds / 86400); seconds %= 86400;
-  return (days ? days + "d " : "")
-    + String(Math.floor(seconds / 3600)).padStart(2, "0") + ":"
-    + String(Math.floor((seconds % 3600) / 60)).padStart(2, "0") + ":"
-    + String(seconds % 60).padStart(2, "0");
+function shortDate(iso){
+  return new Date(iso).toLocaleDateString(LOCALE, { day: "2-digit", month: "2-digit" });
+}
+function daysAgoShort(iso){
+  if (!iso) return K.never_short;
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days <= 0) return S.report.today;
+  return K.days_short.replace("{days}", days);
+}
+function relShort(iso){
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 3600) return K.minutes_short.replace("{n}", Math.max(1, Math.floor(seconds / 60)));
+  if (seconds < 86400) return K.hours_short.replace("{n}", Math.floor(seconds / 3600));
+  return daysAgoShort(iso);
+}
+function minutesOf(time){
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + (m || 0);
 }
 
-/* ---------- water readings ---------- */
-function renderReadings(){
-  const box = document.getElementById("readings");
-  box.innerHTML = "";
-  READINGS.forEach(item => {
-    const declared = report.values ? report.values[item.key] : undefined;
-    const probe = live[item.live];
-    if (declared === undefined && !probe) return;
-    const tile = el("div", "reading");
-    tile.appendChild(el("div", "k", S.report.values[item.key] || item.key));
-    const value = el("div", "v");
-    const shown = probe ? probe.value : declared;
-    value.appendChild(document.createTextNode(decimal(shown)));
-    const unit = probe ? probe.unit : (S.units[item.key] || "");
-    if (unit) value.appendChild(el("small", null, unit));
-    tile.appendChild(value);
-    let source = "";
-    if (probe && declared !== undefined && declared !== probe.value) {
-      source = S.probe + " · " + S.kiosk.manual + " " + decimal(declared);
-    } else if (probe) {
-      source = S.probe;
-    }
-    tile.appendChild(el("div", "src", source));
-    box.appendChild(tile);
-  });
-  if (!box.childNodes.length) {
-    box.appendChild(el("div", "reading", "—"));
+setText("pool-name", CFG.pool_name);
+setText("temp-title", S.report.values.water_temperature);
+setText("tasks-title", S.report.tasks);
+setText("attention-title", K.attention);
+setText("chart-title", K.temp_7d);
+setText("chart-legend", K.maintenance);
+setText("visits-title", K.visits);
+setText("cycle-title", K.filtration_cycle);
+setText("register-title", K.register);
+setText("register-hint", K.register_hint);
+document.getElementById("qr").src = CFG.qr || "";
+
+/* ---------- clock + connection ---------- */
+function tickClock(){
+  const now = new Date();
+  setText("clock", now.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }));
+  setText("date", now.toLocaleDateString(LOCALE, {
+    weekday: "long", day: "2-digit", month: "short" }));
+  const stale = Date.now() - lastOk > 180000;
+  document.getElementById("conn").classList.toggle("stale", stale);
+  setText("conn-label", stale ? K.offline : K.connected);
+}
+
+/* ---------- left column ---------- */
+function renderTemperature(){
+  const probe = live.temperature;
+  const declared = report.values ? report.values.water_temperature : undefined;
+  const value = probe ? probe.value : declared;
+  const box = document.getElementById("temp");
+  box.textContent = "";
+  if (value === undefined || value === null) {
+    box.textContent = "—";
+  } else {
+    box.appendChild(document.createTextNode(decimal(value)));
+    box.appendChild(el("small", null, (probe && probe.unit) || S.units.water_temperature));
+  }
+
+  const parts = [];
+  const delta = temperature.delta_24h;
+  if (delta !== null && delta !== undefined) {
+    parts.push(K.delta_24h.replace("{delta}", (delta > 0 ? "+" : "") + decimal(delta)));
+  }
+  const sub = document.getElementById("temp-sub");
+  sub.textContent = parts.join(" · ");
+  const heating = (report.roles || {}).heat_pump;
+  if (heating && heating.state === "on") {
+    if (parts.length) sub.appendChild(document.createTextNode(" · "));
+    sub.appendChild(el("b", null, K.heating_active));
   }
 }
 
-/* ---------- equipment ---------- */
-const ONOFF_DOMAINS = ["binary_sensor", "switch", "input_boolean", "light", "schedule"];
-
-function equipRow(name, pillText, pillClass, detail){
-  const row = el("div", "row");
-  row.appendChild(el("div", "n", name));
-  const state = el("div", "s");
-  if (pillClass) state.appendChild(el("span", "pill " + pillClass, pillText));
-  else state.appendChild(document.createTextNode(pillText));
-  if (detail) state.appendChild(el("small", null, detail));
-  row.appendChild(state);
-  return row;
+function miniCard(key, value, valueClass, sub){
+  const card = el("div", "mini");
+  card.appendChild(el("div", "k", key));
+  card.appendChild(el("div", "v" + (valueClass ? " " + valueClass : ""), value));
+  card.appendChild(el("div", "s", sub || ""));
+  return card;
 }
 
-function renderEquipment(){
-  const box = document.getElementById("equip");
+function renderMinis(){
+  const box = document.getElementById("minis");
   box.innerHTML = "";
   const values = report.values || {};
-  if (values.chlorinator_mode !== undefined) {
-    box.appendChild(equipRow(S.report.values.chlorinator_mode,
-      S.modes[values.chlorinator_mode] || values.chlorinator_mode, "info"));
+  const roles = report.roles || {};
+
+  if (values.chlorinator_mode !== undefined || values.chlorinator_output !== undefined) {
+    box.appendChild(miniCard(
+      K.chlorinator,
+      S.modes[values.chlorinator_mode] || values.chlorinator_mode || "—",
+      null,
+      values.chlorinator_output !== undefined
+        ? values.chlorinator_output + " " + S.units.chlorinator_output : ""));
   }
-  if (values.chlorinator_output !== undefined) {
-    box.appendChild(equipRow(S.report.values.chlorinator_output,
-      values.chlorinator_output + " " + (S.units.chlorinator_output || ""), null));
-  }
-  if (values.acid_tank_level !== undefined) {
-    const level = values.acid_tank_level;
-    box.appendChild(equipRow(S.report.values.acid_tank_level,
-      S.acid_levels[level] || level,
-      level === "quarter" ? "warn" : level === "full" ? "on" : "info"));
-  }
-  (report.extra || []).forEach(item => {
-    const onOff = ONOFF_DOMAINS.includes(item.domain)
-      || item.state === "on" || item.state === "off";
-    if (onOff) {
-      box.appendChild(equipRow(item.name,
-        item.state === "on" ? S.report.state_on : S.report.state_off,
-        item.state === "on" ? "on" : "off",
-        item.domain === "schedule" ? "" : relTime(item.last_changed)));
-    } else if (!isNaN(parseFloat(item.state))) {
-      box.appendChild(equipRow(item.name,
-        item.state + (item.unit ? " " + item.unit : ""), null));
-    } else {
-      box.appendChild(equipRow(item.name, item.state, "info", relTime(item.last_changed)));
+  if (roles.pool_system) {
+    const on = roles.pool_system.state === "on";
+    const schedule = roles.filtration_schedule;
+    let sub = relShort(roles.pool_system.last_changed);
+    if (on && schedule && schedule.next_change) {
+      sub = K.until.replace("{time}", new Date(schedule.next_change)
+        .toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }));
     }
+    box.appendChild(miniCard(S.roles.pool_system,
+      on ? S.report.state_on : S.report.state_off, on ? "on" : "off", sub));
+  }
+  if (roles.heat_pump) {
+    const on = roles.heat_pump.state === "on";
+    box.appendChild(miniCard(S.roles.heat_pump,
+      on ? S.report.state_on : S.report.state_off, on ? "on" : "off",
+      relShort(roles.heat_pump.last_changed)));
+  }
+  const salt = live.salt ? live.salt.value : (report.values || {}).salt_level;
+  if (salt !== undefined && salt !== null) {
+    const lastTest = (report.tasks || []).find(task => task.key === "water_test");
+    box.appendChild(miniCard(K.salt, decimal(salt), null,
+      S.units.salt_level + (lastTest && lastTest.last ? " · " + shortDate(lastTest.last) : "")));
+  }
+  ["pump", "pool_light", "cover"].forEach(role => {
+    if (!roles[role]) return;
+    const on = roles[role].state === "on" || roles[role].state === "open";
+    box.appendChild(miniCard(S.roles[role] || roles[role].name,
+      on ? S.report.state_on : S.report.state_off, on ? "on" : "off",
+      relShort(roles[role].last_changed)));
   });
-  if (!box.childNodes.length) box.appendChild(el("div", "row", "—"));
 }
 
-/* ---------- periodic tasks ---------- */
+function renderCycle(){
+  const schedule = (report.roles || {}).filtration_schedule;
+  const cycle = document.getElementById("cycle");
+  const week = schedule && schedule.week;
+  if (!week) { cycle.style.display = "none"; return; }
+  const todayIndex = (new Date().getDay() + 6) % 7;  // Monday = 0
+  const blocks = week[todayIndex] || [];
+  if (!blocks.length) { cycle.style.display = "none"; return; }
+  cycle.style.display = "";
+  setText("cycle-hours", blocks.map(([from, to]) => from + " – " + to).join("  ·  "));
+
+  const track = document.getElementById("cycle-track");
+  track.innerHTML = "";
+  blocks.forEach(([from, to]) => {
+    const start = minutesOf(from), end = Math.max(minutesOf(to), minutesOf(from) + 10);
+    const block = el("div", "block");
+    block.style.left = (start / 1440 * 100) + "%";
+    block.style.width = ((end - start) / 1440 * 100) + "%";
+    track.appendChild(block);
+  });
+  const now = new Date();
+  const marker = el("div", "now");
+  marker.style.left = ((now.getHours() * 60 + now.getMinutes()) / 1440 * 100) + "%";
+  track.appendChild(marker);
+}
+
+/* ---------- middle column ---------- */
+function taskLabel(task){
+  return S.tiles[task.key] || S.report.values[task.key] || task.key;
+}
+
+function renderAttention(){
+  const box = document.getElementById("attention");
+  const items = document.getElementById("attention-items");
+  items.innerHTML = "";
+  const due = (report.tasks || []).filter(task => task.due);
+  const acidLow = report.values && report.values.acid_tank_level === "quarter";
+  if (!due.length && !acidLow) { box.style.display = "none"; return; }
+  box.style.display = "";
+  due.slice(0, 3).forEach(task => {
+    const item = el("div", "item");
+    item.appendChild(el("div", "n", taskLabel(task)));
+    const overdueDays = task.next
+      ? Math.floor((Date.now() - new Date(task.next).getTime()) / 86400000) : 0;
+    item.appendChild(el("div", "d", task.last
+      ? K.overdue_days.replace("{days}", Math.max(overdueDays, 0))
+      : K.never_recorded));
+    items.appendChild(item);
+  });
+  if (acidLow) {
+    const item = el("div", "item");
+    item.appendChild(el("div", "n", S.report.values.acid_tank_level));
+    item.appendChild(el("div", "d", S.acid_levels.quarter));
+    items.appendChild(item);
+  }
+}
+
 function renderTasks(){
   const box = document.getElementById("tasks");
   box.innerHTML = "";
   (report.tasks || []).forEach(task => {
-    if (!task.interval_days) return;
-    const chip = el("div", "task" + (task.due ? " due" : ""));
-    chip.appendChild(el("span", "n", S.tiles[task.key] || S.report.values[task.key] || task.key));
-    chip.appendChild(el("span", "d",
-      task.due ? S.report.overdue : daysAgoText(task.last)));
-    box.appendChild(chip);
+    const row = el("div", "task" + (task.due ? " due" : ""));
+    row.appendChild(el("span", "dot"));
+    row.appendChild(el("span", "n", taskLabel(task)));
+    let detail;
+    if (!task.last) detail = K.never_short;
+    else if (task.due) detail = daysAgoShort(task.last);
+    else if (task.next) detail = shortDate(task.next);
+    else detail = daysAgoShort(task.last);
+    row.appendChild(el("span", "d", detail));
+    box.appendChild(row);
   });
 }
 
-/* ---------- alerts ---------- */
-function renderAlerts(){
-  const box = document.getElementById("alerts");
+function renderChart(){
+  const chart = document.getElementById("chart");
+  const series = temperature.series || [];
+  if (series.length < 2) { chart.style.display = "none"; return; }
+  chart.style.display = "";
+  const svg = document.getElementById("chart-svg");
+  svg.innerHTML = "";
+
+  const W = 300, H = 70, PAD = 6;
+  const times = series.map(point => new Date(point.t).getTime());
+  const values = series.map(point => point.v);
+  const tMin = Math.min(...times), tMax = Math.max(...times);
+  let vMin = Math.min(...values), vMax = Math.max(...values);
+  if (vMin === vMax) { vMin -= 1; vMax += 1; }
+  const span = vMax - vMin; vMin -= span * .25; vMax += span * .25;
+  const x = t => PAD + ((t - tMin) / (tMax - tMin || 1)) * (W - PAD * 2);
+  const y = v => (H - PAD) - ((v - vMin) / (vMax - vMin)) * (H - PAD * 2);
+
+  svg.appendChild(svgEl("polyline", {
+    points: series.map(point => x(new Date(point.t).getTime()) + "," + y(point.v)).join(" "),
+    fill: "none", stroke: "#6FD8EC", "stroke-width": 1.6,
+    "stroke-linejoin": "round", "stroke-linecap": "round",
+    "vector-effect": "non-scaling-stroke"
+  }));
+
+  /* maintenance markers on the days something was logged */
+  const logged = new Set((report.records || []).map(
+    record => new Date(record.logged_at).toDateString()));
+  series.forEach(point => {
+    if (!logged.has(new Date(point.t).toDateString())) return;
+    svg.appendChild(svgEl("circle", {
+      cx: x(new Date(point.t).getTime()), cy: y(point.v), r: 2.4, fill: "#E9B94F"
+    }));
+  });
+}
+
+/* ---------- right column ---------- */
+function renderVisits(){
+  const box = document.getElementById("visits");
   box.innerHTML = "";
-  const messages = [];
-  (report.tasks || []).forEach(task => {
-    if (task.due) {
-      messages.push((S.tiles[task.key] || S.report.values[task.key] || task.key)
-        + " — " + S.report.overdue.toLowerCase());
-    }
-  });
-  if (report.values && report.values.acid_tank_level === "quarter") {
-    messages.push(S.report.alert_acid);
+  const records = (report.records || []).slice(0, 3);
+  if (!records.length) {
+    box.appendChild(el("div", "visit", K.no_visits));
+    return;
   }
-  box.style.display = messages.length ? "" : "none";
-  messages.slice(0, 3).forEach(message => {
-    const alert = el("div", "alert");
-    alert.innerHTML = '<svg viewBox="0 0 24 24" style="width:2.1vh;height:2.1vh;stroke:currentColor;' +
-      'fill:none;stroke-width:2.2;stroke-linecap:round;flex:none">' +
-      '<path d="M12 8v5M12 17h.01"/>' +
-      '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
-    alert.appendChild(document.createTextNode(message));
-    box.appendChild(alert);
+  records.forEach(record => {
+    const item = el("div", "visit");
+    const top = el("div", "top");
+    top.appendChild(el("div", "who", record.person || "?"));
+    top.appendChild(el("div", "when", new Date(record.logged_at).toLocaleDateString(
+      LOCALE, { day: "2-digit", month: "2-digit" })));
+    item.appendChild(top);
+    const bits = (record.categories || []).map(
+      category => S.tiles[category] || category);
+    Object.entries(record.data || {}).forEach(([key, value]) => {
+      if (key === "salt_added") bits.push(value + " " + S.units.salt_added);
+    });
+    if (bits.length) item.appendChild(el("div", "what", bits.join(" · ")));
+    box.appendChild(item);
   });
-}
-
-/* ---------- hero countdown (only with a configured schedule) ---------- */
-function nextSchedule(){
-  const schedules = (report.extra || []).filter(
-    item => item.domain === "schedule" && item.next_change);
-  if (!schedules.length) return null;
-  return schedules.reduce((soonest, item) =>
-    new Date(item.next_change) < new Date(soonest.next_change) ? item : soonest);
-}
-
-function tickHero(){
-  const hero = document.getElementById("hero");
-  const item = nextSchedule();
-  if (!item) { hero.style.display = "none"; return; }
-  hero.style.display = "";
-  const target = new Date(item.next_change);
-  const total = Math.floor((target - Date.now()) / 1000);
-  setText("hero-label", item.state === "on" ? S.kiosk.turns_off : S.kiosk.turns_on);
-  setText("hero-when", item.name + " · " + target.toLocaleString(LOCALE, {
-    weekday: "short", hour: "2-digit", minute: "2-digit" }));
-  setText("hero-value", total > 0 ? clockDigits(total) : "…");
-  hero.classList.toggle("soon", total <= 3600 && total > 300);
-  hero.classList.toggle("imminent", total <= 300 && total > 0);
-  if (total <= 0 && !hero.dataset.fired) {
-    hero.dataset.fired = "1";
-    refresh();
-  }
 }
 
 /* ---------- refresh ---------- */
 function renderAll(){
-  renderAlerts();
-  renderReadings();
-  renderEquipment();
+  renderTemperature();
+  renderMinis();
+  renderCycle();
+  renderAttention();
   renderTasks();
-  tickHero();
+  renderChart();
+  renderVisits();
 }
 
 let refreshing = false;
@@ -402,18 +500,18 @@ async function refresh(){
       const data = await response.json();
       live = data.live || {};
       report = data.report || {};
+      if (data.temperature) temperature = data.temperature;
       lastOk = Date.now();
-      delete document.getElementById("hero").dataset.fired;
       renderAll();
     }
-  } catch (error) { /* keep showing the last good data */ }
+  } catch (error) { /* keep the last good data on screen */ }
   refreshing = false;
 }
 
 renderAll();
 tickClock();
 setInterval(tickClock, 1000);
-setInterval(tickHero, 1000);
+setInterval(renderCycle, 60000);
 setInterval(refresh, 30000);
 </script>
 </body>

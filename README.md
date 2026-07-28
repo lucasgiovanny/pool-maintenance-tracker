@@ -57,6 +57,14 @@ units, on/off with "since when", and `schedule` helpers with *turns on/off at
 schedules; schedules are configuration, so they are kept out of the history
 charts).
 
+### Equipment roles
+
+Under **Configure → Equipment** you point the dashboards at the entities that
+play a known role — pool system switch, heat pump, filtration schedule, filter
+pump, pool light, cover — instead of leaving them to guess from the generic
+extra-entity list. Roles get a fixed place on the page, the wall dashboard and
+the history charts; anything else you add stays in the generic list.
+
 ### Wall dashboard (kiosk)
 
 Got a small screen next to the pool? The integration also serves a **dark,

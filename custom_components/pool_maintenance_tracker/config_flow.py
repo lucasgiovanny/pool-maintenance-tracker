@@ -30,15 +30,21 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_CELL_DAYS,
+    CONF_COVER_ENTITY,
     CONF_FILTER_DAYS,
+    CONF_FILTRATION_SCHEDULE_ENTITY,
+    CONF_HEAT_PUMP_ENTITY,
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_MODULES,
     CONF_NOTIFY_SERVICE,
     CONF_PEOPLE,
+    CONF_POOL_LIGHT_ENTITY,
+    CONF_POOL_SYSTEM_ENTITY,
     CONF_POOL_TYPE,
     CONF_PROBE_DAYS,
+    CONF_PUMP_ENTITY,
     CONF_REMINDER_TIME,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
@@ -51,6 +57,7 @@ from .const import (
     DEFAULT_REMINDER_TIME,
     DEFAULT_REPORT_ENABLED,
     DOMAIN,
+    EQUIPMENT_ROLES,
     LANGUAGES,
     LINKED_MODE_MANUAL,
     LINKED_MODES,
@@ -219,8 +226,50 @@ class PoolOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["modules", "people", "sensors", "reminders", "page", "security"],
+            menu_options=[
+                "modules",
+                "people",
+                "sensors",
+                "equipment",
+                "reminders",
+                "page",
+                "security",
+            ],
         )
+
+    async def async_step_equipment(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Point the dashboards at the entities that play a known role."""
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            for conf_key in EQUIPMENT_ROLES.values():
+                if user_input.get(conf_key):
+                    options[conf_key] = user_input[conf_key]
+                else:
+                    options.pop(conf_key, None)
+            return self.async_create_entry(data=options)
+
+        domains = {
+            CONF_POOL_SYSTEM_ENTITY: ["switch", "input_boolean", "binary_sensor"],
+            CONF_HEAT_PUMP_ENTITY: [
+                "switch",
+                "climate",
+                "water_heater",
+                "input_boolean",
+                "binary_sensor",
+            ],
+            CONF_FILTRATION_SCHEDULE_ENTITY: ["schedule"],
+            CONF_PUMP_ENTITY: ["switch", "input_boolean", "binary_sensor", "fan"],
+            CONF_POOL_LIGHT_ENTITY: ["light", "switch"],
+            CONF_COVER_ENTITY: ["cover", "switch", "binary_sensor"],
+        }
+        schema: dict[vol.Marker, Any] = {}
+        for conf_key in EQUIPMENT_ROLES.values():
+            schema[
+                vol.Optional(conf_key, description={"suggested_value": options.get(conf_key)})
+            ] = EntitySelector(EntitySelectorConfig(domain=domains[conf_key]))
+        return self.async_show_form(step_id="equipment", data_schema=vol.Schema(schema))
 
     async def async_step_sensors(
         self, user_input: dict[str, Any] | None = None

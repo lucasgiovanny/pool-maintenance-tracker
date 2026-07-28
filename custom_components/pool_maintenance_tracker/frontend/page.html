@@ -606,11 +606,18 @@ function renderReport(){
     row.appendChild(holder);
     extraBody.appendChild(row);
   });
-  if ((report.extra || []).length || equipAny) {
+  /* Entities with a named role come first, in a stable order */
+  const ROLE_ORDER = ["pool_system", "heat_pump", "pump", "filtration_schedule",
+                      "pool_light", "cover"];
+  const roleItems = ROLE_ORDER
+    .filter(role => (report.roles || {})[role])
+    .map(role => Object.assign({}, report.roles[role], {label: S.roles[role]}));
+
+  if ((report.extra || []).length || roleItems.length || equipAny) {
     document.getElementById("report-extra").style.display = "";
-    (report.extra || []).forEach(item => {
+    roleItems.concat(report.extra || []).forEach(item => {
       const row = el("div", "kv");
-      row.appendChild(el("span", "k", item.name));
+      row.appendChild(el("span", "k", item.label || item.name));
       const holder = el("span", "v");
       const onOff = ["binary_sensor", "switch", "input_boolean", "light"].includes(item.domain)
         || item.state === "on" || item.state === "off";

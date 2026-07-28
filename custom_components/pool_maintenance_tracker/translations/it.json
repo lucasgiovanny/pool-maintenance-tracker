@@ -43,6 +43,7 @@
           "modules": "Moduli dell'attrezzatura",
           "people": "Persone nella pagina",
           "sensors": "Sensori collegati",
+          "equipment": "Attrezzatura",
           "reminders": "Promemoria",
           "page": "Pagina e notifiche",
           "security": "Sicurezza"
@@ -72,6 +73,18 @@
           "temperature_source": "Sensore temperatura dell'acqua",
           "linked_mode": "Comportamento dei sensori collegati",
           "report_sensors": "Entità extra nella scheda rapporto"
+        }
+      },
+      "equipment": {
+        "title": "Attrezzatura",
+        "description": "Indica le entità che hanno un ruolo noto, invece di far indovinare alle dashboard dall'elenco delle entità extra.",
+        "data": {
+          "pool_system_entity": "Interruttore del sistema",
+          "heat_pump_entity": "Pompa di calore",
+          "filtration_schedule_entity": "Orario di filtrazione",
+          "pump_entity": "Pompa del filtro",
+          "pool_light_entity": "Luce piscina",
+          "cover_entity": "Copertura"
         }
       },
       "reminders": {

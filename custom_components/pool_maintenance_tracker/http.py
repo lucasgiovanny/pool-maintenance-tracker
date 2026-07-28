@@ -31,6 +31,7 @@ from .const import (
     CONF_PEOPLE,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
+    CONF_TEMPERATURE_SOURCE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
     DATA_TOKENS,
@@ -39,6 +40,7 @@ from .const import (
     DEFAULT_LANGUAGE,
     DEFAULT_REPORT_ENABLED,
     DOMAIN,
+    EQUIPMENT_ROLES,
     HISTORY_PERIODS,
     KEY_ACID_TANK_LEVEL,
     LINKED_MODE_MANUAL,
@@ -321,6 +323,44 @@ async def _schedule_week(hass: HomeAssistant, entity_id: str) -> list[list[list[
     return week
 
 
+async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | None:
+    """Normalized snapshot of an external entity for the dashboards."""
+    state = hass.states.get(entity_id)
+    if state is None or state.state in ("unknown", "unavailable"):
+        return None
+    domain = entity_id.split(".")[0]
+    next_change = None
+    week = None
+    if domain == "schedule":
+        if next_event := state.attributes.get("next_event"):
+            next_change = (
+                next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
+            )
+        week = await _schedule_week(hass, entity_id)
+    return {
+        "entity_id": entity_id,
+        "name": state.attributes.get("friendly_name") or entity_id,
+        "state": state.state,
+        "unit": state.attributes.get("unit_of_measurement") or "",
+        "domain": domain,
+        "next_change": next_change,
+        "week": week,
+        "last_changed": await _true_last_changed(
+            hass, entity_id, state.state, state.last_changed.isoformat()
+        ),
+    }
+
+
+async def _role_entities(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
+    """Entities the user explicitly assigned to a known role."""
+    roles: dict[str, Any] = {}
+    for role, conf_key in EQUIPMENT_ROLES.items():
+        entity_id = entry.options.get(conf_key)
+        if entity_id and (item := await _entity_item(hass, entity_id)):
+            roles[role] = item
+    return roles
+
+
 # Task order on the report tab
 REPORT_TASK_ORDER = (
     "water_test",
@@ -377,34 +417,16 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         for item in reversed(tracker.records[-RECENT_RECORDS_ATTR_COUNT:])
     ]
 
+    roles = await _role_entities(hass, entry)
+    role_ids = {item["entity_id"] for item in roles.values()}
+
     extra = []
     for entity_id in entry.options.get(CONF_REPORT_SENSORS, ()):
-        state = hass.states.get(entity_id)
-        if state is None or state.state in ("unknown", "unavailable"):
+        # Entities with a named role already have their own place.
+        if entity_id in role_ids:
             continue
-        domain = entity_id.split(".")[0]
-        next_change = None
-        week = None
-        if domain == "schedule":
-            if next_event := state.attributes.get("next_event"):
-                next_change = (
-                    next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
-                )
-            week = await _schedule_week(hass, entity_id)
-        extra.append(
-            {
-                "entity_id": entity_id,
-                "name": state.attributes.get("friendly_name") or entity_id,
-                "state": state.state,
-                "unit": state.attributes.get("unit_of_measurement") or "",
-                "domain": domain,
-                "next_change": next_change,
-                "week": week,
-                "last_changed": await _true_last_changed(
-                    hass, entity_id, state.state, state.last_changed.isoformat()
-                ),
-            }
-        )
+        if item := await _entity_item(hass, entity_id):
+            extra.append(item)
 
     return {
         "values": values,
@@ -413,6 +435,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "records": records,
         "notes": list(reversed(tracker.notes)),
         "extra": extra,
+        "roles": roles,
     }
 
 
@@ -457,6 +480,42 @@ async def _daily_means(hass: HomeAssistant, entity_id: str, start) -> list[dict[
         )
         points.append({"t": stamp.isoformat(), "v": round(float(mean), 2)})
     return points
+
+
+async def _temperature_trend(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
+    """7-day daily means and the 24 h change of the linked temperature probe."""
+    entity_id = entry.options.get(CONF_TEMPERATURE_SOURCE)
+    trend: dict[str, Any] = {"series": [], "delta_24h": None}
+    if not entity_id or not _recorder_ready(hass):
+        return trend
+
+    now = dt_util.utcnow()
+    trend["series"] = await _daily_means(hass, entity_id, now - timedelta(days=7))
+
+    from functools import partial
+
+    from homeassistant.components.recorder import get_instance
+    from homeassistant.components.recorder.statistics import statistics_during_period
+
+    try:
+        stats = await get_instance(hass).async_add_executor_job(
+            partial(
+                statistics_during_period,
+                hass,
+                now - timedelta(hours=26),
+                None,
+                {entity_id},
+                "hour",
+                None,
+                {"mean"},
+            )
+        )
+    except Exception:
+        return trend
+    means = [row["mean"] for row in stats.get(entity_id, []) if row.get("mean") is not None]
+    if len(means) >= 2:
+        trend["delta_24h"] = round(float(means[-1]) - float(means[0]), 1)
+    return trend
 
 
 def _ontime_buckets(changes, start, end) -> list[dict[str, Any]]:
@@ -539,8 +598,18 @@ async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> 
             series["unit"] = "" if live_key == "ph" else _unit_of(hass, entry, live_key)
             readings[live_key] = series
 
-    extra = []
+    # Role entities are charted too, so picking a heat pump as a role does
+    # not cost you its runtime history.
+    charted: list[str] = []
+    for conf_key in EQUIPMENT_ROLES.values():
+        if (entity_id := entry.options.get(conf_key)) and entity_id not in charted:
+            charted.append(entity_id)
     for entity_id in entry.options.get(CONF_REPORT_SENSORS, ()):
+        if entity_id not in charted:
+            charted.append(entity_id)
+
+    extra = []
+    for entity_id in charted:
         state = hass.states.get(entity_id)
         name = (state.attributes.get("friendly_name") if state else None) or entity_id
         domain = entity_id.split(".")[0]
@@ -794,6 +863,7 @@ class PoolStateView(HomeAssistantView):
             {
                 "live": _live_values(hass, entry),
                 "report": await _build_report(hass, entry),
+                "temperature": await _temperature_trend(hass, entry),
             }
         )
 
@@ -814,6 +884,9 @@ class PoolKioskView(HomeAssistantView):
             return web.Response(status=404)
 
         language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
+        import segno
+
+        url = page_url(hass, entry) or URL_PAGE.format(token=token)
         config = {
             "pool_name": entry.title,
             "language": language,
@@ -821,6 +894,10 @@ class PoolKioskView(HomeAssistantView):
             "state_endpoint": URL_STATE.format(token=token),
             "live": _live_values(hass, entry),
             "report": await _build_report(hass, entry),
+            "temperature": await _temperature_trend(hass, entry),
+            "qr": await hass.async_add_executor_job(
+                lambda: segno.make(url, error="m").png_data_uri(scale=6, border=2)
+            ),
         }
         template = await hass.async_add_executor_job(KIOSK_PATH.read_text, "utf-8")
         config_json = json.dumps(config, ensure_ascii=False).replace("</", "<\\/")

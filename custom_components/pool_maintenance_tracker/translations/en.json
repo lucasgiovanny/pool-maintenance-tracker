@@ -43,6 +43,7 @@
           "modules": "Equipment modules",
           "people": "People on the page",
           "sensors": "Linked sensors",
+          "equipment": "Equipment",
           "reminders": "Reminders",
           "page": "Page and notifications",
           "security": "Security"
@@ -72,6 +73,18 @@
           "temperature_source": "Water temperature sensor",
           "linked_mode": "Linked sensor behavior",
           "report_sensors": "Extra entities on the report tab"
+        }
+      },
+      "equipment": {
+        "title": "Equipment",
+        "description": "Point the dashboards at the entities that play a known role, instead of having them guess from the extra entity list.",
+        "data": {
+          "pool_system_entity": "Pool system switch",
+          "heat_pump_entity": "Heat pump",
+          "filtration_schedule_entity": "Filtration schedule",
+          "pump_entity": "Filter pump",
+          "pool_light_entity": "Pool light",
+          "cover_entity": "Cover"
         }
       },
       "reminders": {

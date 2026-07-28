@@ -163,10 +163,35 @@
     "print": "Print"
   },
   "kiosk": {
-    "turns_on": "Turns on in",
-    "turns_off": "Turns off in",
-    "live": "Live",
+    "connected": "Home Assistant connected",
     "offline": "No connection",
-    "manual": "manual"
+    "manual": "manual",
+    "attention": "Needs attention",
+    "visits": "Recent visits",
+    "register": "Log a visit",
+    "register_hint": "Scan the code or tap the NFC tag to open it on your phone",
+    "filtration_cycle": "Filtration cycle",
+    "temp_7d": "Temperature · 7 days",
+    "maintenance": "maintenance",
+    "delta_24h": "{delta} °C in the last 24 h",
+    "heating_active": "heating active",
+    "until": "until {time}",
+    "chlorinator": "Chlorinator",
+    "salt": "Salt",
+    "never_short": "Never",
+    "days_short": "{days} d ago",
+    "minutes_short": "{n} min ago",
+    "hours_short": "{n} h ago",
+    "overdue_days": "{days} days overdue",
+    "never_recorded": "never recorded",
+    "no_visits": "No visits logged yet."
+  },
+  "roles": {
+    "pool_system": "System",
+    "heat_pump": "Heat pump",
+    "filtration_schedule": "Filtration schedule",
+    "pump": "Pump",
+    "pool_light": "Pool light",
+    "cover": "Cover"
   }
 }

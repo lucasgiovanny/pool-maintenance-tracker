@@ -163,10 +163,35 @@
     "print": "Imprimer"
   },
   "kiosk": {
-    "turns_on": "S'allume dans",
-    "turns_off": "S'éteint dans",
-    "live": "En direct",
+    "connected": "Home Assistant connecté",
     "offline": "Pas de connexion",
-    "manual": "manuel"
+    "manual": "manuel",
+    "attention": "Nécessite attention",
+    "visits": "Dernières interventions",
+    "register": "Enregistrer une visite",
+    "register_hint": "Scannez le code ou approchez le tag NFC pour l'ouvrir sur le téléphone",
+    "filtration_cycle": "Cycle de filtration",
+    "temp_7d": "Température · 7 jours",
+    "maintenance": "entretien",
+    "delta_24h": "{delta} °C ces dernières 24 h",
+    "heating_active": "chauffage actif",
+    "until": "jusqu'à {time}",
+    "chlorinator": "Électrolyseur",
+    "salt": "Sel",
+    "never_short": "Jamais",
+    "days_short": "il y a {days} j",
+    "minutes_short": "il y a {n} min",
+    "hours_short": "il y a {n} h",
+    "overdue_days": "{days} jours de retard",
+    "never_recorded": "jamais enregistrées",
+    "no_visits": "Aucune intervention pour l'instant."
+  },
+  "roles": {
+    "pool_system": "Système",
+    "heat_pump": "Pompe à chaleur",
+    "filtration_schedule": "Horaire de filtration",
+    "pump": "Pompe",
+    "pool_light": "Éclairage",
+    "cover": "Couverture"
   }
 }

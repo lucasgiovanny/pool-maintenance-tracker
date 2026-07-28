@@ -41,6 +41,23 @@ CONF_REPORT_SENSORS: Final = "report_sensors"
 CONF_KIOSK_ENABLED: Final = "kiosk_enabled"
 DEFAULT_KIOSK_ENABLED: Final = True
 
+# Named equipment roles: explicitly picked entities the dashboards give a
+# fixed place to, instead of guessing from the generic extra-entity list.
+CONF_POOL_SYSTEM_ENTITY: Final = "pool_system_entity"
+CONF_HEAT_PUMP_ENTITY: Final = "heat_pump_entity"
+CONF_FILTRATION_SCHEDULE_ENTITY: Final = "filtration_schedule_entity"
+CONF_PUMP_ENTITY: Final = "pump_entity"
+CONF_POOL_LIGHT_ENTITY: Final = "pool_light_entity"
+CONF_COVER_ENTITY: Final = "cover_entity"
+EQUIPMENT_ROLES: Final[dict[str, str]] = {
+    "pool_system": CONF_POOL_SYSTEM_ENTITY,
+    "heat_pump": CONF_HEAT_PUMP_ENTITY,
+    "filtration_schedule": CONF_FILTRATION_SCHEDULE_ENTITY,
+    "pump": CONF_PUMP_ENTITY,
+    "pool_light": CONF_POOL_LIGHT_ENTITY,
+    "cover": CONF_COVER_ENTITY,
+}
+
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"
 LINKED_MODE_MANUAL: Final = "manual_only"

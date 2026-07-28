@@ -43,6 +43,7 @@
           "modules": "Módulos de equipamento",
           "people": "Pessoas na página",
           "sensors": "Sensores ligados",
+          "equipment": "Equipamento",
           "reminders": "Lembretes",
           "page": "Página e notificações",
           "security": "Segurança"
@@ -72,6 +73,18 @@
           "temperature_source": "Sensor de temperatura da água",
           "linked_mode": "Comportamento dos sensores ligados",
           "report_sensors": "Entidades extra na aba de relatório"
+        }
+      },
+      "equipment": {
+        "title": "Equipamento",
+        "description": "Indica as entidades que desempenham um papel conhecido, em vez de os painéis terem de adivinhar pela lista de entidades extra.",
+        "data": {
+          "pool_system_entity": "Interruptor do sistema",
+          "heat_pump_entity": "Bomba de calor",
+          "filtration_schedule_entity": "Horário de filtragem",
+          "pump_entity": "Bomba do filtro",
+          "pool_light_entity": "Luz da piscina",
+          "cover_entity": "Cobertura"
         }
       },
       "reminders": {
