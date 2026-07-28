@@ -212,8 +212,10 @@ type: custom:pool-maintenance-card
 </p>
 
 It has a **visual editor** with one list that does both jobs: tick exactly
-what the card shows and **drag it into order** — across categories, so a task
-can sit above a reading. Each entry is labelled with its category, and
+what the card shows and **drag it into order**. In the tiles layout each
+category renders as its own full-width row — alerts, equipment, readings,
+tasks — placed where its best-ranked item sits in your list, with the items
+inside the row following your order. Each entry is labelled with its category, and
 everything obeys the order: equipment toggles, the alert banner, the
 water-temperature hero and the filtration cycle bar included. Available items
 cover the temperature, alerts, the schedule countdown, the filtration

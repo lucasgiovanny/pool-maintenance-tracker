@@ -625,32 +625,41 @@ class PoolMaintenanceCard extends HTMLElement {
         </div>` : "";
     let gridHtml = "";
     if (tiles) {
-      /* Everything is a ranked grid entry — the countdown strip and the
-         equipment toggles included. Anything rendered outside the grid
-         would sit above it no matter where the user dragged it. */
-      const entries = [];
-      if (countdownHtml) entries.push({ rank: rank("countdown"), html: countdownHtml });
-      toggles.forEach((role, index) =>
-        entries.push({ rank: rank("role:" + role), html: toggleHtml(role, index) }));
-      if (hero) {
-        entries.push({ rank: rank("temperature"), html:
-          `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
-            <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}${
-              this._escape(S.report.values.water_temperature)}</div>
-            <div class="hero-value">${temp}<small>${tempUnit}</small></div>
-          </div>` });
-      }
-      /* One tile per alert: a full-width banner in a grid of even tiles
-         claims a whole stretched row for a single sentence. */
-      alertLines.forEach(line => entries.push({ rank: rank("alerts"), html:
+      /* Sections: each category is one full-width row, placed where its
+         best-ranked item sits in the configured order; inside a section
+         the items keep their configured order. Free per-item order across
+         the whole grid packed badly — a category is the natural line. */
+      const sections = new Map();
+      const put = (name, itemRank, html) => {
+        const section = sections.get(name) || { rank: itemRank, parts: [] };
+        section.rank = Math.min(section.rank, itemRank);
+        section.parts.push({ rank: itemRank, html: html });
+        sections.set(name, section);
+      };
+      const bucketFor = key =>
+        key.startsWith("task:") ? "tasks"
+        : key.startsWith("value:") || key === "filtration" ? "readings"
+        : "equipment";
+      if (countdownHtml) put("countdown", rank("countdown"), countdownHtml);
+      alertLines.forEach(line => put("alerts", rank("alerts"),
         `<div class="mini alert-mini">
           <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>
             <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
           <div class="alert-text">${this._escape(line)}</div>
-        </div>` }));
-      gridRows.forEach(row => entries.push({ rank: rank(row.key), html: miniHtml(row) }));
+        </div>`));
+      if (hero) {
+        put("hero", rank("temperature"),
+          `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
+            <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}${
+              this._escape(S.report.values.water_temperature)}</div>
+            <div class="hero-value">${temp}<small>${tempUnit}</small></div>
+          </div>`);
+      }
+      toggles.forEach((role, index) =>
+        put("equipment", rank("role:" + role), toggleHtml(role, index)));
+      gridRows.forEach(row => put(bucketFor(row.key), rank(row.key), miniHtml(row)));
       if (cycle) {
-        entries.push({ rank: rank("filtration"), html:
+        put("cycle", rank("filtration"),
           `<div class="mini cycle clickable" data-entity="${schedule.entity_id}">
             <div class="cycle-head">
               <span class="mini-name">${this._iconTag("filtration", schedule.entity_id)}${
@@ -663,11 +672,15 @@ class PoolMaintenanceCard extends HTMLElement {
             </div>
             <div class="cycle-axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
             ${cycle.sub ? `<div class="mini-sub">${this._escape(cycle.sub)}</div>` : ""}
-          </div>` });
+          </div>`);
       }
-      entries.sort((a, b) => a.rank - b.rank);
-      gridHtml = entries.length
-        ? `<div class="grid">${entries.map(entry => entry.html).join("")}</div>` : "";
+      const ordered = [...sections.entries()].sort((a, b) => a[1].rank - b[1].rank);
+      gridHtml = ordered.length
+        ? `<div class="grid">${ordered.map(([name, section]) => {
+            const inner = section.parts
+              .sort((a, b) => a.rank - b.rank).map(part => part.html).join("");
+            return name === "countdown" ? inner : `<div class="sec">${inner}</div>`;
+          }).join("")}</div>` : "";
     }
     const rowHtml = row => `<div class="row" data-row="${rows.indexOf(row)}">
         <span class="row-name">${this._iconTag(row.key, row.entity)}${this._escape(row.name)}</span>
@@ -768,7 +781,7 @@ class PoolMaintenanceCard extends HTMLElement {
       :host{display:block;height:100%}
       ha-card{padding:16px;display:block}
       ha-card.panel{height:100%;display:flex;flex-direction:column;overflow:auto}
-      .panel .grid{flex:1;grid-auto-rows:minmax(90px,1fr)}
+      .panel .grid{flex:1;justify-content:space-evenly}
       .panel .mini{display:flex;flex-direction:column;justify-content:center}
       .panel .hero-value{font-size:clamp(1.9rem,5.5vh,3.2rem)}
       .panel .mini-value{font-size:clamp(1.1rem,2.8vh,1.6rem)}
@@ -825,8 +838,9 @@ class PoolMaintenanceCard extends HTMLElement {
       }
 
       /* Tiles layout: kiosk-style minis for a single-card dashboard */
-      .grid{
-        display:grid;gap:10px;margin-top:14px;
+      .grid{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+      .sec{
+        display:grid;gap:10px;
         grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
       }
       .mini{
@@ -867,8 +881,8 @@ class PoolMaintenanceCard extends HTMLElement {
         position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
         background:var(--primary-text-color,#333);
       }
-      .grid .countdown{grid-column:1/-1;margin-top:0}
-      .grid .tile{grid-column:span 2}
+      .grid .countdown{margin-top:0}
+      .sec .tile{grid-column:span 2}
       .alert-mini{
         display:flex;align-items:center;gap:8px;
         color:var(--warning-color,#E9B94F);
