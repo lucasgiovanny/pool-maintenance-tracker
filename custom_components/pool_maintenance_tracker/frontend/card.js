@@ -518,14 +518,20 @@ class PoolMaintenanceCard extends HTMLElement {
         }).join("")}</div>` : ""}
 
         ${rows.length ? (tiles ? `<div class="grid">
-          ${rows.map((row, index) => `
+          ${rows.map((row, index) => {
+            /* Rows join auxiliary facts with " · " — in a tile the value
+               must stay one big figure, so the rest drops to a sub line. */
+            const [main, ...aux] = String(row.value).split(" · ");
+            return `
             <div class="mini" data-row="${index}">
               <div class="mini-name">${this._escape(row.name)}</div>
-              <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</div>
+              <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(main)}</div>
+              ${aux.length ? `<div class="mini-sub">${this._escape(aux.join(" · "))}</div>` : ""}
               ${row.badge ? `<div class="mini-badge"><span class="badge ${
                 row.badge.due ? "due" : (row.badge.status || "")}">${
                 this._escape(row.badge.text)}</span></div>` : ""}
-            </div>`).join("")}
+            </div>`;
+          }).join("")}
         </div>` : `<div class="rows">
           ${rows.map((row, index) => `
             <div class="row" data-row="${index}">
@@ -642,6 +648,10 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       .mini-value{font-size:1.25rem;font-weight:600;margin-top:4px;line-height:1.25}
       .mini-value.warn{color:var(--warning-color,#E9B94F)}
+      .mini-sub{
+        font-size:.74rem;font-weight:600;color:var(--secondary-text-color,#8a8f94);
+        margin-top:2px;line-height:1.35;
+      }
       .mini-badge{margin-top:6px}
       .tiles-layout .toggles .tile{flex:1 1 150px}
       .tile{
