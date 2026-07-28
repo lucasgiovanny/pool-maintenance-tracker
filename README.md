@@ -6,7 +6,8 @@
 
 <p align="center">
   A Home Assistant integration that tracks pool maintenance through a public,
-  mobile-first web page — opened from a QR code or NFC tag in your pool's machine room.
+  mobile-first web page — opened from a QR code or NFC tag in your pool's machine room —
+  plus a dashboard card and a wall dashboard for the screen next to the pool.
   <br><br>
   <a href="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/ci.yml"><img src="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/validate.yml"><img src="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
@@ -29,46 +30,68 @@ periodic tasks are overdue.
 2. You write that URL to an NFC tag or print the QR code (both are provided as
    entities) and stick it in the machine room.
 3. Anyone who opens the page picks who they are, optionally adjusts the date
-   (defaults to today), taps the maintenance tiles, fills in readings, and
-   submits — works fine on mobile data.
+   and time (defaults to now), taps the maintenance tiles, fills in readings,
+   and submits — works fine on mobile data.
 4. The integration validates the submission, updates the entities, fires an
    event for your automations, appends to the log, and sends notifications
    when something needs attention.
-5. A **Report** tab on the same page (optional, on by default) gives whoever
-   maintains the pool — even without HA access — an overview: current values,
-   periodic task status with overdue badges, extra equipment entities you
-   choose (e.g. your heat pump), a shared **notes diary**, and the recent
-   maintenance history. Toggle it under **Configure → Page and notifications**.
+
+The pool is then visible in three places: the **web page** (for whoever is
+standing at the pool), a **dashboard card** inside Home Assistant, and an
+optional **wall dashboard** for a screen in the machine room.
+
+## The web page
+
+The page adapts to your pool: tiles and entities exist only for the equipment
+you actually have. It has up to three tabs.
+
+<p align="center">
+  <img src="assets/page-screenshot.png" alt="The maintenance page (Portuguese, salt pool with a linked temperature probe)" width="520">
+</p>
+
+**Log** — who is logging, when it was done, what was done, the values measured,
+and an optional note.
+
+**Status** (optional, on by default) — gives whoever maintains the pool, even
+without HA access, a read-only overview: current values, periodic tasks with
+their next due date and overdue badges, your equipment, the notes diary and the
+recent maintenance history. Toggle it under **Configure → Page and
+notifications**.
+
+**History** — charts the pool over time (7 days / 30 days / 6 months):
+
+- **Water readings** — daily averages from the linked probes (HA long-term
+  statistics) as a line, with your manual readings overlaid as dots.
+- **Equipment** — daily averages for numeric entities, and *hours on per day*
+  bars for on/off entities (computed from the HA recorder history, so limited
+  by your recorder retention — 10 days by default).
+
+Charts are lightweight inline SVG — no external libraries, still one
+self-contained page.
 
 ### Notes
 
 Notes are a page-only diary — they never become HA entities. Add one on the
-log form (optional field, back-dated with the record; a note without any tile
-selected is also accepted). The report tab shows the diary read-only, keeping
+log form (optional field, dated with the record; a note without any tile
+selected is also accepted). The Status tab shows the diary read-only, keeping
 the latest 50, append-only.
 
-### Equipment on the report
-
-Under **Configure → Linked sensors → Extra entities on the report tab**, pick
-any entities from other integrations (heat pump switch, power sensor, …). The
-report shows their current state formatted automatically — measurements with
-units, on/off with "since when", and `schedule` helpers with *turns on/off at
-…* plus their real weekly grid (read from HA's storage for UI-created
-schedules; schedules are configuration, so they are kept out of the history
-charts).
-
-### Dashboard card
+## Dashboard card
 
 The integration ships a Lovelace card and loads it for you — no resource to
-add by hand. Add a **Manual card** with:
+add by hand. Add it from the card picker ("Pool Maintenance Tracker") or with a
+manual card:
 
 ```yaml
 type: custom:pool-maintenance-card
-# entry: <config entry id>   # only needed when you have several pools
 ```
 
-It has a **visual editor** where you tick exactly what the card shows,
-grouped by category:
+<p align="center">
+  <img src="assets/card-screenshot.png" alt="The dashboard card: temperature, schedule countdown, equipment toggles and maintenance tasks" width="420">
+</p>
+
+It has a **visual editor** where you tick exactly what the card shows, grouped
+by category:
 
 - **General** — water temperature in the header, alerts, and a live
   **countdown** to the next filtration-schedule change;
@@ -78,56 +101,32 @@ grouped by category:
 - **Tasks** — every periodic task, individually, plus an *only overdue* filter.
 
 You can also override the title and pick the pool when you have several.
-Tapping a row opens the usual more-info dialog, and the card speaks the
-**Home Assistant UI language** of whoever is looking at it, independently of
-the language you chose for the public page. It shows the pool name,
-water temperature, an alert box for overdue tasks, toggles for your pool
-system and heat pump, the chlorinator state and every periodic task with its
-next due date; tapping a row opens the usual more-info dialog.
+Tapping a row opens the usual more-info dialog, the toggles switch your
+equipment, and the card speaks the **Home Assistant UI language** of whoever is
+looking at it, independently of the language you chose for the public page.
 
-### Equipment roles
-
-Under **Configure → Equipment** you point the dashboards at the entities that
-play a known role — pool system switch, heat pump, filtration schedule, filter
-pump, pool light, cover — instead of leaving them to guess from the generic
-extra-entity list. Roles get a fixed place on the page, the wall dashboard and
-the history charts; anything else you add stays in the generic list.
-
-### Wall dashboard (kiosk)
+## Wall dashboard (kiosk)
 
 Got a small screen next to the pool? The integration also serves a **dark,
-display-only dashboard** designed for a 7-inch landscape screen (and up):
-
-- water readings (probe values when linked, your manual readings otherwise),
-- equipment states, including your extra entities,
-- periodic tasks and overdue alerts,
-- a big **countdown to the next schedule change** ("turns on in 03:41:04"),
-  shown only when a `schedule` entity is among your extra entities.
-
-It has no touch targets and no navigation — just point a browser at it in
-kiosk mode. It refreshes itself every 30 seconds. Find its URL in the
-`kiosk_url` attribute of the QR code entity; turn it off under
-**Configure → Page and notifications**.
-
-### History tab
-
-A third tab charts the pool over time (7 days / 30 days / 6 months):
-
-- **Water readings** — daily averages from the linked probes (HA long-term
-  statistics) as a line, with your manual readings overlaid as dots.
-- **Equipment** — daily averages for numeric extra entities, and *hours on per
-  day* bars for on/off entities (computed from the HA recorder history, so
-  limited by your recorder retention — 10 days by default).
-
-Charts are lightweight inline SVG — no external libraries, still one
-self-contained page.
-
-The page adapts to your pool: tiles and entities are created only for the
-equipment you actually have.
+display-only dashboard** designed for a 7-inch landscape screen (and up).
 
 <p align="center">
-  <img src="assets/page-screenshot.png" alt="The maintenance page (Portuguese, salt pool with a linked temperature probe)" width="560">
+  <img src="assets/kiosk-screenshot.png" alt="The wall dashboard: water temperature, equipment, periodic tasks, 7-day chart, recent visits and a QR code" width="820">
 </p>
+
+- **Left** — the water temperature with its 24-hour change and a *heating
+  active* flag, mini cards for the chlorinator, system, heat pump and salt, and
+  **today's filtration cycle** as a 24-hour bar with a live "now" marker.
+- **Middle** — a **Needs attention** box, the periodic tasks in two columns
+  with status dots, and a **7-day temperature chart** with markers on the days
+  maintenance was logged.
+- **Right** — the last visits (who, when, what) and a **QR card** so anyone can
+  log a visit from their phone.
+
+No touch targets, no navigation, no scrolling — just point a browser at it in
+kiosk mode. It refreshes itself every 30 seconds and keeps the last good data
+if the network drops. Find its URL in the `kiosk_url` attribute of the QR code
+entity; turn it off under **Configure → Page and notifications**.
 
 ## Installation
 
@@ -161,7 +160,8 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
    | pH probe | Probe calibration tracking + reminder |
    | Cleaning tasks | Vacuum / waterline / basket logging |
 
-   Water testing (pH, free chlorine) and the maintenance log are always on.
+   Water testing (pH, free chlorine, temperature) and the maintenance log are
+   always on.
 3. **Page and reminders** — page language (English, Portuguese, Spanish,
    French, German, Italian), optional `notify.*` service for alerts, and
    reminder periods (defaults: filter 30 days, pH probe 60 days, chlorinator
@@ -179,9 +179,24 @@ Multiple pools? Just add the integration again.
 ### People on the page
 
 The "who is logging" chips are your active Home Assistant users plus a generic
-**Technician** chip — no configuration needed, and new HA users appear
-automatically. To show only some users, pick them under **Configure → People
-on the page**.
+**Technician** chip, which comes first and is pre-selected. No configuration
+needed, and new HA users appear automatically. To show only some users, pick
+them under **Configure → People on the page**.
+
+### Equipment roles
+
+Under **Configure → Equipment** you point the dashboards at the entities that
+play a known role — pool system switch, heat pump, filtration schedule, filter
+pump, pool light, cover — instead of leaving them to guess. Roles get a fixed
+place on the page, on the card, on the wall dashboard and in the history
+charts.
+
+Anything else you want to show can be added under **Configure → Linked sensors
+→ Extra entities**: any entity from any integration (a power sensor, another
+schedule…). Their state is formatted automatically — measurements with units,
+on/off with "since when", and `schedule` helpers with *turns on/off at …* plus
+their real weekly grid (read from HA's storage for UI-created schedules;
+schedules are configuration, so they stay out of the history charts).
 
 ### Linked sensors (smart probes)
 
@@ -210,13 +225,14 @@ After setup, the pool device provides:
 
 - `image.<pool>_page_qr_code` — a QR code of the page URL. Open it, print it,
   or scan it straight from the dashboard. Its `url` attribute holds the full
-  URL, ready to copy into an NFC-writing app.
+  URL, ready to copy into an NFC-writing app, and `kiosk_url` points at the
+  wall dashboard.
 - A **Visit** link on the device page that opens the maintenance page directly.
 
 There is also a **printable machine-room manual**: the link at the bottom of
-the logging page opens a print-ready sheet (A4) with the QR code, a marked
-space to stick your NFC tag, and step-by-step instructions for technicians —
-print it (or save as PDF) straight from the browser.
+the logging page opens a print-ready A4 sheet with the QR code, a marked spot
+for a round NFC sticker, and numbered instructions for technicians — print it
+(or save as PDF) straight from the browser.
 
 The URL contains a random 256-bit token. Anyone with the URL can log
 maintenance (that's the point), but the endpoints are write-only, validated,
@@ -227,6 +243,13 @@ the token in the integration options and rewrite the tag.
 > (**Settings → System → Network**) so it works over mobile data.
 
 ## Entities
+
+Everything lands on a single device per pool, so the values are editable in
+Home Assistant too — handy to correct a typo without walking to the pool.
+
+<p align="center">
+  <img src="assets/device-screenshot.png" alt="The pool device in Home Assistant: controls and activity" width="820">
+</p>
 
 Created per pool (depending on enabled modules):
 
@@ -240,12 +263,16 @@ Created per pool (depending on enabled modules):
 - **Binary sensors**: filter wash due, cell cleaning due, probe calibration due
 - **`sensor.<pool>_last_record`**: `who · date · what` summary, with the last
   20 records (including their ids) as attributes
+- **`event.<pool>_maintenance_logged`**: fires on every submission
+
+<p align="center">
+  <img src="assets/entities-screenshot.png" alt="Sensors, events and the QR code diagnostic entity" width="380">
+</p>
 
 Made a mistake? Call the **`pool_maintenance_tracker.delete_record`** action
 (Developer tools → Actions): pick the pool and optionally a `record_id` from
 the last-record sensor attributes — without an id it deletes the most recent
 record. Task timestamps are rebuilt from the remaining records.
-- **`event.<pool>_maintenance_logged`**: fires on every submission
 
 ## Automations
 
@@ -300,9 +327,9 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page) and `POST` (log); nothing can
-  command your equipment. With the report tab enabled, anyone holding the page
-  URL can also *read* the declared pool state, the chosen extra entities and
+- Endpoints accept only `GET` (page, wall dashboard) and `POST` (log); nothing
+  can command your equipment. With the Status tab enabled, anyone holding the
+  page URL can also *read* the declared pool state, the entities you chose and
   recent records, and *add notes* — disable the tab in the options if you
   don't want that.
 - Non-guessable 256-bit token in the path, compared in constant time.
