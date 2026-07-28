@@ -11,6 +11,7 @@ from custom_components.pool_maintenance_tracker.const import (
     CONF_MODULES,
     CONF_NOTIFY_SERVICE,
     CONF_POOL_TYPE,
+    CONF_POOL_VOLUME,
     CONF_PROBE_DAYS,
     CONF_TOKEN,
     DOMAIN,
@@ -109,3 +110,27 @@ async def test_invalid_notify_service_shows_error(hass):
     )
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {CONF_NOTIFY_SERVICE: "invalid_notify_service"}
+
+
+async def test_volume_is_optional_at_creation(hass):
+    """Skipping the volume only costs the salt-dose hint."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_NAME: "Piscina", CONF_POOL_TYPE: POOL_TYPE_SALT, CONF_POOL_VOLUME: 45},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_MODULES: ["salt_chlorinator"]}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_LANGUAGE: "pt",
+            CONF_NOTIFY_SERVICE: "",
+            CONF_CELL_DAYS: 90,
+        },
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"][CONF_POOL_VOLUME] == 45.0

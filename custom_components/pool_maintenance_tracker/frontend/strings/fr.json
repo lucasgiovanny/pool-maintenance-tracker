@@ -129,7 +129,16 @@
     "schedule_off": "s'éteint le {date} à {time}",
     "schedule_on": "s'allume le {date} à {time}",
     "alert_acid": "Réservoir d'acide à ¼ — prévoir un remplissage",
-    "in_time": "dans {t}"
+    "in_time": "dans {t}",
+    "ideal_band": "idéal {min}–{max}",
+    "filtration": "Filtration",
+    "hours": "{h} h/jour",
+    "scheduled": "programmé {h} h",
+    "status": {
+      "low": "bas",
+      "high": "haut",
+      "ideal": "idéal"
+    }
   },
   "notes": {
     "title": "Notes",
@@ -185,7 +194,9 @@
     "overdue_days": "{days} jours de retard",
     "never_recorded": "aucun enregistrement",
     "no_visits": "Aucune intervention pour l'instant.",
-    "overdue_count": "en retard"
+    "overdue_count": "en retard",
+    "recommended": "Recommandé",
+    "at_temperature": "à {t} °C"
   },
   "roles": {
     "pool_system": "Système",
@@ -199,5 +210,6 @@
     "turns_on": "S'allume dans",
     "turns_off": "S'éteint dans",
     "no_schedule": "Aucun horaire associé"
-  }
+  },
+  "impact_salt": "≈ +{delta} g/L dans {volume} m³"
 }

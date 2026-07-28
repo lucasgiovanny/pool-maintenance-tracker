@@ -5,7 +5,8 @@
         "title": "Aggiungi una piscina",
         "data": {
           "name": "Nome della piscina",
-          "pool_type": "Tipo di piscina"
+          "pool_type": "Tipo di piscina",
+          "pool_volume": "Volume (m³)"
         },
         "data_description": {
           "pool_type": "Preseleziona i moduli dell'attrezzatura. Potrai modificarli nel passaggio successivo."
@@ -40,6 +41,7 @@
     "step": {
       "init": {
         "menu_options": {
+          "pool": "Piscina",
           "modules": "Moduli dell'attrezzatura",
           "people": "Persone nella pagina",
           "sensors": "Sensori collegati",
@@ -47,6 +49,15 @@
           "reminders": "Promemoria",
           "page": "Pagina e notifiche",
           "security": "Sicurezza"
+        }
+      },
+      "pool": {
+        "title": "Piscina",
+        "description": "Il volume abilita il suggerimento di dose di sale nella pagina di registrazione. La banda del sale è il riferimento delle letture — controlla cosa richiede il tuo clorinatore.",
+        "data": {
+          "pool_volume": "Volume (m³)",
+          "salt_target_min": "Sale obiettivo — minimo (g/L)",
+          "salt_target_max": "Sale obiettivo — massimo (g/L)"
         }
       },
       "modules": {

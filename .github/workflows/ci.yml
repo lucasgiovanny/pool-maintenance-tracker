@@ -24,8 +24,8 @@ jobs:
       - run: pip install ruff
       - run: ruff check .
       - run: ruff format --check .
-      - name: Check the Lovelace card parses
-        run: node --check custom_components/pool_maintenance_tracker/frontend/card.js
+      - name: Check the frontends parse and their strings resolve
+        run: python scripts/check_frontend.py
 
   tests:
     name: Tests

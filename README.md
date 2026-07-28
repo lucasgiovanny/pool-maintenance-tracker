@@ -76,6 +76,29 @@ log form (optional field, dated with the record; a note without any tile
 selected is also accepted). The Status tab shows the diary read-only, keeping
 the latest 50, append-only.
 
+## Reading the water, not just recording it
+
+Three small pieces of guidance, shown identically on the page, the card and the
+wall dashboard — none of them ever commands your equipment.
+
+**Ideal bands.** Every reading is judged against a target range, so a value
+reads as *pH 8.4 — high* instead of a number you have to remember the meaning
+of. pH (7.2–7.6) and free chlorine (1–3 ppm) are universal; the salt band
+depends on your chlorinator, so set it under **Configure → Pool** (default
+2.5–4.5 g/L). The bands also appear under each field while you type.
+
+**Salt dose impact.** Tell the integration your pool **volume** (m³) and the
+salt field turns kilos into what they will actually do: type 25 kg into a 48 m³
+pool and it shows *≈ +0.52 g/L in 48 m³*. Leave the volume empty and the hint
+simply doesn't appear.
+
+**Filtration suggestion.** The usual rule of thumb is to run the filtration
+about *water temperature ÷ 2* hours a day. When a water temperature is known
+(from a linked probe or your last manual reading) the surfaces show that
+suggestion next to the hours your filtration schedule actually runs today —
+*13.5 h/day · scheduled 4 h*. It is a suggestion for you to act on: the
+integration never touches the pump.
+
 ## Dashboard card
 
 The integration ships a Lovelace card and loads it for you — no resource to
@@ -93,11 +116,12 @@ type: custom:pool-maintenance-card
 It has a **visual editor** where you tick exactly what the card shows, grouped
 by category:
 
-- **General** — water temperature in the header, alerts, and a live
-  **countdown** to the next filtration-schedule change;
+- **General** — water temperature in the header, alerts, a live **countdown**
+  to the next filtration-schedule change, and the **filtration suggestion**;
 - **Equipment** — one entry per role you configured (pool system, heat pump,
   pump, light, cover), the chlorinator, the acid tank, and any extra entity;
-- **Water readings** — pH, free chlorine, salt, temperature;
+- **Water readings** — pH, free chlorine, salt, temperature, each with an
+  *ideal / low / high* badge against its band;
 - **Tasks** — every periodic task, individually, plus an *only overdue* filter.
 
 You can also override the title and pick the pool when you have several.
@@ -116,7 +140,9 @@ display-only dashboard** designed for a 7-inch landscape screen (and up).
 
 - **Left** — the water temperature with its 24-hour change and a *heating
   active* flag, mini cards for the chlorinator, system, heat pump and salt, and
-  **today's filtration cycle** as a 24-hour bar with a live "now" marker.
+  **today's filtration cycle** as a 24-hour bar with a live "now" marker and
+  the recommended hours for the current water temperature. Readings out of
+  their ideal band are coloured.
 - **Middle** — a **Needs attention** box, the periodic tasks in two columns
   with status dots, and a **7-day temperature chart** with markers on the days
   maintenance was logged.
@@ -153,8 +179,9 @@ folder and restart Home Assistant.
 
 Go to **Settings → Devices & services → Add integration → Pool Maintenance Tracker**.
 
-1. **Name and pool type** — salt water, manually dosed chlorine, or other.
-   The type pre-selects the equipment modules.
+1. **Name, pool type and volume** — salt water, manually dosed chlorine, or
+   other; the type pre-selects the equipment modules. The volume (m³) is
+   optional and only powers the salt-dose hint.
 2. **Equipment modules** — toggle what your pool actually has:
 
    | Module | Adds |
@@ -180,6 +207,12 @@ Everything can be changed later via **Configure** on the integration — includi
 disabling modules (their entities are removed) and regenerating the access token.
 
 Multiple pools? Just add the integration again.
+
+### Pool
+
+**Configure → Pool** holds the volume used for the salt-dose hint and the salt
+band the readings are judged against — check what your chlorinator asks for
+before changing it.
 
 ### People on the page
 

@@ -129,7 +129,16 @@
     "schedule_off": "desliga {date} às {time}",
     "schedule_on": "liga {date} às {time}",
     "alert_acid": "Depósito de ácido a ¼ — planeia um atesto",
-    "in_time": "em {t}"
+    "in_time": "em {t}",
+    "ideal_band": "ideal {min}–{max}",
+    "filtration": "Filtração",
+    "hours": "{h} h/dia",
+    "scheduled": "agendado {h} h",
+    "status": {
+      "low": "baixo",
+      "high": "alto",
+      "ideal": "ideal"
+    }
   },
   "notes": {
     "title": "Notas",
@@ -185,7 +194,9 @@
     "overdue_days": "atrasado {days} dias",
     "never_recorded": "sem registo",
     "no_visits": "Ainda não há intervenções.",
-    "overdue_count": "em atraso"
+    "overdue_count": "em atraso",
+    "recommended": "Recomendado",
+    "at_temperature": "a {t} °C"
   },
   "roles": {
     "pool_system": "Sistema",
@@ -199,5 +210,6 @@
     "turns_on": "Liga em",
     "turns_off": "Desliga em",
     "no_schedule": "Sem horário associado"
-  }
+  },
+  "impact_salt": "≈ +{delta} g/L em {volume} m³"
 }

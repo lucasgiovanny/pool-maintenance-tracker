@@ -66,6 +66,8 @@
   .mini .v{font-size:3.2vh;font-weight:800;line-height:1.1;margin-top:.5vh}
   .mini .v.on{color:var(--green)}
   .mini .v.off{color:var(--muted)}
+  .mini .v.ideal{color:var(--green)}
+  .mini .v.low,.mini .v.high{color:var(--amber)}
   .mini .s{font-size:1.5vh;color:var(--muted);font-weight:600;margin-top:.3vh}
 
   .cycle{margin-top:auto}
@@ -78,6 +80,8 @@
   .cycle .now{position:absolute;top:-.35vh;bottom:-.35vh;width:.35vh;background:var(--ink);border-radius:2px}
   .cycle .axis{display:flex;justify-content:space-between;margin-top:.7vh;
     font-size:1.3vh;color:var(--muted);font-weight:600}
+  .cycle-hint{font-size:1.4vh;color:var(--muted);font-weight:600;margin-top:.8vh}
+  .cycle-hint b{color:var(--aqua)}
 
   /* ---------- attention + tasks ---------- */
   .attention{
@@ -150,6 +154,7 @@
       </div>
       <div class="track" id="cycle-track"></div>
       <div class="axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
+      <div class="cycle-hint" id="cycle-hint"></div>
     </div>
   </section>
 
@@ -214,6 +219,13 @@ function svgEl(tag, attrs){
   const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
   Object.entries(attrs || {}).forEach(([k, v]) => node.setAttribute(k, v));
   return node;
+}
+function rangeStatus(key, value){
+  const band = ((report.ranges) || {})[key];
+  if (!band || value === undefined || value === null) return null;
+  if (value < band.min) return "low";
+  if (value > band.max) return "high";
+  return "ideal";
 }
 function decimal(value){
   return Number.isInteger(value) ? value.toFixed(1) : String(value);
@@ -328,12 +340,19 @@ function renderMinis(){
       on ? S.report.state_on : S.report.state_off, on ? "on" : "off",
       relShort(roles.heat_pump.last_changed)));
   }
-  const salt = live.salt ? live.salt.value : (report.values || {}).salt_level;
-  if (salt !== undefined && salt !== null) {
-    const lastTest = (report.tasks || []).find(task => task.key === "water_test");
-    box.appendChild(miniCard(K.salt, decimal(salt), null,
-      S.units.salt_level + (lastTest && lastTest.last ? " · " + shortDate(lastTest.last) : "")));
-  }
+  /* Water readings, coloured against their ideal band */
+  [["ph", "ph", S.report.values.ph, ""],
+   ["free_chlorine", "free_chlorine", S.report.values.free_chlorine, S.units.free_chlorine],
+   ["salt_level", "salt", K.salt, S.units.salt_level]].forEach(([key, liveKey, label, unit]) => {
+    const value = live[liveKey] ? live[liveKey].value : values[key];
+    if (value === undefined || value === null) return;
+    const status = rangeStatus(key, value);
+    const band = (report.ranges || {})[key];
+    const sub = status && status !== "ideal" && band
+      ? S.report.status[status] + " · " + band.min + "–" + band.max + " " + unit
+      : (unit || (status ? S.report.status[status] : ""));
+    box.appendChild(miniCard(label, decimal(value), status, sub));
+  });
   ["pump", "pool_light", "cover"].forEach(role => {
     if (!roles[role]) return;
     const on = roles[role].state === "on" || roles[role].state === "open";
@@ -343,11 +362,33 @@ function renderMinis(){
   });
 }
 
+function renderFiltrationHint(){
+  const hint = document.getElementById("cycle-hint");
+  const filtration = report.filtration;
+  if (!hint) return;
+  hint.textContent = "";
+  if (!filtration) return;
+  hint.appendChild(document.createTextNode(K.recommended + " "));
+  const strong = document.createElement("b");
+  strong.textContent = S.report.hours.replace("{h}", filtration.recommended_hours);
+  hint.appendChild(strong);
+  hint.appendChild(document.createTextNode(
+    " · " + K.at_temperature.replace("{t}", filtration.temperature)));
+}
+
 function renderCycle(){
+  renderFiltrationHint();
   const schedule = (report.roles || {}).filtration_schedule;
   const cycle = document.getElementById("cycle");
   const week = schedule && schedule.week;
-  if (!week) { cycle.style.display = "none"; return; }
+  if (!week) {
+    /* No schedule linked: keep the block for the recommendation alone */
+    const hasHint = !!report.filtration;
+    cycle.style.display = hasHint ? "" : "none";
+    document.getElementById("cycle-track").innerHTML = "";
+    setText("cycle-hours", "");
+    return;
+  }
   const todayIndex = (new Date().getDay() + 6) % 7;  // Monday = 0
   const blocks = week[todayIndex] || [];
   if (!blocks.length) { cycle.style.display = "none"; return; }

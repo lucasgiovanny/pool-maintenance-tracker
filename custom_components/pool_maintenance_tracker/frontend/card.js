@@ -9,7 +9,7 @@ const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
 
 const GROUPS = ["general", "equipment", "readings", "tasks"];
-const GENERAL_ITEMS = ["temperature", "alerts", "countdown"];
+const GENERAL_ITEMS = ["temperature", "alerts", "countdown", "filtration"];
 
 const DEFAULTS = {
   entry: undefined,
@@ -25,14 +25,14 @@ const EDITOR_TEXT = {
     title: "Title (optional)", only_due_tasks: "Only show overdue tasks",
     general: "General", equipment: "Equipment", readings: "Water readings", tasks: "Tasks",
     temperature: "Water temperature (header)", alerts: "Alerts",
-    countdown: "Schedule countdown", chlorinator: "Chlorinator", acid_tank: "Acid tank",
+    countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
     title: "Título (opcional)", only_due_tasks: "Mostrar só tarefas em atraso",
     general: "Geral", equipment: "Equipamento", readings: "Leituras da água", tasks: "Tarefas",
     temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
-    countdown: "Contagem decrescente do horário", chlorinator: "Clorador",
+    countdown: "Contagem decrescente do horário", filtration: "Sugestão de filtração", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
   },
   es: {
@@ -40,7 +40,7 @@ const EDITOR_TEXT = {
     title: "Título (opcional)", only_due_tasks: "Mostrar solo tareas atrasadas",
     general: "General", equipment: "Equipamiento", readings: "Lecturas del agua", tasks: "Tareas",
     temperature: "Temperatura del agua (encabezado)", alerts: "Alertas",
-    countdown: "Cuenta atrás del horario", chlorinator: "Clorador",
+    countdown: "Cuenta atrás del horario", filtration: "Sugerencia de filtración", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
   },
   fr: {
@@ -48,7 +48,7 @@ const EDITOR_TEXT = {
     title: "Titre (facultatif)", only_due_tasks: "N'afficher que les tâches en retard",
     general: "Général", equipment: "Équipement", readings: "Mesures de l'eau", tasks: "Tâches",
     temperature: "Température de l'eau (en-tête)", alerts: "Alertes",
-    countdown: "Compte à rebours de l'horaire", chlorinator: "Électrolyseur",
+    countdown: "Compte à rebours de l'horaire", filtration: "Suggestion de filtration", chlorinator: "Électrolyseur",
     acid_tank: "Réservoir d'acide",
   },
   de: {
@@ -56,7 +56,7 @@ const EDITOR_TEXT = {
     title: "Titel (optional)", only_due_tasks: "Nur überfällige Aufgaben zeigen",
     general: "Allgemein", equipment: "Geräte", readings: "Wasserwerte", tasks: "Aufgaben",
     temperature: "Wassertemperatur (Kopfzeile)", alerts: "Warnungen",
-    countdown: "Countdown des Zeitplans", chlorinator: "Elektrolyseur",
+    countdown: "Countdown des Zeitplans", filtration: "Filtrationsempfehlung", chlorinator: "Elektrolyseur",
     acid_tank: "Säuretank",
   },
   it: {
@@ -65,6 +65,7 @@ const EDITOR_TEXT = {
     general: "Generale", equipment: "Attrezzatura", readings: "Letture dell'acqua",
     tasks: "Attività", temperature: "Temperatura dell'acqua (intestazione)",
     alerts: "Avvisi", countdown: "Conto alla rovescia dell'orario",
+    filtration: "Suggerimento di filtrazione",
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
   },
 };
@@ -228,6 +229,14 @@ class PoolMaintenanceCard extends HTMLElement {
     return items;
   }
 
+  _rangeStatus(key, value) {
+    const band = ((this._data.report || {}).ranges || {})[key];
+    if (!band || value === undefined || value === null) return null;
+    if (value < band.min) return "low";
+    if (value > band.max) return "high";
+    return "ideal";
+  }
+
   _daysAgo(iso) {
     const S = this._data.strings.report;
     if (!iso) return S.never;
@@ -366,10 +375,13 @@ class PoolMaintenanceCard extends HTMLElement {
       const unit = (liveValue && liveValue.unit) || S.units[key] || "";
       /* "pH 7.2 pH" reads silly — drop a unit that repeats the label. */
       const showUnit = unit && unit.toLowerCase() !== name.toLowerCase();
+      const status = this._rangeStatus(key, value);
       rows.push({
         name: name,
         value: showUnit ? value + " " + unit : String(value),
         entity: ids[key],
+        badge: status ? { text: S.report.status[status], status: status } : null,
+        warn: status === "low" || status === "high",
       });
     });
     (report.extra || []).forEach(item => {
@@ -383,6 +395,18 @@ class PoolMaintenanceCard extends HTMLElement {
           : item.state + (item.unit ? " " + item.unit : ""),
       });
     });
+    /* Filtration rule of thumb — a suggestion, never a command */
+    const filtration = report.filtration;
+    if (shown.has("filtration") && filtration) {
+      rows.push({
+        name: S.report.filtration,
+        value: S.report.hours.replace("{h}", filtration.recommended_hours)
+          + (filtration.scheduled_hours !== null && filtration.scheduled_hours !== undefined
+            ? " · " + S.report.scheduled.replace("{h}", filtration.scheduled_hours) : ""),
+        entity: (roles.filtration_schedule || {}).entity_id,
+      });
+    }
+
     tasks.forEach(task => {
       if (!shown.has("task:" + task.key)) return;
       if (config.only_due_tasks && !task.due) return;
@@ -452,7 +476,7 @@ class PoolMaintenanceCard extends HTMLElement {
           ${rows.map((row, index) => `
             <div class="row" data-row="${index}">
               <span class="row-name">${this._escape(row.name)}</span>
-              ${row.badge ? `<span class="badge ${row.badge.due ? "due" : ""}">${
+              ${row.badge ? `<span class="badge ${row.badge.due ? "due" : (row.badge.status || "")}">${
                 this._escape(row.badge.text)}</span>` : ""}
               <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
             </div>`).join("")}
@@ -583,7 +607,8 @@ class PoolMaintenanceCard extends HTMLElement {
         border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:500;white-space:nowrap;
         background:var(--secondary-background-color,rgba(127,127,127,.12));color:var(--secondary-text-color,#8a8f94);
       }
-      .badge.due{background:rgba(233,185,79,.2);color:var(--warning-color,#E9B94F)}
+      .badge.due,.badge.low,.badge.high{background:rgba(233,185,79,.2);color:var(--warning-color,#E9B94F)}
+      .badge.ideal{background:rgba(47,204,139,.18);color:var(--success-color,#2FCC8B)}
     </style>`;
   }
 }

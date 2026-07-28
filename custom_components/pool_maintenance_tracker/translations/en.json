@@ -5,7 +5,8 @@
         "title": "Add a pool",
         "data": {
           "name": "Pool name",
-          "pool_type": "Pool type"
+          "pool_type": "Pool type",
+          "pool_volume": "Volume (m³)"
         },
         "data_description": {
           "pool_type": "Pre-selects the equipment modules. You can adjust them in the next step."
@@ -40,6 +41,7 @@
     "step": {
       "init": {
         "menu_options": {
+          "pool": "Pool",
           "modules": "Equipment modules",
           "people": "People on the page",
           "sensors": "Linked sensors",
@@ -47,6 +49,15 @@
           "reminders": "Reminders",
           "page": "Page and notifications",
           "security": "Security"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "description": "The volume unlocks the salt-dose hint on the logging page. The salt band is what the readings are judged against — check what your chlorinator asks for.",
+        "data": {
+          "pool_volume": "Volume (m³)",
+          "salt_target_min": "Salt target — minimum (g/L)",
+          "salt_target_max": "Salt target — maximum (g/L)"
         }
       },
       "modules": {

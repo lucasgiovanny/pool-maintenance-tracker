@@ -5,7 +5,8 @@
         "title": "Pool hinzufügen",
         "data": {
           "name": "Name des Pools",
-          "pool_type": "Pooltyp"
+          "pool_type": "Pooltyp",
+          "pool_volume": "Volumen (m³)"
         },
         "data_description": {
           "pool_type": "Wählt die Ausstattungsmodule vor. Du kannst sie im nächsten Schritt anpassen."
@@ -40,6 +41,7 @@
     "step": {
       "init": {
         "menu_options": {
+          "pool": "Pool",
           "modules": "Ausstattungsmodule",
           "people": "Personen auf der Seite",
           "sensors": "Verknüpfte Sensoren",
@@ -47,6 +49,15 @@
           "reminders": "Erinnerungen",
           "page": "Seite und Benachrichtigungen",
           "security": "Sicherheit"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "description": "Das Volumen schaltet den Salzdosis-Hinweis auf der Eintragsseite frei. Das Salzband ist die Referenz für die Messwerte — prüfe, was dein Elektrolyseur verlangt.",
+        "data": {
+          "pool_volume": "Volumen (m³)",
+          "salt_target_min": "Salz-Sollwert — Minimum (g/L)",
+          "salt_target_max": "Salz-Sollwert — Maximum (g/L)"
         }
       },
       "modules": {

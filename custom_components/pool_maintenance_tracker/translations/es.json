@@ -5,7 +5,8 @@
         "title": "Añadir una piscina",
         "data": {
           "name": "Nombre de la piscina",
-          "pool_type": "Tipo de piscina"
+          "pool_type": "Tipo de piscina",
+          "pool_volume": "Volumen (m³)"
         },
         "data_description": {
           "pool_type": "Preselecciona los módulos de equipamiento. Puedes ajustarlos en el siguiente paso."
@@ -40,6 +41,7 @@
     "step": {
       "init": {
         "menu_options": {
+          "pool": "Piscina",
           "modules": "Módulos de equipamiento",
           "people": "Personas en la página",
           "sensors": "Sensores vinculados",
@@ -47,6 +49,15 @@
           "reminders": "Recordatorios",
           "page": "Página y notificaciones",
           "security": "Seguridad"
+        }
+      },
+      "pool": {
+        "title": "Piscina",
+        "description": "El volumen activa la sugerencia de dosis de sal en la página de registro. La banda de sal es la referencia de las lecturas — comprueba lo que pide tu clorador.",
+        "data": {
+          "pool_volume": "Volumen (m³)",
+          "salt_target_min": "Sal objetivo — mínimo (g/L)",
+          "salt_target_max": "Sal objetivo — máximo (g/L)"
         }
       },
       "modules": {

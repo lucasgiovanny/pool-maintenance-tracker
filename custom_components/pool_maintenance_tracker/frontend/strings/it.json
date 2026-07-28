@@ -129,7 +129,16 @@
     "schedule_off": "si spegne il {date} alle {time}",
     "schedule_on": "si accende il {date} alle {time}",
     "alert_acid": "Serbatoio dell'acido a ¼ — pianifica un rabbocco",
-    "in_time": "tra {t}"
+    "in_time": "tra {t}",
+    "ideal_band": "ideale {min}–{max}",
+    "filtration": "Filtrazione",
+    "hours": "{h} h/giorno",
+    "scheduled": "programmato {h} h",
+    "status": {
+      "low": "basso",
+      "high": "alto",
+      "ideal": "ideale"
+    }
   },
   "notes": {
     "title": "Note",
@@ -185,7 +194,9 @@
     "overdue_days": "in ritardo di {days} giorni",
     "never_recorded": "nessuna registrazione",
     "no_visits": "Ancora nessun intervento.",
-    "overdue_count": "in ritardo"
+    "overdue_count": "in ritardo",
+    "recommended": "Consigliato",
+    "at_temperature": "a {t} °C"
   },
   "roles": {
     "pool_system": "Sistema",
@@ -199,5 +210,6 @@
     "turns_on": "Si accende tra",
     "turns_off": "Si spegne tra",
     "no_schedule": "Nessun orario associato"
-  }
+  },
+  "impact_salt": "≈ +{delta} g/L in {volume} m³"
 }

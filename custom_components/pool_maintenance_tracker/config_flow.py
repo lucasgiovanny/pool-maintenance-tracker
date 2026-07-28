@@ -43,11 +43,14 @@ from .const import (
     CONF_POOL_LIGHT_ENTITY,
     CONF_POOL_SYSTEM_ENTITY,
     CONF_POOL_TYPE,
+    CONF_POOL_VOLUME,
     CONF_PROBE_DAYS,
     CONF_PUMP_ENTITY,
     CONF_REMINDER_TIME,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
+    CONF_SALT_TARGET_MAX,
+    CONF_SALT_TARGET_MIN,
     CONF_TOKEN,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
@@ -56,6 +59,8 @@ from .const import (
     DEFAULT_PROBE_DAYS,
     DEFAULT_REMINDER_TIME,
     DEFAULT_REPORT_ENABLED,
+    DEFAULT_SALT_TARGET_MAX,
+    DEFAULT_SALT_TARGET_MIN,
     DOMAIN,
     EQUIPMENT_ROLES,
     LANGUAGES,
@@ -137,11 +142,13 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
         self._name: str = ""
         self._pool_type: str = POOL_TYPE_SALT
         self._modules: list[str] = []
+        self._volume: float | None = None
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
             self._name = user_input[CONF_NAME].strip() or "Pool"
             self._pool_type = user_input[CONF_POOL_TYPE]
+            self._volume = user_input.get(CONF_POOL_VOLUME)
             return await self.async_step_modules()
 
         return self.async_show_form(
@@ -149,6 +156,9 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_NAME, default="Pool"): TextSelector(),
+                    vol.Optional(CONF_POOL_VOLUME): NumberSelector(
+                        NumberSelectorConfig(min=1, max=1000, step=1, mode=NumberSelectorMode.BOX)
+                    ),
                     vol.Required(CONF_POOL_TYPE, default=POOL_TYPE_SALT): SelectSelector(
                         SelectSelectorConfig(
                             options=POOL_TYPES,
@@ -191,6 +201,8 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_NOTIFY_SERVICE: notify_service,
                     CONF_REMINDER_TIME: DEFAULT_REMINDER_TIME,
                 }
+                if self._volume:
+                    options[CONF_POOL_VOLUME] = float(self._volume)
                 for _module_key, conf_key, _default in REMINDER_DAY_FIELDS:
                     if conf_key in user_input:
                         options[conf_key] = int(user_input[conf_key])
@@ -238,6 +250,7 @@ class PoolOptionsFlow(OptionsFlow):
         return self.async_show_menu(
             step_id="init",
             menu_options=[
+                "pool",
                 "modules",
                 "people",
                 "sensors",
@@ -246,6 +259,43 @@ class PoolOptionsFlow(OptionsFlow):
                 "page",
                 "security",
             ],
+        )
+
+    async def async_step_pool(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Volume and the salt band the readings are judged against."""
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            if user_input.get(CONF_POOL_VOLUME):
+                options[CONF_POOL_VOLUME] = float(user_input[CONF_POOL_VOLUME])
+            else:
+                options.pop(CONF_POOL_VOLUME, None)
+            options[CONF_SALT_TARGET_MIN] = float(user_input[CONF_SALT_TARGET_MIN])
+            options[CONF_SALT_TARGET_MAX] = float(user_input[CONF_SALT_TARGET_MAX])
+            return await self._save(options)
+
+        salt_selector = NumberSelector(
+            NumberSelectorConfig(min=0, max=10, step=0.1, mode=NumberSelectorMode.BOX)
+        )
+        return self.async_show_form(
+            step_id="pool",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_POOL_VOLUME,
+                        description={"suggested_value": options.get(CONF_POOL_VOLUME)},
+                    ): NumberSelector(
+                        NumberSelectorConfig(min=1, max=1000, step=1, mode=NumberSelectorMode.BOX)
+                    ),
+                    vol.Required(
+                        CONF_SALT_TARGET_MIN,
+                        default=options.get(CONF_SALT_TARGET_MIN, DEFAULT_SALT_TARGET_MIN),
+                    ): salt_selector,
+                    vol.Required(
+                        CONF_SALT_TARGET_MAX,
+                        default=options.get(CONF_SALT_TARGET_MAX, DEFAULT_SALT_TARGET_MAX),
+                    ): salt_selector,
+                }
+            ),
         )
 
     async def async_step_equipment(

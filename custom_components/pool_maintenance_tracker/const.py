@@ -82,6 +82,21 @@ DEFAULT_PROBE_DAYS: Final = 60
 DEFAULT_CELL_DAYS: Final = 90
 DEFAULT_REMINDER_TIME: Final = "10:00"
 
+# Pool volume in m³ — enables the salt-dose hint and nothing else
+CONF_POOL_VOLUME: Final = "pool_volume"
+
+# Ideal water bands. pH and free chlorine are universal; the salt target
+# depends on the chlorinator, so it is configurable.
+CONF_SALT_TARGET_MIN: Final = "salt_target_min"
+CONF_SALT_TARGET_MAX: Final = "salt_target_max"
+DEFAULT_SALT_TARGET_MIN: Final = 2.5
+DEFAULT_SALT_TARGET_MAX: Final = 4.5
+IDEAL_PH: Final = (7.2, 7.6)
+IDEAL_FREE_CHLORINE: Final = (1.0, 3.0)
+
+# Filtration rule of thumb: hours per day ≈ water temperature / 2
+FILTRATION_MIN_HOURS: Final = 2.0
+
 # Value keys (tracker "values" bucket)
 KEY_PH: Final = "ph"
 KEY_FREE_CHLORINE: Final = "free_chlorine"

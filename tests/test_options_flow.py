@@ -7,8 +7,11 @@ from custom_components.pool_maintenance_tracker.const import (
     CONF_CELL_DAYS,
     CONF_FILTER_DAYS,
     CONF_MODULES,
+    CONF_POOL_VOLUME,
     CONF_PROBE_DAYS,
     CONF_REMINDER_TIME,
+    CONF_SALT_TARGET_MAX,
+    CONF_SALT_TARGET_MIN,
     CONF_TOKEN,
     URL_PAGE,
 )
@@ -177,3 +180,34 @@ async def test_menu_returns_after_each_step(hass, salt_entry):
 
     assert salt_entry.options[CONF_FILTER_DAYS] == 12
     assert salt_entry.options[CONF_MODULES] == ["filter"]
+
+
+async def test_pool_options_step(hass, salt_entry):
+    """Volume and the salt band the readings are judged against."""
+    await setup_entry(hass, salt_entry)
+
+    result = await hass.config_entries.options.async_init(salt_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "pool"}
+    )
+    assert result["step_id"] == "pool"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_POOL_VOLUME: 60, CONF_SALT_TARGET_MIN: 3, CONF_SALT_TARGET_MAX: 5},
+    )
+    assert result["type"] is FlowResultType.MENU
+    await hass.async_block_till_done()
+    assert salt_entry.options[CONF_POOL_VOLUME] == 60.0
+    assert salt_entry.options[CONF_SALT_TARGET_MIN] == 3.0
+    assert salt_entry.options[CONF_SALT_TARGET_MAX] == 5.0
+
+    # clearing the volume drops it — the page then hides the dose hint
+    result = await hass.config_entries.options.async_init(salt_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "pool"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_SALT_TARGET_MIN: 3, CONF_SALT_TARGET_MAX: 5}
+    )
+    await hass.async_block_till_done()
+    assert CONF_POOL_VOLUME not in salt_entry.options

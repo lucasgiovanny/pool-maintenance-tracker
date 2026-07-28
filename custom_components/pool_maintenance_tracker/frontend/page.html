@@ -200,6 +200,11 @@
   .segments button.on{background:var(--deep);color:var(--white)}
 
   .hint{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.4}
+  .band{font-size:.72rem;color:var(--muted);font-weight:600;margin-top:6px}
+  .band b{color:var(--ink)}
+  .band.impact{color:var(--deep)}
+  .badge.high,.badge.low{background:#FBE9D0;color:#8A5200}
+  .badge.ideal{background:#DCF3E9;color:#14684A}
 
   textarea{
     width:100%;border:2px solid var(--line);border-radius:12px;padding:14px;
@@ -535,6 +540,7 @@ function renderReport(){
     const row = el("div", "kv");
     row.appendChild(el("span", "k", S.report.values[key] || key));
     let holder;
+    const shown = declared !== undefined ? declared : live.value;
     if (declared !== undefined) {
       holder = el("span", "v", formatValue(key, declared));
       if (live) {
@@ -545,9 +551,31 @@ function renderReport(){
       holder = el("span", "v", live.value + (live.unit ? " " + live.unit : ""));
       holder.appendChild(el("span", "probe", S.probe));
     }
+    const status = rangeStatus(key, shown);
+    if (status) {
+      const badge = el("span", "badge " + status, S.report.status[status]);
+      badge.style.marginRight = "8px";
+      row.appendChild(badge);
+    }
     row.appendChild(holder);
     currentBody.appendChild(row);
   });
+
+  /* Filtration suggestion — never a command, just the rule of thumb */
+  const filtration = report.filtration;
+  if (filtration) {
+    const row = el("div", "kv");
+    row.appendChild(el("span", "k", S.report.filtration));
+    const holder = el("span", "v",
+      S.report.hours.replace("{h}", filtration.recommended_hours));
+    if (filtration.scheduled_hours !== null && filtration.scheduled_hours !== undefined) {
+      holder.appendChild(el("span", "probe",
+        S.report.scheduled.replace("{h}", filtration.scheduled_hours)));
+    }
+    row.appendChild(holder);
+    currentBody.appendChild(row);
+    currentAny = true;
+  }
   if (currentAny) document.getElementById("report-current").style.display = "";
 
   const tasksBody = document.getElementById("report-tasks-body");
@@ -1170,6 +1198,26 @@ function stepperField(labelText, key){
 
   const decimals = (String(limit.step).split(".")[1] || "").length;
 
+  /* Ideal band under the field, so whoever measures knows the target */
+  const band = bandText(key);
+  const note = band ? el("div", "band") : null;
+  if (note) note.innerHTML = "";
+  if (note) {
+    const strong = document.createElement("b");
+    strong.textContent = band;
+    note.appendChild(strong);
+  }
+
+  /* Salt: turn kilos into the g/L it will actually add */
+  const impact = (key === "salt_added" && CFG.volume) ? el("div", "band impact") : null;
+  function refreshImpact(){
+    if (!impact) return;
+    const kg = parseFloat(input.value);
+    impact.textContent = isNaN(kg) || !kg ? ""
+      : S.impact_salt.replace("{delta}", (kg / CFG.volume).toFixed(2))
+                     .replace("{volume}", CFG.volume);
+  }
+
   /* When probe values feed the entities anyway (fill_on_record/mirror),
      pre-fill the field so the person sees what will be recorded. */
   if (live && (CFG.linked_mode === "fill_on_record" || CFG.linked_mode === "mirror")
@@ -1182,12 +1230,19 @@ function stepperField(labelText, key){
     value += direction * limit.step;
     value = Math.min(limit.max, Math.max(limit.min, value));
     input.value = value.toFixed(decimals);
+    refreshImpact();
   }
   minus.addEventListener("click", () => bump(-1));
   plus.addEventListener("click", () => bump(1));
 
   box.append(minus, input, unit, plus);
   field.appendChild(box);
+  if (note) field.appendChild(note);
+  if (impact) {
+    field.appendChild(impact);
+    input.addEventListener("input", refreshImpact);
+    refreshImpact();
+  }
   return field;
 }
 
@@ -1215,6 +1270,19 @@ function segmentsField(labelText, key, options, labels, multi){
   });
   field.appendChild(box);
   return field;
+}
+
+/* Ideal band check, shared by the form and the status tab */
+function rangeStatus(key, value){
+  const band = (CFG.ranges || {})[key];
+  if (!band || value === undefined || value === null) return null;
+  if (value < band.min) return "low";
+  if (value > band.max) return "high";
+  return "ideal";
+}
+function bandText(key){
+  const band = (CFG.ranges || {})[key];
+  return band ? S.report.ideal_band.replace("{min}", band.min).replace("{max}", band.max) : "";
 }
 
 function hintOnly(text){

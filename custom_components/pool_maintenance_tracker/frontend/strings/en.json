@@ -129,7 +129,16 @@
     "schedule_off": "turns off {date} at {time}",
     "schedule_on": "turns on {date} at {time}",
     "alert_acid": "Acid tank at ¼ — plan a refill",
-    "in_time": "in {t}"
+    "in_time": "in {t}",
+    "ideal_band": "ideal {min}–{max}",
+    "filtration": "Filtration",
+    "hours": "{h} h/day",
+    "scheduled": "scheduled {h} h",
+    "status": {
+      "low": "low",
+      "high": "high",
+      "ideal": "ideal"
+    }
   },
   "notes": {
     "title": "Notes",
@@ -185,7 +194,9 @@
     "overdue_days": "{days} days overdue",
     "never_recorded": "never recorded",
     "no_visits": "No visits logged yet.",
-    "overdue_count": "overdue"
+    "overdue_count": "overdue",
+    "recommended": "Recommended",
+    "at_temperature": "at {t} °C"
   },
   "roles": {
     "pool_system": "System",
@@ -199,5 +210,6 @@
     "turns_on": "Turns on in",
     "turns_off": "Turns off in",
     "no_schedule": "No schedule linked"
-  }
+  },
+  "impact_salt": "≈ +{delta} g/L in {volume} m³"
 }

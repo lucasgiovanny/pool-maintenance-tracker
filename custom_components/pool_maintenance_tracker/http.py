@@ -29,8 +29,11 @@ from .const import (
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_PEOPLE,
+    CONF_POOL_VOLUME,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
+    CONF_SALT_TARGET_MAX,
+    CONF_SALT_TARGET_MIN,
     CONF_TEMPERATURE_SOURCE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
@@ -39,10 +42,18 @@ from .const import (
     DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
     DEFAULT_REPORT_ENABLED,
+    DEFAULT_SALT_TARGET_MAX,
+    DEFAULT_SALT_TARGET_MIN,
     DOMAIN,
     EQUIPMENT_ROLES,
+    FILTRATION_MIN_HOURS,
     HISTORY_PERIODS,
+    IDEAL_FREE_CHLORINE,
+    IDEAL_PH,
     KEY_ACID_TANK_LEVEL,
+    KEY_FREE_CHLORINE,
+    KEY_PH,
+    KEY_SALT_LEVEL,
     LINKED_MODE_MANUAL,
     LINKED_MODE_ON_RECORD,
     LINKED_SOURCES,
@@ -373,6 +384,57 @@ async def _role_entities(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, A
     return roles
 
 
+@callback
+def _ideal_ranges(entry: ConfigEntry) -> dict[str, dict[str, float]]:
+    """Bands the readings are judged against on every surface."""
+    return {
+        KEY_PH: {"min": IDEAL_PH[0], "max": IDEAL_PH[1]},
+        KEY_FREE_CHLORINE: {
+            "min": IDEAL_FREE_CHLORINE[0],
+            "max": IDEAL_FREE_CHLORINE[1],
+        },
+        KEY_SALT_LEVEL: {
+            "min": float(entry.options.get(CONF_SALT_TARGET_MIN, DEFAULT_SALT_TARGET_MIN)),
+            "max": float(entry.options.get(CONF_SALT_TARGET_MAX, DEFAULT_SALT_TARGET_MAX)),
+        },
+    }
+
+
+def _today_scheduled_hours(week: list[list[list[str]]] | None) -> float | None:
+    """Hours the filtration schedule runs today, from its weekly grid."""
+    if not week:
+        return None
+    index = (dt_util.now().weekday()) % 7
+    minutes = 0
+    for start, end in week[index]:
+        try:
+            start_h, start_m = (int(part) for part in start.split(":")[:2])
+            end_h, end_m = (int(part) for part in end.split(":")[:2])
+        except ValueError:
+            continue
+        minutes += max(0, (end_h * 60 + end_m) - (start_h * 60 + start_m))
+    return round(minutes / 60, 1)
+
+
+@callback
+def _filtration_hint(
+    hass: HomeAssistant, entry: ConfigEntry, temperature: float | None, roles: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Rule of thumb: run the filtration water-temperature/2 hours a day.
+
+    Only ever a suggestion — the integration never drives the pump.
+    """
+    if temperature is None:
+        return None
+    recommended = max(FILTRATION_MIN_HOURS, round(temperature / 2 * 2) / 2)
+    schedule = roles.get("filtration_schedule")
+    return {
+        "temperature": round(temperature, 1),
+        "recommended_hours": min(24.0, recommended),
+        "scheduled_hours": _today_scheduled_hours(schedule.get("week") if schedule else None),
+    }
+
+
 # Task order on the report tab
 REPORT_TASK_ORDER = (
     "water_test",
@@ -440,8 +502,16 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         if item := await _entity_item(hass, entity_id):
             extra.append(item)
 
+    live = _live_values(hass, entry)
+    temperature = (
+        live["temperature"]["value"] if "temperature" in live else values.get("water_temperature")
+    )
+
     return {
         "values": values,
+        "ranges": _ideal_ranges(entry),
+        "volume": entry.options.get(CONF_POOL_VOLUME),
+        "filtration": _filtration_hint(hass, entry, temperature, roles),
         "tasks": tasks,
         "last_maintenance": tracker.timestamps.get(TS_ANY),
         "records": records,
@@ -663,6 +733,8 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "tiles": enabled_tiles(entry.options),
         "strings": strings,
         "live": _live_values(hass, entry),
+        "ranges": _ideal_ranges(entry),
+        "volume": entry.options.get(CONF_POOL_VOLUME),
         "linked_mode": entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL),
         "history_endpoint": URL_HISTORY.format(token=token),
         "state_endpoint": URL_STATE.format(token=token),

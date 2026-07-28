@@ -5,7 +5,8 @@
         "title": "Ajouter une piscine",
         "data": {
           "name": "Nom de la piscine",
-          "pool_type": "Type de piscine"
+          "pool_type": "Type de piscine",
+          "pool_volume": "Volume (m³)"
         },
         "data_description": {
           "pool_type": "Présélectionne les modules d'équipement. Vous pourrez les ajuster à l'étape suivante."
@@ -40,6 +41,7 @@
     "step": {
       "init": {
         "menu_options": {
+          "pool": "Piscine",
           "modules": "Modules d'équipement",
           "people": "Personnes sur la page",
           "sensors": "Capteurs liés",
@@ -47,6 +49,15 @@
           "reminders": "Rappels",
           "page": "Page et notifications",
           "security": "Sécurité"
+        }
+      },
+      "pool": {
+        "title": "Piscine",
+        "description": "Le volume active l'estimation de dose de sel sur la page de saisie. La plage de sel sert de référence aux mesures — vérifiez ce que demande votre électrolyseur.",
+        "data": {
+          "pool_volume": "Volume (m³)",
+          "salt_target_min": "Sel cible — minimum (g/L)",
+          "salt_target_max": "Sel cible — maximum (g/L)"
         }
       },
       "modules": {

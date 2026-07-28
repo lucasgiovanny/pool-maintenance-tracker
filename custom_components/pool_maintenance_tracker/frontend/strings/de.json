@@ -129,7 +129,16 @@
     "schedule_off": "schaltet aus am {date} um {time}",
     "schedule_on": "schaltet ein am {date} um {time}",
     "alert_acid": "Säuretank bei ¼ — Auffüllen einplanen",
-    "in_time": "in {t}"
+    "in_time": "in {t}",
+    "ideal_band": "ideal {min}–{max}",
+    "filtration": "Filtration",
+    "hours": "{h} h/Tag",
+    "scheduled": "geplant {h} h",
+    "status": {
+      "low": "niedrig",
+      "high": "hoch",
+      "ideal": "ideal"
+    }
   },
   "notes": {
     "title": "Notizen",
@@ -185,7 +194,9 @@
     "overdue_days": "{days} Tage überfällig",
     "never_recorded": "nie erfasst",
     "no_visits": "Noch keine Einsätze.",
-    "overdue_count": "überfällig"
+    "overdue_count": "überfällig",
+    "recommended": "Empfohlen",
+    "at_temperature": "bei {t} °C"
   },
   "roles": {
     "pool_system": "System",
@@ -199,5 +210,6 @@
     "turns_on": "Schaltet ein in",
     "turns_off": "Schaltet aus in",
     "no_schedule": "Kein Zeitplan verknüpft"
-  }
+  },
+  "impact_salt": "≈ +{delta} g/L in {volume} m³"
 }
