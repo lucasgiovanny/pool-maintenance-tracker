@@ -42,7 +42,6 @@ const GENERAL_ITEMS = ["temperature", "alerts", "countdown", "filtration"];
 const DEFAULTS = {
   entry: undefined,
   title: "",
-  items: undefined,   /* undefined = everything the pool offers */
   only_due_tasks: false,
   show_icons: false,
   /* "list" packs rows for a column of cards; "tiles" spreads everything
@@ -190,10 +189,6 @@ class PoolMaintenanceCard extends HTMLElement {
 
   setConfig(config) {
     this._config = Object.assign({}, DEFAULTS, config || {});
-    /* Cards written before per-item selection used show_* booleans. */
-    if (!this._config.items && config && "show_temperature" in config) {
-      this._legacy = config;
-    }
     if (this._data) this._render();
   }
 
@@ -259,28 +254,12 @@ class PoolMaintenanceCard extends HTMLElement {
   }
 
   _selection(available) {
-    if (this._config.items) return this._config.items;
-    if (this._legacy) return this._fromLegacy(available);
-    /* Nothing configured: show everything except the extra entities,
-       which already have their place on the page and the kiosk. */
-    return allItemValues(available).filter(value => !value.startsWith("extra:"));
-  }
-
-  _fromLegacy(available) {
-    const legacy = this._legacy;
-    const items = [];
-    if (legacy.show_temperature !== false) items.push("temperature");
-    if (legacy.show_alerts !== false) items.push("alerts");
-    if (legacy.show_equipment !== false) {
-      available.equipment
-        .filter(item => item.value.startsWith("role:"))
-        .forEach(item => items.push(item.value));
-    }
-    if (legacy.show_chlorinator !== false) items.push("chlorinator");
-    if (legacy.show_tasks !== false) {
-      available.tasks.forEach(item => items.push(item.value));
-    }
-    return items;
+    /* No picking, no ordering: the card shows everything the pool offers,
+       composed the way the card thinks a pool dashboard should read.
+       Choosing and dragging shipped, twice — and produced configuration
+       work and layout puzzles instead of dashboards. items/show_* keys in
+       old configs are deliberately ignored. */
+    return allItemValues(available);
   }
 
   _rangeStatus(key, value) {
@@ -526,14 +505,6 @@ class PoolMaintenanceCard extends HTMLElement {
       });
     });
 
-    /* The config's item order is the display order — that is what makes
-       reordering in the editor mean something. Unlisted keys keep their
-       build order at the end. */
-    const position = new Map(this._selection(available).map((value, index) => [value, index]));
-    const rank = key => (position.has(key) ? position.get(key) : 1000);
-    rows.sort((a, b) => rank(a.key) - rank(b.key));
-    toggles.sort((a, b) => rank("role:" + a) - rank("role:" + b));
-
     /* html --------------------------------------------------------- */
     const tiles = config.layout === "tiles";
     /* Set by Lovelace on panel ("single card") views — the hook the map
@@ -625,41 +596,41 @@ class PoolMaintenanceCard extends HTMLElement {
         </div>` : "";
     let gridHtml = "";
     if (tiles) {
-      /* Sections: each category is one full-width row, placed where its
-         best-ranked item sits in the configured order; inside a section
-         the items keep their configured order. Free per-item order across
-         the whole grid packed badly — a category is the natural line. */
+      /* The fixed composition, top to bottom: what needs attention, the
+         water right now (temperature hero beside the readings), the
+         equipment, then the filtration plan, then the task history.
+         One full-width row per section; no configuration involved. */
+      const SECTION_RANK = { alerts: 0, water: 1, equipment: 2, countdown: 3, cycle: 4, tasks: 5 };
+      let sequence = 0;
       const sections = new Map();
-      const put = (name, itemRank, html) => {
-        const section = sections.get(name) || { rank: itemRank, parts: [] };
-        section.rank = Math.min(section.rank, itemRank);
-        section.parts.push({ rank: itemRank, html: html });
+      const put = (name, html) => {
+        const section = sections.get(name) || { rank: SECTION_RANK[name], parts: [] };
+        section.parts.push({ rank: sequence++, html: html });
         sections.set(name, section);
       };
       const bucketFor = key =>
         key.startsWith("task:") ? "tasks"
-        : key.startsWith("value:") || key === "filtration" ? "readings"
+        : key.startsWith("value:") || key === "filtration" ? "water"
         : "equipment";
-      if (countdownHtml) put("countdown", rank("countdown"), countdownHtml);
-      alertLines.forEach(line => put("alerts", rank("alerts"),
+      alertLines.forEach(line => put("alerts",
         `<div class="mini alert-mini">
           <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>
             <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
           <div class="alert-text">${this._escape(line)}</div>
         </div>`));
       if (hero) {
-        put("hero", rank("temperature"),
+        put("water",
           `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
             <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}${
               this._escape(S.report.values.water_temperature)}</div>
             <div class="hero-value">${temp}<small>${tempUnit}</small></div>
           </div>`);
       }
-      toggles.forEach((role, index) =>
-        put("equipment", rank("role:" + role), toggleHtml(role, index)));
-      gridRows.forEach(row => put(bucketFor(row.key), rank(row.key), miniHtml(row)));
+      toggles.forEach((role, index) => put("equipment", toggleHtml(role, index)));
+      gridRows.forEach(row => put(bucketFor(row.key), miniHtml(row)));
+      if (countdownHtml) put("countdown", countdownHtml);
       if (cycle) {
-        put("cycle", rank("filtration"),
+        put("cycle",
           `<div class="mini cycle clickable" data-entity="${schedule.entity_id}">
             <div class="cycle-head">
               <span class="mini-name">${this._iconTag("filtration", schedule.entity_id)}${
@@ -690,16 +661,8 @@ class PoolMaintenanceCard extends HTMLElement {
       </div>`;
     let listHtml = "";
     if (!tiles) {
-      const block = list => (list.length
-        ? `<div class="rows">${list.map(rowHtml).join("")}</div>` : "");
-      if (alertHtml) {
-        const alertRank = rank("alerts");
-        listHtml = block(rows.filter(row => rank(row.key) < alertRank))
-          + alertHtml
-          + block(rows.filter(row => rank(row.key) >= alertRank));
-      } else {
-        listHtml = block(rows);
-      }
+      listHtml = alertHtml
+        + (rows.length ? `<div class="rows">${rows.map(rowHtml).join("")}</div>` : "");
     }
     this.shadowRoot.innerHTML = `
       <ha-card class="${tiles ? "tiles-layout" : ""}${panel ? " panel" : ""}">
@@ -949,13 +912,11 @@ class PoolMaintenanceCardEditor extends HTMLElement {
   constructor() {
     super();
     this._pools = [];
-    this._available = null;
     this._form = null;
   }
 
   setConfig(config) {
     this._config = Object.assign({}, DEFAULTS, config || {});
-    this._loadAvailable();
     this._update();
   }
 
@@ -963,10 +924,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     const first = !this._hass;
     this._hass = hass;
     if (this._form) this._form.hass = hass;
-    if (first) {
-      this._loadPools();
-      this._loadAvailable();
-    }
+    if (first) this._loadPools();
   }
 
   async _loadPools() {
@@ -974,33 +932,6 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       this._pools = await this._hass.callWS({ type: "pool_maintenance_tracker/pools" });
     } catch (error) {
       this._pools = [];
-    }
-    this._update();
-  }
-
-  /* The option list depends on how this particular pool is set up. */
-  async _loadAvailable() {
-    if (!this._hass || !this._config) return;
-    try {
-      let entryId = this._config.entry;
-      if (!entryId) {
-        const pools = this._pools.length
-          ? this._pools
-          : await this._hass.callWS({ type: "pool_maintenance_tracker/pools" });
-        if (!pools.length) return;
-        entryId = pools[0].entry_id;
-      }
-      if (this._loadedFor === entryId) return;
-      const data = await this._hass.callWS({
-        type: "pool_maintenance_tracker/status",
-        entry_id: entryId,
-        language: this._hass.language || "en",
-      });
-      this._loadedFor = entryId;
-      this._data = data;
-      this._available = availableItems(data, editorText(this._hass));
-    } catch (error) {
-      this._available = null;
     }
     this._update();
   }
@@ -1019,26 +950,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       },
       { name: "title", selector: { text: {} } },
     ];
-    if (this._available) {
-      /* One flat, reorderable list. Per-category lists read tidier but
-         freeze the categories into blocks — a task could never be dragged
-         above a reading, which makes ordering feel broken. The category
-         lives in the label instead. */
-      const options = [];
-      GROUPS.forEach(group => {
-        this._available[group].forEach(item => {
-          options.push({ value: item.value, label: text[group] + " · " + item.label });
-        });
-      });
-      if (options.length) {
-        schema.push({
-          name: "items",
-          selector: {
-            select: { multiple: true, mode: "list", reorder: true, options: options },
-          },
-        });
-      }
-    }
+
     schema.push({
       name: "layout",
       selector: {
@@ -1064,12 +976,6 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       show_icons: !!this._config.show_icons,
       only_due_tasks: this._config.only_due_tasks,
     };
-    if (this._available) {
-      const valid = new Set(allItemValues(this._available));
-      data.items = (this._config.items
-        || allItemValues(this._available).filter(value => !value.startsWith("extra:")))
-        .filter(value => valid.has(value));
-    }
     return data;
   }
 
@@ -1101,20 +1007,10 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     if (value.layout && value.layout !== "list") config.layout = value.layout;
     if (value.show_icons) config.show_icons = true;
     if (value.only_due_tasks) config.only_due_tasks = true;
-    if (this._available) {
-      /* Store one flat list, in the card's own render order. */
-      /* The form array arrives in the user's (dragged) order —
-         keep it, that order is the whole point of the handles. */
-      const valid = new Set(allItemValues(this._available));
-      config.items = (value.items || []).filter(item => valid.has(item));
-    } else if (this._config.items) {
-      config.items = this._config.items;
-    }
     this._config = Object.assign({}, this._config, config);
     /* Back to the default: stale values must not shadow the emitted ones */
     if (!config.layout) delete this._config.layout;
     if (!config.show_icons) delete this._config.show_icons;
-    if (config.entry !== this._loadedFor) this._loadAvailable();
     fireEvent(this, "config-changed", { config: config });
   }
 }
