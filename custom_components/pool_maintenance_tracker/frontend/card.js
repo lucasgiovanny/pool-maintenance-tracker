@@ -829,7 +829,7 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       .mini-badge{margin-top:6px}
       .item-icon{
-        --mdc-icon-size:15px;color:var(--secondary-text-color,#8a8f94);
+        --mdc-icon-size:15px;color:var(--state-icon-color,#44739E);
         margin-right:5px;vertical-align:-2px;
       }
       .tile-name .item-icon,.row-name .item-icon{--mdc-icon-size:17px;vertical-align:-3px}
@@ -845,7 +845,7 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       .cycle-track i{
         position:absolute;top:0;bottom:0;border-radius:999px;
-        background:var(--primary-color,#4fc3d7);
+        background:var(--state-icon-color,#44739E);
       }
       .cycle-track b{
         position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
@@ -889,11 +889,11 @@ class PoolMaintenanceCard extends HTMLElement {
         background:var(--secondary-background-color,rgba(127,127,127,.12));color:var(--secondary-text-color,#8a8f94);
       }
       .badge.due,.badge.low,.badge.high{
-        background:rgba(33,150,243,.14);color:var(--primary-color,#2196F3);
+        background:rgba(68,115,158,.18);color:var(--state-icon-color,#44739E);
       }
       @supports (background:color-mix(in srgb,red 10%,transparent)){
         .badge.due,.badge.low,.badge.high{
-          background:color-mix(in srgb,var(--primary-color,#2196F3) 14%,transparent);
+          background:color-mix(in srgb,var(--state-icon-color,#44739E) 16%,transparent);
         }
       }
       .badge.ideal{background:rgba(47,204,139,.18);color:var(--success-color,#2FCC8B)}
