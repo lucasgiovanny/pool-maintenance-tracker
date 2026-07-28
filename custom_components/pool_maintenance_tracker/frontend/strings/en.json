@@ -184,7 +184,8 @@
     "hours_short": "{n} h ago",
     "overdue_days": "{days} days overdue",
     "never_recorded": "never recorded",
-    "no_visits": "No visits logged yet."
+    "no_visits": "No visits logged yet.",
+    "overdue_count": "overdue"
   },
   "roles": {
     "pool_system": "System",

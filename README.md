@@ -57,6 +57,22 @@ units, on/off with "since when", and `schedule` helpers with *turns on/off at
 schedules; schedules are configuration, so they are kept out of the history
 charts).
 
+### Dashboard card
+
+The integration ships a Lovelace card and loads it for you — no resource to
+add by hand. Add a **Manual card** with:
+
+```yaml
+type: custom:pool-maintenance-card
+# entry: <config entry id>   # only needed when you have several pools
+```
+
+It shows the pool name, water temperature, an alert box for overdue tasks,
+toggles for your pool system and heat pump, the chlorinator state and every
+periodic task with its next due date. Tapping a row opens the usual
+more-info dialog; the buttons at the bottom open the logging page and its
+history tab.
+
 ### Equipment roles
 
 Under **Configure → Equipment** you point the dashboards at the entities that

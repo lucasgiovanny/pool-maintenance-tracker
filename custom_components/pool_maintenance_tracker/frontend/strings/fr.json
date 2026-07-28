@@ -184,7 +184,8 @@
     "hours_short": "il y a {n} h",
     "overdue_days": "{days} jours de retard",
     "never_recorded": "jamais enregistrées",
-    "no_visits": "Aucune intervention pour l'instant."
+    "no_visits": "Aucune intervention pour l'instant.",
+    "overdue_count": "en retard"
   },
   "roles": {
     "pool_system": "Système",

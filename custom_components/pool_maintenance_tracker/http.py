@@ -351,6 +351,18 @@ async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
     }
 
 
+@callback
+def _entity_ids(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, str]:
+    """Map our value/timestamp keys to the entity ids they materialized as."""
+    registry = er.async_get(hass)
+    prefix = f"{entry.entry_id}_"
+    return {
+        item.unique_id.removeprefix(prefix): item.entity_id
+        for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if item.unique_id.startswith(prefix)
+    }
+
+
 async def _role_entities(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
     """Entities the user explicitly assigned to a known role."""
     roles: dict[str, Any] = {}
@@ -436,6 +448,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "notes": list(reversed(tracker.notes)),
         "extra": extra,
         "roles": roles,
+        "entity_ids": _entity_ids(hass, entry),
     }
 
 

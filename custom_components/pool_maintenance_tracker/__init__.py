@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 import voluptuous as vol
@@ -30,6 +31,9 @@ from .http import async_register_views
 from .modules import active_entity_keys, enabled_value_keys
 from .reminders import ReminderEngine
 from .tracker import PoolTracker
+from .websocket import async_register_websocket_api
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [
     Platform.BINARY_SENSOR,
@@ -63,6 +67,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
 
     domain_data[DATA_TOKENS][entry.data[CONF_TOKEN]] = entry.entry_id
     async_register_views(hass)
+    await _async_register_frontend(hass)
+    async_register_websocket_api(hass)
     _async_register_services(hass)
 
     _async_prune_stale_entities(hass, entry)
@@ -74,6 +80,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
+
+
+DATA_FRONTEND_REGISTERED = "frontend_registered"
+CARD_URL = f"/{DOMAIN}/card.js"
+
+
+async def _async_register_frontend(hass: HomeAssistant) -> None:
+    """Serve the Lovelace card and load it for the dashboards."""
+    domain_data = hass.data[DOMAIN]
+    if domain_data.get(DATA_FRONTEND_REGISTERED):
+        return
+    from pathlib import Path
+
+    card = Path(__file__).parent / "frontend" / "card.js"
+    try:
+        from homeassistant.components.frontend import add_extra_js_url
+        from homeassistant.components.http import StaticPathConfig
+        from homeassistant.loader import async_get_integration
+
+        await hass.http.async_register_static_paths([StaticPathConfig(CARD_URL, str(card), True)])
+        integration = await async_get_integration(hass, DOMAIN)
+        add_extra_js_url(hass, f"{CARD_URL}?v={integration.version}")
+    except Exception:
+        _LOGGER.debug("Lovelace card not registered", exc_info=True)
+        return
+    domain_data[DATA_FRONTEND_REGISTERED] = True
 
 
 SERVICE_DELETE_RECORD = "delete_record"

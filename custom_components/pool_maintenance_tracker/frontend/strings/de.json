@@ -184,7 +184,8 @@
     "hours_short": "vor {n} h",
     "overdue_days": "{days} Tage überfällig",
     "never_recorded": "nie erfasst",
-    "no_visits": "Noch keine Einsätze."
+    "no_visits": "Noch keine Einsätze.",
+    "overdue_count": "überfällig"
   },
   "roles": {
     "pool_system": "System",

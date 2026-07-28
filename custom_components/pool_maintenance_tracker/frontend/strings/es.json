@@ -184,7 +184,8 @@
     "hours_short": "hace {n} h",
     "overdue_days": "atrasado {days} días",
     "never_recorded": "nunca registradas",
-    "no_visits": "Aún no hay intervenciones."
+    "no_visits": "Aún no hay intervenciones.",
+    "overdue_count": "atrasadas"
   },
   "roles": {
     "pool_system": "Sistema",

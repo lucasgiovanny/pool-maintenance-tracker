@@ -473,6 +473,10 @@ tabLog.addEventListener("click", () => showTab("log"));
 tabReport.addEventListener("click", () => showTab("report"));
 tabHistory.addEventListener("click", () => showTab("history"));
 
+/* Deep links from the Home Assistant card: #status / #history */
+const HASH_TABS = {"#status": "report", "#report": "report", "#history": "history"};
+if (HASH_TABS[location.hash]) showTab(HASH_TABS[location.hash]);
+
 /* ---------- report rendering ---------- */
 const LOCALE = CFG.language === "pt" ? "pt-PT" : CFG.language;
 function formatStamp(iso){
