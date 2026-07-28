@@ -651,7 +651,7 @@ class PoolMaintenanceCard extends HTMLElement {
         ? `<div class="grid">${ordered.map(([name, section]) => {
             const inner = section.parts
               .sort((a, b) => a.rank - b.rank).map(part => part.html).join("");
-            return name === "countdown" ? inner : `<div class="sec">${inner}</div>`;
+            return name === "countdown" ? inner : `<div class="sec sec-${name}">${inner}</div>`;
           }).join("")}</div>` : "";
     }
     const rowHtml = row => `<div class="row" data-row="${rows.indexOf(row)}">
@@ -804,10 +804,12 @@ class PoolMaintenanceCard extends HTMLElement {
 
       /* Tiles layout: kiosk-style minis for a single-card dashboard */
       .grid{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-      .sec{
-        display:grid;gap:10px;
-        grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-      }
+      /* Flex, not grid: items grow to fill their line completely, the
+         wrapped last line included — a dashboard without holes. Alerts
+         are the exception: exceptional content stays compact. */
+      .sec{display:flex;flex-wrap:wrap;gap:10px}
+      .sec > *{flex:1 1 150px;min-width:150px}
+      .sec-alerts > *{flex:0 1 auto;min-width:180px;max-width:340px}
       .mini{
         border:1px solid var(--divider-color,#e0e0e0);border-radius:12px;
         padding:10px 12px;cursor:pointer;min-width:0;
@@ -826,10 +828,10 @@ class PoolMaintenanceCard extends HTMLElement {
       .item-icon{--mdc-icon-size:15px;color:var(--state-icon-color,#44739E);flex:none}
       .tile-name .item-icon,.row-name .item-icon{--mdc-icon-size:17px}
       .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-      .hero{grid-column:span 2;display:flex;flex-direction:column;justify-content:center}
+      .hero{flex:2 1 280px;display:flex;flex-direction:column;justify-content:center}
       .hero-value{font-size:1.9rem;font-weight:600;line-height:1.15;margin-top:2px}
       .hero-value small{font-size:1rem;color:var(--secondary-text-color,#8a8f94);margin-left:4px}
-      .cycle{grid-column:1/-1}
+      .cycle{flex:1 1 100%}
       .cycle-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
       .cycle-hours{font-size:.85rem;font-weight:600;white-space:nowrap}
       .cycle-track{
@@ -845,7 +847,7 @@ class PoolMaintenanceCard extends HTMLElement {
         background:var(--primary-text-color,#333);
       }
       .grid .countdown{margin-top:0}
-      .sec .tile{grid-column:span 2}
+      .sec .tile{flex:2 1 240px;min-width:220px}
       .alert-mini{
         display:flex;align-items:center;gap:8px;
         color:var(--warning-color,#E9B94F);
