@@ -126,7 +126,7 @@
           "report_enabled": "Aggiunge una scheda rapporto (sola lettura) alla pagina pubblica: valori attuali, stato delle attività e registrazioni recenti. Visibile a chiunque abbia l'URL.",
           "kiosk_enabled": "Una dashboard scura, di sola visualizzazione, per uno schermo vicino alla piscina (7\" orizzontale o più): letture dell'acqua, attrezzatura e conto alla rovescia per il prossimo cambio della programmazione. Senza touch né navigazione. L'URL è negli attributi dell'entità del codice QR."
         },
-        "description": " Scegli un servizio notify (per esempio il telefono, dall'app companion) o un'entità notify. Lascialo vuoto e l'integrazione non invia nulla — i binary sensor di scadenza e l'evento di manutenzione restano disponibili per le tue automazioni."
+        "description": "Scegli un servizio notify (per esempio il telefono, dall'app companion) o un'entità notify. Lascialo vuoto e l'integrazione non invia nulla — i binary sensor di scadenza e l'evento di manutenzione restano disponibili per le tue automazioni."
       },
       "security": {
         "title": "Sicurezza",

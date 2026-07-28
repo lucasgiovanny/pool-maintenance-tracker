@@ -126,7 +126,7 @@
           "report_enabled": "Añade una pestaña de informe (solo lectura) a la página pública: valores actuales, estado de las tareas y registros recientes. Visible para quien tenga la URL.",
           "kiosk_enabled": "Un panel oscuro, solo de visualización, para una pantalla junto a la piscina (7\" horizontal o mayor): lecturas del agua, equipamiento y cuenta atrás para el próximo cambio del horario. Sin táctil ni navegación. La URL está en los atributos de la entidad del código QR."
         },
-        "description": " Elige un servicio notify (por ejemplo tu móvil, de la app companion) o una entidad notify. Déjalo vacío y la integración no envía nada — los binary sensors de retraso y el evento de mantenimiento siguen disponibles para tus automatizaciones."
+        "description": "Elige un servicio notify (por ejemplo tu móvil, de la app companion) o una entidad notify. Déjalo vacío y la integración no envía nada — los binary sensors de retraso y el evento de mantenimiento siguen disponibles para tus automatizaciones."
       },
       "security": {
         "title": "Seguridad",

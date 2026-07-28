@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_NAME, Platform
 from homeassistant.core import Event, HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import (
@@ -42,6 +43,9 @@ from .tracker import PoolTracker
 from .websocket import async_register_websocket_api
 
 _LOGGER = logging.getLogger(__name__)
+
+# Pools are added from the UI; there is nothing to configure in YAML.
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 PLATFORMS = [
     Platform.BINARY_SENSOR,

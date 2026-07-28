@@ -126,7 +126,7 @@
           "report_enabled": "Adds a read-only report tab to the public page: current values, task status and recent records. Anyone with the page URL can see it.",
           "kiosk_enabled": "A dark, display-only dashboard for a screen next to the pool (7\" landscape and up): water readings, equipment and a countdown to the next schedule change. No touch or navigation. Find its URL in the QR code entity's attributes."
         },
-        "description": " Pick a notify service (like your phone from the companion app) or a notify entity. Leave it empty and the integration sends nothing — the *due* binary sensors and the maintenance event are still there for your own automations."
+        "description": "Pick a notify service (like your phone from the companion app) or a notify entity. Leave it empty and the integration sends nothing — the *due* binary sensors and the maintenance event are still there for your own automations."
       },
       "security": {
         "title": "Security",

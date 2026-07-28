@@ -126,7 +126,7 @@
           "report_enabled": "Fügt der öffentlichen Seite einen schreibgeschützten Bericht-Tab hinzu: aktuelle Werte, Aufgabenstatus und letzte Einträge. Sichtbar für alle mit der Seiten-URL.",
           "kiosk_enabled": "Ein dunkles Nur-Anzeige-Dashboard für einen Bildschirm am Pool (7\" Querformat oder größer): Wasserwerte, Geräte und ein Countdown bis zur nächsten Zeitplanänderung. Ohne Touch und Navigation. Die URL steht in den Attributen der QR-Code-Entität."
         },
-        "description": " Wähle einen notify-Dienst (etwa dein Telefon über die Companion-App) oder eine notify-Entität. Leer lassen heißt: die Integration sendet nichts — die Fälligkeits-Binärsensoren und das Wartungsereignis bleiben für eigene Automationen verfügbar."
+        "description": "Wähle einen notify-Dienst (etwa dein Telefon über die Companion-App) oder eine notify-Entität. Leer lassen heißt: die Integration sendet nichts — die Fälligkeits-Binärsensoren und das Wartungsereignis bleiben für eigene Automationen verfügbar."
       },
       "security": {
         "title": "Sicherheit",

@@ -104,11 +104,30 @@ def check_strings(errors: list[str]) -> None:
                 errors.append(f"{language}.json: missing report.status.{status}")
 
 
+def check_translation_whitespace(errors: list[str]) -> None:
+    """Home Assistant rejects leading or trailing spaces in any translation."""
+    folder = FRONTEND.parent / "translations"
+    for path in sorted(folder.glob("*.json")):
+        stack = [(json.loads(path.read_text()), "")]
+        while stack:
+            node, trail = stack.pop()
+            if not isinstance(node, dict):
+                continue
+            for key, value in node.items():
+                where = f"{trail}.{key}" if trail else key
+                if isinstance(value, str):
+                    if value != value.strip():
+                        errors.append(f"{path.name}: padded string at {where}")
+                else:
+                    stack.append((value, where))
+
+
 def main() -> int:
     errors: list[str] = []
     check_syntax(errors)
     check_card_defines_its_element(errors)
     check_strings(errors)
+    check_translation_whitespace(errors)
     if errors:
         for error in sorted(set(errors)):
             print(f"error: {error}", file=sys.stderr)
