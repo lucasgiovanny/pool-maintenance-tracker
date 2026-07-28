@@ -53,3 +53,41 @@ async def test_the_lovelace_card_is_served_and_registered(
     assert response.status == 200
     body = await response.text()
     assert 'customElements.define("pool-maintenance-card"' in body
+
+
+async def test_the_card_becomes_a_lovelace_resource(hass, salt_entry, hass_client_no_auth):
+    """A resource is fetched on every dashboard load; extra-js lives in the
+    app HTML, which the service worker caches — the source of the
+    intermittent "custom element doesn't exist"."""
+    from homeassistant.setup import async_setup_component
+
+    assert await async_setup_component(hass, "lovelace", {})
+    await setup_entry(hass, salt_entry)
+
+    resources = hass.data["lovelace"].resources
+    items = resources.async_items()
+    assert len(items) == 1
+    assert items[0]["url"].startswith("/pool_maintenance_tracker/card.js?v=")
+    assert items[0]["type"] == "module"
+
+    # the file behind the resource actually resolves
+    client = await hass_client_no_auth()
+    assert (await client.get("/pool_maintenance_tracker/card.js")).status == 200
+
+
+async def test_an_existing_resource_is_updated_not_duplicated(hass, salt_entry):
+    """Covers both an old version's entry and one the user added by hand."""
+    from homeassistant.setup import async_setup_component
+
+    assert await async_setup_component(hass, "lovelace", {})
+    resources = hass.data["lovelace"].resources
+    await resources.async_get_info()  # force the collection to load
+    await resources.async_create_item(
+        {"res_type": "module", "url": "/pool_maintenance_tracker/card.js?v=0.1.0"}
+    )
+
+    await setup_entry(hass, salt_entry)
+
+    items = resources.async_items()
+    assert len(items) == 1
+    assert not items[0]["url"].endswith("v=0.1.0")

@@ -196,9 +196,12 @@ along with the current pressure and the rise.
 
 ## Dashboard card
 
-The integration ships a Lovelace card and loads it for you — no resource to
-add by hand. Add it from the card picker ("Pool Maintenance Tracker") or with a
-manual card:
+The integration ships a Lovelace card and registers it for you — in storage
+mode it manages its own entry in **Settings → Dashboards → Resources**, kept
+pointed at the current version (with YAML-managed resources it falls back to
+the frontend's extra-js list). If you ever see *Custom element doesn't exist*,
+hard-refresh the browser. Add the card from the picker ("Pool Maintenance
+Tracker") or with a manual card:
 
 ```yaml
 type: custom:pool-maintenance-card

@@ -812,8 +812,12 @@ class PoolMaintenanceCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("pool-maintenance-card", PoolMaintenanceCard);
-customElements.define("pool-maintenance-card-editor", PoolMaintenanceCardEditor);
+/* Loaded twice (an old hand-added resource plus ours), the second define
+   would throw and take the whole module down with it. */
+if (!customElements.get("pool-maintenance-card")) {
+  customElements.define("pool-maintenance-card", PoolMaintenanceCard);
+  customElements.define("pool-maintenance-card-editor", PoolMaintenanceCardEditor);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({

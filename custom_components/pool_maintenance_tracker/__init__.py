@@ -116,13 +116,16 @@ CARD_URL = f"/{DOMAIN}/card.js"
 
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
-    """Serve the Lovelace card and load it for the dashboards.
+    """Serve the Lovelace card and get it loaded by the dashboards.
 
-    Nothing here is fatal — the integration works fine without the card —
-    but it used to fail silently, and the only symptom was Lovelace saying
-    "Custom element doesn't exist" with nothing in the log to explain it.
-    Each step now reports its own failure, and a path some earlier setup
-    already registered is not treated as one.
+    There are two ways to load a card and they fail differently. The
+    frontend's extra-js list is baked into the app's HTML, which the
+    service worker caches — so whether a given page load sees the card
+    depends on the state of that cache, which is exactly the intermittent
+    "Custom element doesn't exist" its users get. A Lovelace *resource*
+    (what HACS registers) is fetched over the websocket every time a
+    dashboard loads, cache or no cache. So: resource when Lovelace storage
+    is available, extra-js only as the fallback (YAML mode, no Lovelace).
     """
     domain_data = hass.data[DOMAIN]
     if domain_data.get(DATA_FRONTEND_REGISTERED):
@@ -131,7 +134,6 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
 
     card = Path(__file__).parent / "frontend" / "card.js"
     try:
-        from homeassistant.components.frontend import add_extra_js_url
         from homeassistant.components.http import StaticPathConfig
         from homeassistant.loader import async_get_integration
     except ImportError:
@@ -144,9 +146,18 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         # Already served from an earlier setup in this session — harmless.
         _LOGGER.debug("Card already served at %s (%s)", CARD_URL, err)
 
+    integration = await async_get_integration(hass, DOMAIN)
+    versioned_url = f"{CARD_URL}?v={integration.version}"
+
+    if await _async_register_lovelace_resource(hass, versioned_url):
+        domain_data[DATA_FRONTEND_REGISTERED] = True
+        _LOGGER.debug("Card registered as a Lovelace resource: %s", versioned_url)
+        return
+
     try:
-        integration = await async_get_integration(hass, DOMAIN)
-        add_extra_js_url(hass, f"{CARD_URL}?v={integration.version}")
+        from homeassistant.components.frontend import add_extra_js_url
+
+        add_extra_js_url(hass, versioned_url)
     except Exception:
         _LOGGER.warning(
             "Could not add %s to the dashboards - the Pool Maintenance card will show "
@@ -156,7 +167,34 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         )
         return
     domain_data[DATA_FRONTEND_REGISTERED] = True
-    _LOGGER.debug("Lovelace card registered at %s", CARD_URL)
+    _LOGGER.debug("Card registered via extra_js_url (Lovelace storage unavailable)")
+
+
+async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> bool:
+    """Point a Lovelace resource entry at the current card version.
+
+    One entry, updated in place on version changes — including an entry the
+    user once added by hand for the same path. Returns False when Lovelace
+    is absent or its resources are YAML-managed, and the caller falls back.
+    """
+    lovelace = hass.data.get("lovelace")
+    resources = getattr(lovelace, "resources", None)
+    if resources is None or not hasattr(resources, "async_create_item"):
+        return False
+    try:
+        if not resources.loaded:
+            await resources.async_load()
+            resources.loaded = True
+        for item in resources.async_items():
+            if str(item.get("url", "")).split("?")[0] == CARD_URL:
+                if item["url"] != url:
+                    await resources.async_update_item(item["id"], {"url": url})
+                return True
+        await resources.async_create_item({"res_type": "module", "url": url})
+    except Exception:
+        _LOGGER.warning("Could not manage the Lovelace resource for %s", CARD_URL, exc_info=True)
+        return False
+    return True
 
 
 SERVICE_DELETE_RECORD = "delete_record"
