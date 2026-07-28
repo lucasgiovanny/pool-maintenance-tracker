@@ -53,11 +53,14 @@
       },
       "pool": {
         "title": "Pool",
-        "description": "Das Volumen schaltet den Salzdosis-Hinweis auf der Eintragsseite frei. Das Salzband ist die Referenz für die Messwerte — prüfe, was dein Elektrolyseur verlangt.",
+        "description": "Das Volumen schaltet den Salzdosis-Hinweis frei. Mit der Förderleistung lässt sich die Filtration über Umwälzungen auslegen, statt sie aus der Temperatur zu raten; die Zellenleistung zeigt, ob der Elektrolyseur genug Zeit für das Chlor des Tages hat. Das Salzband ist die Referenz für die Messwerte — prüfe, was dein Elektrolyseur verlangt.",
         "data": {
           "pool_volume": "Volumen (m³)",
           "salt_target_min": "Salz-Sollwert — Minimum (g/L)",
-          "salt_target_max": "Salz-Sollwert — Maximum (g/L)"
+          "salt_target_max": "Salz-Sollwert — Maximum (g/L)",
+          "pump_flow": "Pumpenförderleistung (m³/h)",
+          "pump_type": "Pumpentyp",
+          "cell_output": "Zellenleistung (g/h)"
         }
       },
       "modules": {
@@ -76,14 +79,15 @@
       },
       "sensors": {
         "title": "Verknüpfte Sensoren",
-        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen.",
+        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen. Mit einem verknüpften Drucksensor folgt der Filterwäsche-Alarm dem Druckanstieg gegenüber dem sauberen Filter statt dem festen Intervall. Der Referenzwert wird bei der nächsten protokollierten Wäsche automatisch erfasst.",
         "data": {
           "ph_source": "pH-Sensor",
           "chlorine_source": "Sensor für freies Chlor",
           "salt_source": "Salzsensor",
           "temperature_source": "Wassertemperatursensor",
           "linked_mode": "Verhalten der verknüpften Sensoren",
-          "report_sensors": "Zusätzliche Entitäten im Status-Tab"
+          "report_sensors": "Zusätzliche Entitäten im Status-Tab",
+          "filter_pressure_source": "Filtermanometer"
         }
       },
       "equipment": {
@@ -104,7 +108,8 @@
           "filter_days": "Erinnerung Filterreinigung (Tage)",
           "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
           "cell_days": "Erinnerung Zellenreinigung (Tage)",
-          "reminder_time": "Zeit der täglichen Prüfung (HH:MM)"
+          "reminder_time": "Zeit der täglichen Prüfung (HH:MM)",
+          "filter_pressure_rise": "Filter bei diesem Druckanstieg waschen (%)"
         }
       },
       "page": {
@@ -166,6 +171,13 @@
         "fill_on_record": "Entitäten beim Speichern eines Eintrags von der Sonde füllen",
         "mirror": "Fortlaufend spiegeln (überschreibt manuelle Werte)"
       }
+    },
+    "pump_type": {
+      "options": {
+        "single_speed": "Eine Drehzahl",
+        "two_speed": "Zwei Drehzahlen",
+        "variable_speed": "Drehzahlgeregelt"
+      }
     }
   },
   "entity": {
@@ -204,7 +216,9 @@
           "full": "Voll",
           "three_quarters": "¾",
           "half": "½",
-          "quarter": "¼"
+          "quarter": "¼",
+          "empty": "Leer",
+          "none": "Kein Behälter"
         }
       }
     },

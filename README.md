@@ -92,13 +92,67 @@ salt field turns kilos into what they will actually do: type 25 kg into a 48 m³
 pool and it shows *≈ +0.52 g/L in 48 m³*. Leave the volume empty and the hint
 simply doesn't appear.
 
-**Filtration suggestion.** The usual rule of thumb is to run the filtration
-about *water temperature ÷ 2* hours a day. When a water temperature is known
-(from a linked probe or your last manual reading) the surfaces show that
-suggestion under the hours your filtration schedule actually runs today —
-*4 h/day*, and below it *recommended 13.5 h*. Without a schedule the row
-becomes *Recommended filtration* and shows the suggestion on its own. It is a
-suggestion for you to act on: the integration never touches the pump.
+**Filtration suggestion.** How long the filtration should run today, shown
+under the hours your schedule actually runs — *4 h/day*, and below it
+*recommended 8.5 h*. Without a schedule the row becomes *Recommended
+filtration* and shows the suggestion on its own. It is a suggestion for you to
+act on: the integration never touches the pump. How that number is worked out
+depends on how much you have told it — see below.
+
+### Sizing the filtration
+
+With nothing configured the suggestion is the usual rule of thumb, *water
+temperature ÷ 2* hours a day. That assumes an average pump on an average pool,
+and it can be hours off in either direction. Every field below is optional and
+sharpens it; the surfaces always show the reasoning next to the number, so you
+can disagree with something concrete.
+
+**Pump flow rate (m³/h)** — the single most valuable one. It is on the pump's
+nameplate, and together with the pool volume it replaces the guess with
+turnover maths: `hours = volume × turnovers ÷ flow`. Turnovers per day ramp
+with the water temperature (1 below 18 °C, 2 above 28 °C), because warm water
+grows algae and burns chlorine faster. A 48 m³ pool with a 9 m³/h pump at
+24 °C wants **8.5 h/day** — the rule of thumb would have said 12 h.
+
+**Pump type** — single speed, two speed or variable speed. A variable-speed
+pump moves roughly half the water at half the speed for about a quarter of the
+power, so the same turnover costs far less if it runs longer. Tell the
+integration you have one and it offers the alternative: *or 17 h at half
+speed*.
+
+**Chlorinator cell output (g/h)**, on salt pools — from the cell's label. The
+chlorinator only makes chlorine while the pump runs, so there is a second
+constraint: enough hours to produce what the day burns (which rises with the
+water temperature). The suggestion is whichever of the two is longer, and the
+surfaces say which one is binding.
+
+**A cover, if you have one as an entity** — configure it under *Equipment →
+Cover* and, while it reports closed, the suggestion drops: less debris, and
+much less chlorine burnt off by UV. Without a cover entity the pool is assumed
+uncovered, which errs towards filtering more rather than less. A manual cover
+can be modelled with an `input_boolean` you toggle by hand or from an
+automation.
+
+**What it actually ran** — with a pump or pool-system entity configured, the
+surfaces also show how long the filtration really ran today, taken from the
+recorder. Schedules get overridden; this is the honest comparison.
+
+### Filter pressure
+
+A filter does not clog on a schedule. Link a pressure sensor under
+**Configure → Linked sensors → Filter pressure gauge** and the filter wash
+alert follows the pressure instead of the calendar: due when it rises more
+than 25 % (configurable) over the pressure the filter showed when clean.
+
+The clean baseline needs no extra question — it is captured automatically the
+next time somebody logs a filter wash, since that reading *is* the clean
+pressure. Readings taken with the pump off are ignored on both sides, because
+a stopped pump drops the gauge to zero and that means nothing.
+
+Until a baseline exists, and for anyone without a gauge, the fixed interval
+keeps working exactly as before. The `filter_wash_due` binary sensor says
+which rule decided in its `criterion` attribute (`pressure` or `interval`),
+along with the current pressure and the rise.
 
 ## Dashboard card
 
@@ -188,7 +242,7 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
    | Module | Adds |
    |---|---|
    | Salt chlorinator | Chlorinator output/mode, salt readings, salt refills, cell-cleaning tracking |
-   | pH doser acid tank | Acid tank level + refill tracking, low-level alert |
+   | pH doser acid tank | Acid tank level + refill tracking, low-level alert (levels include *empty* and *no tank*, for a drum that ran dry or was taken away) |
    | Filter | Filter wash tracking + reminder |
    | pH probe | Probe calibration tracking + reminder |
    | Cleaning tasks | Vacuum / waterline / basket logging |
@@ -211,9 +265,10 @@ Multiple pools? Just add the integration again.
 
 ### Pool
 
-**Configure → Pool** holds the volume used for the salt-dose hint and the salt
-band the readings are judged against — check what your chlorinator asks for
-before changing it.
+**Configure → Pool** holds everything about the pool itself: the volume (used
+for the salt-dose hint and the turnover maths), the pump's flow rate and type,
+the chlorinator cell output on salt pools, and the salt band the readings are
+judged against — check what your chlorinator asks for before changing it.
 
 ### People on the page
 

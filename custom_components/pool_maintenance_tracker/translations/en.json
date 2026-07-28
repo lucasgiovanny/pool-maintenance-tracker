@@ -53,11 +53,14 @@
       },
       "pool": {
         "title": "Pool",
-        "description": "The volume unlocks the salt-dose hint on the logging page. The salt band is what the readings are judged against — check what your chlorinator asks for.",
+        "description": "The volume unlocks the salt-dose hint. With the pump flow rate we can size the filtration by turnover instead of guessing from the temperature; the cell output tells us whether the chlorinator has time to make the day's chlorine. The salt band is what the readings are judged against — check what your chlorinator asks for.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Salt target — minimum (g/L)",
-          "salt_target_max": "Salt target — maximum (g/L)"
+          "salt_target_max": "Salt target — maximum (g/L)",
+          "pump_flow": "Pump flow rate (m³/h)",
+          "pump_type": "Pump type",
+          "cell_output": "Chlorinator cell output (g/h)"
         }
       },
       "modules": {
@@ -76,14 +79,15 @@
       },
       "sensors": {
         "title": "Linked sensors",
-        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it.",
+        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it. With a pressure sensor linked, the filter wash alert follows the pressure rise over the clean baseline instead of the fixed interval. The baseline is captured automatically the next time a filter wash is logged.",
         "data": {
           "ph_source": "pH sensor",
           "chlorine_source": "Free chlorine sensor",
           "salt_source": "Salt sensor",
           "temperature_source": "Water temperature sensor",
           "linked_mode": "Linked sensor behavior",
-          "report_sensors": "Extra entities on the Status tab"
+          "report_sensors": "Extra entities on the Status tab",
+          "filter_pressure_source": "Filter pressure gauge"
         }
       },
       "equipment": {
@@ -104,7 +108,8 @@
           "filter_days": "Filter wash reminder (days)",
           "probe_days": "pH probe calibration reminder (days)",
           "cell_days": "Cell cleaning reminder (days)",
-          "reminder_time": "Daily check time (HH:MM)"
+          "reminder_time": "Daily check time (HH:MM)",
+          "filter_pressure_rise": "Wash the filter at this pressure rise (%)"
         }
       },
       "page": {
@@ -166,6 +171,13 @@
         "fill_on_record": "Fill entities from probe when a record is saved",
         "mirror": "Mirror linked sensors continuously (overrides manual values)"
       }
+    },
+    "pump_type": {
+      "options": {
+        "single_speed": "Single speed",
+        "two_speed": "Two speed",
+        "variable_speed": "Variable speed"
+      }
     }
   },
   "entity": {
@@ -204,7 +216,9 @@
           "full": "Full",
           "three_quarters": "¾",
           "half": "½",
-          "quarter": "¼"
+          "quarter": "¼",
+          "empty": "Empty",
+          "none": "No tank"
         }
       }
     },

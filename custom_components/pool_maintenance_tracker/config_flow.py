@@ -30,8 +30,11 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_CELL_DAYS,
+    CONF_CELL_OUTPUT,
     CONF_COVER_ENTITY,
     CONF_FILTER_DAYS,
+    CONF_FILTER_PRESSURE_RISE,
+    CONF_FILTER_PRESSURE_SOURCE,
     CONF_FILTRATION_SCHEDULE_ENTITY,
     CONF_HEAT_PUMP_ENTITY,
     CONF_KIOSK_ENABLED,
@@ -46,6 +49,8 @@ from .const import (
     CONF_POOL_VOLUME,
     CONF_PROBE_DAYS,
     CONF_PUMP_ENTITY,
+    CONF_PUMP_FLOW,
+    CONF_PUMP_TYPE,
     CONF_REMINDER_TIME,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
@@ -54,6 +59,7 @@ from .const import (
     CONF_TOKEN,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
+    DEFAULT_FILTER_PRESSURE_RISE,
     DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
     DEFAULT_PROBE_DAYS,
@@ -69,6 +75,8 @@ from .const import (
     LINKED_SOURCES,
     POOL_TYPE_SALT,
     POOL_TYPES,
+    PUMP_SINGLE_SPEED,
+    PUMP_TYPES,
 )
 from .modules import (
     MODULE_FILTER,
@@ -271,11 +279,28 @@ class PoolOptionsFlow(OptionsFlow):
                 options.pop(CONF_POOL_VOLUME, None)
             options[CONF_SALT_TARGET_MIN] = float(user_input[CONF_SALT_TARGET_MIN])
             options[CONF_SALT_TARGET_MAX] = float(user_input[CONF_SALT_TARGET_MAX])
+            for conf_key in (CONF_PUMP_FLOW, CONF_CELL_OUTPUT):
+                if user_input.get(conf_key):
+                    options[conf_key] = float(user_input[conf_key])
+                else:
+                    options.pop(conf_key, None)
+            options[CONF_PUMP_TYPE] = user_input[CONF_PUMP_TYPE]
             return await self._save(options)
 
         salt_selector = NumberSelector(
             NumberSelectorConfig(min=0, max=10, step=0.1, mode=NumberSelectorMode.BOX)
         )
+        # The cell output only means something to a pool that has a cell.
+        cell_field: dict[vol.Marker, Any] = {}
+        if MODULE_SALT_CHLORINATOR.key in options.get(CONF_MODULES, ()):
+            cell_field[
+                vol.Optional(
+                    CONF_CELL_OUTPUT,
+                    description={"suggested_value": options.get(CONF_CELL_OUTPUT)},
+                )
+            ] = NumberSelector(
+                NumberSelectorConfig(min=1, max=200, step=0.5, mode=NumberSelectorMode.BOX)
+            )
         return self.async_show_form(
             step_id="pool",
             data_schema=vol.Schema(
@@ -294,6 +319,23 @@ class PoolOptionsFlow(OptionsFlow):
                         CONF_SALT_TARGET_MAX,
                         default=options.get(CONF_SALT_TARGET_MAX, DEFAULT_SALT_TARGET_MAX),
                     ): salt_selector,
+                    vol.Optional(
+                        CONF_PUMP_FLOW,
+                        description={"suggested_value": options.get(CONF_PUMP_FLOW)},
+                    ): NumberSelector(
+                        NumberSelectorConfig(min=1, max=200, step=0.5, mode=NumberSelectorMode.BOX)
+                    ),
+                    vol.Required(
+                        CONF_PUMP_TYPE,
+                        default=options.get(CONF_PUMP_TYPE, PUMP_SINGLE_SPEED),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=PUMP_TYPES,
+                            mode=SelectSelectorMode.DROPDOWN,
+                            translation_key="pump_type",
+                        )
+                    ),
+                    **cell_field,
                 }
             ),
         )
@@ -323,7 +365,7 @@ class PoolOptionsFlow(OptionsFlow):
             CONF_FILTRATION_SCHEDULE_ENTITY: ["schedule"],
             CONF_PUMP_ENTITY: ["switch", "input_boolean", "binary_sensor", "fan"],
             CONF_POOL_LIGHT_ENTITY: ["light", "switch"],
-            CONF_COVER_ENTITY: ["cover", "switch", "binary_sensor"],
+            CONF_COVER_ENTITY: ["cover", "switch", "binary_sensor", "input_boolean"],
         }
         schema: dict[vol.Marker, Any] = {}
         for conf_key in EQUIPMENT_ROLES.values():
@@ -338,7 +380,7 @@ class PoolOptionsFlow(OptionsFlow):
         """Link external sensors (e.g. a smart probe) to the pool."""
         options = dict(self.config_entry.options)
         if user_input is not None:
-            for conf_key in LINKED_SOURCES.values():
+            for conf_key in (*LINKED_SOURCES.values(), CONF_FILTER_PRESSURE_SOURCE):
                 if user_input.get(conf_key):
                     options[conf_key] = user_input[conf_key]
                 else:
@@ -358,6 +400,12 @@ class PoolOptionsFlow(OptionsFlow):
                     description={"suggested_value": options.get(conf_key)},
                 )
             ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
+        schema[
+            vol.Optional(
+                CONF_FILTER_PRESSURE_SOURCE,
+                description={"suggested_value": options.get(CONF_FILTER_PRESSURE_SOURCE)},
+            )
+        ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
         schema[
             vol.Optional(
                 CONF_REPORT_SENSORS,
@@ -433,11 +481,22 @@ class PoolOptionsFlow(OptionsFlow):
                 if conf_key in user_input:
                     options[conf_key] = int(user_input[conf_key])
             options[CONF_REMINDER_TIME] = user_input[CONF_REMINDER_TIME]
+            if CONF_FILTER_PRESSURE_RISE in user_input:
+                options[CONF_FILTER_PRESSURE_RISE] = int(user_input[CONF_FILTER_PRESSURE_RISE])
             return await self._save(options)
 
         modules = list(options.get(CONF_MODULES, ()))
         schema: dict[vol.Marker, Any] = {}
         schema.update(_reminder_days_schema(modules, options))
+        if options.get(CONF_FILTER_PRESSURE_SOURCE):
+            schema[
+                vol.Required(
+                    CONF_FILTER_PRESSURE_RISE,
+                    default=options.get(CONF_FILTER_PRESSURE_RISE, DEFAULT_FILTER_PRESSURE_RISE),
+                )
+            ] = NumberSelector(
+                NumberSelectorConfig(min=5, max=100, step=5, mode=NumberSelectorMode.SLIDER)
+            )
         schema[
             vol.Required(
                 CONF_REMINDER_TIME,

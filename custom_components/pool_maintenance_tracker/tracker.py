@@ -48,6 +48,9 @@ class PoolTracker:
         self.records: list[dict[str, Any]] = []
         self.notes: list[dict[str, Any]] = []
         self.reminders_last_notified: dict[str, str] = {}
+        # Derived facts that are neither a reading nor a timestamp — today
+        # just the filter's clean pressure and the verdict drawn from it.
+        self.metrics: dict[str, Any] = {}
         self.installed_at: str = dt_util.utcnow().isoformat()
 
     async def async_load(self) -> None:
@@ -62,6 +65,7 @@ class PoolTracker:
         self.records = data.get("records", [])
         self.notes = data.get("notes", [])
         self.reminders_last_notified = data.get("reminders_last_notified", {})
+        self.metrics = data.get("metrics", {})
         self.installed_at = data.get("installed_at", self.installed_at)
 
     async def async_flush(self) -> None:
@@ -84,6 +88,7 @@ class PoolTracker:
             "records": self.records,
             "notes": self.notes,
             "reminders_last_notified": self.reminders_last_notified,
+            "metrics": self.metrics,
             "installed_at": self.installed_at,
         }
 

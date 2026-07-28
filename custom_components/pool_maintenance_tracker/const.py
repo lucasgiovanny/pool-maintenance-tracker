@@ -94,8 +94,56 @@ DEFAULT_SALT_TARGET_MAX: Final = 4.5
 IDEAL_PH: Final = (7.2, 7.6)
 IDEAL_FREE_CHLORINE: Final = (1.0, 3.0)
 
-# Filtration rule of thumb: hours per day ≈ water temperature / 2
+# Filtration rule of thumb: hours per day ≈ water temperature / 2.
+# Used only when the pool was not sized (see below).
 FILTRATION_MIN_HOURS: Final = 2.0
+
+# Sizing the filtration properly. All optional: with the flow rate and the
+# volume we can do turnover maths instead of guessing, and with the cell
+# output we can also check the chlorinator has time to make the day's
+# chlorine. Missing any of it just falls back to the rule of thumb.
+CONF_PUMP_FLOW: Final = "pump_flow"  # m³/h at full speed
+CONF_PUMP_TYPE: Final = "pump_type"
+CONF_CELL_OUTPUT: Final = "cell_output"  # g of chlorine per hour
+
+PUMP_SINGLE_SPEED: Final = "single_speed"
+PUMP_TWO_SPEED: Final = "two_speed"
+PUMP_VARIABLE_SPEED: Final = "variable_speed"
+PUMP_TYPES: Final = [PUMP_SINGLE_SPEED, PUMP_TWO_SPEED, PUMP_VARIABLE_SPEED]
+LOW_SPEED_PUMPS: Final = (PUMP_TWO_SPEED, PUMP_VARIABLE_SPEED)
+# Halving the speed roughly halves the flow, so the same turnover needs
+# twice the hours — for roughly a quarter of the energy (power ~ rpm³).
+LOW_SPEED_HOURS_FACTOR: Final = 2.0
+
+# Turnovers per day, ramped between these water temperatures
+TURNOVER_COOL_C: Final = 18.0
+TURNOVER_WARM_C: Final = 28.0
+TURNOVER_MIN: Final = 1.0
+TURNOVER_MAX: Final = 2.0
+
+# Chlorine demand in grams per m³ per day, ramped by water temperature
+# (roughly 1 g/m³ = 1 ppm of free chlorine).
+DEMAND_PER_DEGREE: Final = 0.1
+DEMAND_OFFSET: Final = 1.0
+DEMAND_MIN: Final = 0.5
+DEMAND_MAX: Final = 3.0
+
+# A closed cover means less debris and much less UV burn-off. Applied only
+# while the cover entity actually reports closed.
+COVER_HOURS_FACTOR: Final = 0.85
+COVER_CHLORINE_FACTOR: Final = 0.6
+
+# Filter pressure: a sensor beats a calendar. When one is linked and a clean
+# baseline was captured, the filter wash alert follows the pressure rise
+# instead of the fixed interval.
+CONF_FILTER_PRESSURE_SOURCE: Final = "filter_pressure_source"
+CONF_FILTER_PRESSURE_RISE: Final = "filter_pressure_rise"
+DEFAULT_FILTER_PRESSURE_RISE: Final = 25  # percent over the clean baseline
+# Below this the pump is almost certainly off, so the reading means nothing
+MIN_MEANINGFUL_PRESSURE: Final = 0.1
+METRIC_CLEAN_PRESSURE: Final = "filter_clean_pressure"
+METRIC_CLEAN_PRESSURE_AT: Final = "filter_clean_pressure_at"
+METRIC_PRESSURE_DUE: Final = "filter_pressure_due"
 
 # Value keys (tracker "values" bucket)
 KEY_PH: Final = "ph"
@@ -129,8 +177,13 @@ CATEGORY_CLEANING: Final = "cleaning"
 
 # Enum values
 CHLORINATOR_MODES: Final = ["smart", "manual", "boost"]
-ACID_TANK_LEVELS: Final = ["full", "three_quarters", "half", "quarter"]
-ACID_LEVEL_ALERT: Final = "quarter"
+# "empty" and "none" are real situations: a drum that ran dry, and a pool
+# running without one at all (removed for maintenance, or never fitted).
+ACID_TANK_LEVELS: Final = ["full", "three_quarters", "half", "quarter", "empty", "none"]
+ACID_LEVEL_NONE: Final = "none"
+# Levels worth telling somebody about. "none" is not one of them: there is
+# nothing to refill, so nagging about it would be noise.
+ACID_ALERT_LEVELS: Final = ("quarter", "empty")
 CLEANING_TYPES: Final = ["vacuum", "waterline", "baskets"]
 
 # Validation ranges: key -> (min, max, step)

@@ -10,8 +10,13 @@ import re
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.pool_maintenance_tracker.const import (
+    CONF_CELL_OUTPUT,
+    CONF_COVER_ENTITY,
     CONF_FILTRATION_SCHEDULE_ENTITY,
     CONF_POOL_VOLUME,
+    CONF_PUMP_ENTITY,
+    CONF_PUMP_FLOW,
+    CONF_PUMP_TYPE,
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TEMPERATURE_SOURCE,
@@ -175,3 +180,117 @@ async def test_filtration_hint_falls_back_to_logged_temperature(
     hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
     assert hint["temperature"] == 26.0
     assert hint["recommended_hours"] == 13.0
+
+
+async def test_sizing_reaches_every_surface(hass, salt_entry, hass_client_no_auth):
+    """Volume + flow turn the guess into turnover maths, everywhere at once."""
+    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
+    await setup_with_options(
+        hass,
+        salt_entry,
+        **{
+            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
+            CONF_POOL_VOLUME: 48,
+            CONF_PUMP_FLOW: 9,
+            CONF_PUMP_TYPE: "variable_speed",
+        },
+    )
+    client = await hass_client_no_auth()
+
+    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hint["basis"] == "turnover"
+    assert hint["recommended_hours"] == 8.5  # not the 12 h the rule of thumb gives
+    assert hint["turnovers"] == 1.6
+    assert hint["low_speed_hours"] == 17.0
+
+    state = await (await client.get(STATE_URL)).json()
+    assert state["report"]["filtration"]["recommended_hours"] == 8.5
+
+
+async def test_a_small_cell_takes_over_from_turnover(hass, salt_entry, hass_client_no_auth):
+    hass.states.async_set("sensor.probe_temperature", "30", {"unit_of_measurement": "°C"})
+    await setup_with_options(
+        hass,
+        salt_entry,
+        **{
+            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
+            CONF_POOL_VOLUME: 60,
+            CONF_PUMP_FLOW: 20,
+            CONF_CELL_OUTPUT: 6,
+        },
+    )
+    client = await hass_client_no_auth()
+
+    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hint["basis"] == "chlorination"
+    assert hint["recommended_hours"] == 20.0
+
+
+async def test_a_closed_cover_is_read_from_the_entity(hass, salt_entry, hass_client_no_auth):
+    hass.states.async_set("sensor.probe_temperature", "28", {"unit_of_measurement": "°C"})
+    hass.states.async_set("cover.pool_cover", "closed", {"friendly_name": "Cobertura"})
+    await setup_with_options(
+        hass,
+        salt_entry,
+        **{
+            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
+            CONF_POOL_VOLUME: 48,
+            CONF_PUMP_FLOW: 9,
+            CONF_COVER_ENTITY: "cover.pool_cover",
+        },
+    )
+    client = await hass_client_no_auth()
+
+    covered = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert covered["covered"] is True
+
+    hass.states.async_set("cover.pool_cover", "open")
+    await hass.async_block_till_done()
+    opened = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert opened["covered"] is False
+    assert opened["recommended_hours"] > covered["recommended_hours"]
+
+
+async def test_actual_hours_absent_without_a_recorder(hass, salt_entry, hass_client_no_auth):
+    """The comparison degrades to nothing rather than to a wrong number."""
+    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
+    hass.states.async_set("switch.pump", "on", {"friendly_name": "Bomba"})
+    await setup_with_options(
+        hass,
+        salt_entry,
+        **{
+            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
+            CONF_PUMP_ENTITY: "switch.pump",
+        },
+    )
+    client = await hass_client_no_auth()
+
+    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hint["actual_hours"] is None
+
+
+async def test_acid_tank_covers_empty_and_missing(hass, salt_entry, hass_client_no_auth):
+    """A dry drum is an alert; no drum at all is a decision, not a fault."""
+    await setup_entry(hass, salt_entry)
+    client = await hass_client_no_auth()
+    log_url = f"/api/pool_maintenance_tracker/{TEST_TOKEN}/log"
+
+    response = await client.post(
+        log_url,
+        json={"person": "technician", "categories": ["acid_refill"], "acid": {"level": "empty"}},
+    )
+    assert response.status == 200
+    await hass.async_block_till_done()
+    assert salt_entry.runtime_data.tracker.values["acid_tank_level"] == "empty"
+    assert hass.states.get("select.piscina_acid_tank_level").state == "empty"
+
+    response = await client.post(
+        log_url,
+        json={"person": "technician", "categories": ["acid_refill"], "acid": {"level": "none"}},
+    )
+    assert response.status == 200
+    await hass.async_block_till_done()
+    assert salt_entry.runtime_data.tracker.values["acid_tank_level"] == "none"
+
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    assert config["strings"]["acid_levels"]["none"]

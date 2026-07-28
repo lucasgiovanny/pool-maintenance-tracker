@@ -61,7 +61,9 @@
     "full": "Voll",
     "three_quarters": "¾",
     "half": "½",
-    "quarter": "¼"
+    "quarter": "¼",
+    "empty": "Leer",
+    "none": "Kein Behälter"
   },
   "modes": {
     "smart": "Smart",
@@ -128,7 +130,7 @@
     "next_due": "nächste {date}",
     "schedule_off": "schaltet aus am {date} um {time}",
     "schedule_on": "schaltet ein am {date} um {time}",
-    "alert_acid": "Säuretank bei ¼ — Auffüllen einplanen",
+    "alert_acid": "Säurebehälter {level} — Nachfüllen einplanen",
     "in_time": "in {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtration",
@@ -140,7 +142,14 @@
       "ideal": "ideal"
     },
     "filtration_recommended": "Empfohlene Filtration",
-    "recommended": "empfohlen {h} h"
+    "recommended": "empfohlen {h} h",
+    "turnovers_basis": "{n} Umwälzungen bei {flow} m³/h",
+    "chlorination_basis": "Zelle mit {cell} g/h",
+    "low_speed": "oder {h} h bei halber Drehzahl",
+    "actual_today": "lief heute {h} h",
+    "filter_pressure": "Filterdruck",
+    "pressure_rise": "+{p}% seit der Wäsche",
+    "wash_filter": "waschen"
   },
   "notes": {
     "title": "Notizen",

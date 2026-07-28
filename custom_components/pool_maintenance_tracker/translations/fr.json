@@ -53,11 +53,14 @@
       },
       "pool": {
         "title": "Piscine",
-        "description": "Le volume active l'estimation de dose de sel sur la page de saisie. La plage de sel sert de référence aux mesures — vérifiez ce que demande votre électrolyseur.",
+        "description": "Le volume active l'estimation de dose de sel. Avec le débit de la pompe, la filtration se calcule en renouvellements plutôt qu'en devinant d'après la température ; la production de la cellule indique si l'électrolyseur a le temps de produire le chlore de la journée. La plage de sel sert de référence aux mesures — vérifiez ce que demande votre électrolyseur.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Sel cible — minimum (g/L)",
-          "salt_target_max": "Sel cible — maximum (g/L)"
+          "salt_target_max": "Sel cible — maximum (g/L)",
+          "pump_flow": "Débit de la pompe (m³/h)",
+          "pump_type": "Type de pompe",
+          "cell_output": "Production de la cellule (g/h)"
         }
       },
       "modules": {
@@ -76,14 +79,15 @@
       },
       "sensors": {
         "title": "Capteurs liés",
-        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier.",
+        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier. Avec un capteur de pression lié, l'alerte de lavage du filtre suit la hausse de pression par rapport au filtre propre au lieu de l'intervalle fixe. La référence est capturée automatiquement au prochain lavage enregistré.",
         "data": {
           "ph_source": "Capteur de pH",
           "chlorine_source": "Capteur de chlore libre",
           "salt_source": "Capteur de sel",
           "temperature_source": "Capteur de température de l'eau",
           "linked_mode": "Comportement des capteurs liés",
-          "report_sensors": "Entités supplémentaires dans l'onglet État"
+          "report_sensors": "Entités supplémentaires dans l'onglet État",
+          "filter_pressure_source": "Manomètre du filtre"
         }
       },
       "equipment": {
@@ -104,7 +108,8 @@
           "filter_days": "Rappel de lavage du filtre (jours)",
           "probe_days": "Rappel d'étalonnage de la sonde pH (jours)",
           "cell_days": "Rappel de nettoyage de la cellule (jours)",
-          "reminder_time": "Heure de la vérification quotidienne (HH:MM)"
+          "reminder_time": "Heure de la vérification quotidienne (HH:MM)",
+          "filter_pressure_rise": "Laver le filtre à cette hausse de pression (%)"
         }
       },
       "page": {
@@ -166,6 +171,13 @@
         "fill_on_record": "Compléter les entités depuis la sonde à l'enregistrement",
         "mirror": "Refléter en continu (écrase les valeurs manuelles)"
       }
+    },
+    "pump_type": {
+      "options": {
+        "single_speed": "Vitesse unique",
+        "two_speed": "Deux vitesses",
+        "variable_speed": "Vitesse variable"
+      }
     }
   },
   "entity": {
@@ -204,7 +216,9 @@
           "full": "Plein",
           "three_quarters": "¾",
           "half": "½",
-          "quarter": "¼"
+          "quarter": "¼",
+          "empty": "Vide",
+          "none": "Sans bidon"
         }
       }
     },

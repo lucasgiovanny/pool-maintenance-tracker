@@ -61,7 +61,9 @@
     "full": "Pieno",
     "three_quarters": "¾",
     "half": "½",
-    "quarter": "¼"
+    "quarter": "¼",
+    "empty": "Vuoto",
+    "none": "Senza serbatoio"
   },
   "modes": {
     "smart": "Smart",
@@ -128,7 +130,7 @@
     "next_due": "prossima {date}",
     "schedule_off": "si spegne il {date} alle {time}",
     "schedule_on": "si accende il {date} alle {time}",
-    "alert_acid": "Serbatoio dell'acido a ¼ — pianifica un rabbocco",
+    "alert_acid": "Serbatoio dell'acido {level} — pianifica un rabbocco",
     "in_time": "tra {t}",
     "ideal_band": "ideale {min}–{max}",
     "filtration": "Filtrazione",
@@ -140,7 +142,14 @@
       "ideal": "ideale"
     },
     "filtration_recommended": "Filtrazione consigliata",
-    "recommended": "consigliato {h} h"
+    "recommended": "consigliato {h} h",
+    "turnovers_basis": "{n} ricicli a {flow} m³/h",
+    "chlorination_basis": "cella da {cell} g/h",
+    "low_speed": "o {h} h a metà velocità",
+    "actual_today": "ha girato {h} h oggi",
+    "filter_pressure": "Pressione del filtro",
+    "pressure_rise": "+{p}% dal lavaggio",
+    "wash_filter": "lavare"
   },
   "notes": {
     "title": "Note",

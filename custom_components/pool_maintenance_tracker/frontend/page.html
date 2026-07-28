@@ -83,6 +83,7 @@
   .kv .v{font-size:1rem;font-weight:700;color:var(--ink);text-align:right}
   .kv .v small{font-weight:600;color:var(--muted);font-size:.78rem}
   .kv .probe{display:block;font-size:.75rem;font-weight:700;color:var(--aqua);text-align:right}
+  .kv .v .why{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-align:right}
 
   .badge{
     display:inline-block;border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:700;
@@ -504,6 +505,20 @@ function relTime(iso){
   if (seconds < 86400) return S.report.ago_hours.replace("{n}", Math.floor(seconds / 3600));
   return daysAgoText(iso);
 }
+/* Trim the trailing zero: 1.6 stays 1.6, 2.0 becomes 2 */
+function decimal(value){
+  const number = Number(value);
+  return isNaN(number) ? String(value) : String(Math.round(number * 100) / 100);
+}
+/* Levels worth an alert. A pool running without a drum is a decision,
+   not a fault, so it stays quiet. */
+const ACID_ALERT_LEVELS = ["quarter", "empty"];
+function acidClass(level){
+  if (ACID_ALERT_LEVELS.includes(level)) return "due";
+  if (level === "full") return "ok";
+  if (level === "none") return "neutral";
+  return "info";
+}
 function formatValue(key, value){
   if (key === "chlorinator_mode") return S.modes[value] || value;
   if (key === "acid_tank_level") return S.acid_levels[value] || value;
@@ -561,6 +576,20 @@ function renderReport(){
     currentBody.appendChild(row);
   });
 
+  /* Why the recommendation says what it says. Nothing for the rule of
+     thumb: "temperature / 2" explains itself and the row is small. */
+  function filtrationBasis(f){
+    const parts = [];
+    if (f.basis === "turnover" && f.flow) {
+      parts.push(S.report.turnovers_basis
+        .replace("{n}", decimal(f.turnovers)).replace("{flow}", decimal(f.flow)));
+    } else if (f.basis === "chlorination" && f.cell_output) {
+      parts.push(S.report.chlorination_basis.replace("{cell}", decimal(f.cell_output)));
+    }
+    if (f.low_speed_hours) parts.push(S.report.low_speed.replace("{h}", f.low_speed_hours));
+    return parts.join(" · ");
+  }
+
   /* Filtration suggestion — never a command, just the rule of thumb */
   const filtration = report.filtration;
   if (filtration) {
@@ -571,10 +600,14 @@ function renderReport(){
       hasSchedule ? S.report.filtration : S.report.filtration_recommended));
     const holder = el("span", "v", S.report.hours.replace("{h}",
       hasSchedule ? scheduled : filtration.recommended_hours));
-    if (hasSchedule) {
-      holder.appendChild(el("span", "probe",
-        S.report.recommended.replace("{h}", filtration.recommended_hours)));
+    const advice = [];
+    if (hasSchedule) advice.push(S.report.recommended.replace("{h}", filtration.recommended_hours));
+    if (filtration.actual_hours !== null && filtration.actual_hours !== undefined) {
+      advice.push(S.report.actual_today.replace("{h}", filtration.actual_hours));
     }
+    if (advice.length) holder.appendChild(el("span", "probe", advice.join(" · ")));
+    const why = filtrationBasis(filtration);
+    if (why) holder.appendChild(el("small", "why", why));
     row.appendChild(holder);
     currentBody.appendChild(row);
     currentAny = true;
@@ -599,16 +632,19 @@ function renderReport(){
       if (task.key === "acid_refill" && report.values
           && report.values.acid_tank_level !== undefined) {
         const level = report.values.acid_tank_level;
-        const cls = level === "quarter" ? "due" : level === "full" ? "ok" : "info";
+        const cls = acidClass(level);
         value.appendChild(el("span", "badge " + cls, S.acid_levels[level] || level));
         value.appendChild(document.createTextNode(" "));
       }
       value.appendChild(document.createTextNode(daysAgoText(task.last) + " "));
       if (task.interval_days) {
+        const byPressure = task.key === "filter_wash"
+          && (report.filter_pressure || {}).due !== null
+          && (report.filter_pressure || {}).due !== undefined;
         const badge = el("span", "badge " + (task.due ? "due" : "ok"),
           task.due
-            ? S.report.overdue
-            : (task.next
+            ? (byPressure ? S.report.wash_filter : S.report.overdue)
+            : (task.next && !byPressure
                 ? S.report.next_due.replace("{date}", shortDate(task.next))
                 : S.report.every_days.replace("{days}", task.interval_days)));
         value.appendChild(badge);
@@ -633,7 +669,7 @@ function renderReport(){
     if (key === "chlorinator_mode") {
       holder.appendChild(el("span", "badge info", S.modes[declared] || declared));
     } else if (key === "acid_tank_level") {
-      const cls = declared === "quarter" ? "due" : declared === "full" ? "ok" : "info";
+      const cls = acidClass(declared);
       holder.appendChild(el("span", "badge " + cls, S.acid_levels[declared] || declared));
     } else {
       holder.appendChild(document.createTextNode(formatValue(key, declared)));
@@ -641,6 +677,27 @@ function renderReport(){
     row.appendChild(holder);
     extraBody.appendChild(row);
   });
+  /* The filter's pressure: what actually decides whether it needs washing */
+  const pressure = report.filter_pressure;
+  if (pressure && pressure.value !== null && pressure.value !== undefined) {
+    equipAny = true;
+    const row = el("div", "kv");
+    row.appendChild(el("span", "k", S.report.filter_pressure));
+    const holder = el("span", "v");
+    if (pressure.due) {
+      holder.appendChild(el("span", "badge due", S.report.wash_filter));
+      holder.appendChild(document.createTextNode(" "));
+    }
+    holder.appendChild(document.createTextNode(
+      decimal(pressure.value) + (pressure.unit ? " " + pressure.unit : "")));
+    if (pressure.rise_percent !== null && pressure.rise_percent !== undefined) {
+      holder.appendChild(el("small", null,
+        " " + S.report.pressure_rise.replace("{p}", pressure.rise_percent)));
+    }
+    row.appendChild(holder);
+    extraBody.appendChild(row);
+  }
+
   /* Entities with a named role come first, in a stable order */
   const ROLE_ORDER = ["pool_system", "heat_pump", "pump", "filtration_schedule",
                       "pool_light", "cover"];
@@ -813,8 +870,9 @@ function renderAlerts(){
         " — " + S.report.overdue.toLowerCase());
     }
   });
-  if (report.values && report.values.acid_tank_level === "quarter") {
-    messages.push(S.report.alert_acid);
+  if (report.values && ACID_ALERT_LEVELS.includes(report.values.acid_tank_level)) {
+    messages.push(S.report.alert_acid.replace("{level}",
+      (S.acid_levels[report.values.acid_tank_level] || "").toLowerCase()));
   }
   if (!messages.length) { box.style.display = "none"; return; }
   messages.forEach(message => {
@@ -1312,7 +1370,7 @@ function buildPanel(tile){
   } else if (tile === "salt") {
     parts.push(stepperField(p.amount, "salt_added"));
   } else if (tile === "acid_refill") {
-    parts.push(segmentsField(p.level, "acid_level", ["full", "three_quarters", "half", "quarter"], S.acid_levels, false));
+    parts.push(segmentsField(p.level, "acid_level", ["full", "three_quarters", "half", "quarter", "empty", "none"], S.acid_levels, false));
   } else if (tile === "cleaning") {
     parts.push(segmentsField(p.what, "cleaning_types", ["vacuum", "waterline", "baskets"], S.cleaning_types, true));
   } else {

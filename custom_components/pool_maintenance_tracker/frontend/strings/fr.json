@@ -61,7 +61,9 @@
     "full": "Plein",
     "three_quarters": "¾",
     "half": "½",
-    "quarter": "¼"
+    "quarter": "¼",
+    "empty": "Vide",
+    "none": "Sans bidon"
   },
   "modes": {
     "smart": "Smart",
@@ -128,7 +130,7 @@
     "next_due": "prochaine {date}",
     "schedule_off": "s'éteint le {date} à {time}",
     "schedule_on": "s'allume le {date} à {time}",
-    "alert_acid": "Réservoir d'acide à ¼ — prévoir un remplissage",
+    "alert_acid": "Bidon d'acide {level} — prévoyez un remplissage",
     "in_time": "dans {t}",
     "ideal_band": "idéal {min}–{max}",
     "filtration": "Filtration",
@@ -140,7 +142,14 @@
       "ideal": "idéal"
     },
     "filtration_recommended": "Filtration recommandée",
-    "recommended": "recommandé {h} h"
+    "recommended": "recommandé {h} h",
+    "turnovers_basis": "{n} renouvellements à {flow} m³/h",
+    "chlorination_basis": "cellule de {cell} g/h",
+    "low_speed": "ou {h} h à mi-vitesse",
+    "actual_today": "a tourné {h} h aujourd'hui",
+    "filter_pressure": "Pression du filtre",
+    "pressure_rise": "+{p}% depuis le lavage",
+    "wash_filter": "laver"
   },
   "notes": {
     "title": "Notes",

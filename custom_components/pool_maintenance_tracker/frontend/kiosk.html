@@ -363,6 +363,17 @@ function renderMinis(){
     box.appendChild(miniCard(label, decimal(value), status, sub,
       status ? { text: S.report.status[status], status: status } : null));
   });
+  const pressure = report.filter_pressure;
+  if (pressure && pressure.value !== null && pressure.value !== undefined) {
+    box.appendChild(miniCard(
+      S.report.filter_pressure,
+      decimal(pressure.value) + (pressure.unit ? " " + pressure.unit : ""),
+      pressure.due ? "high" : null,
+      pressure.rise_percent === null || pressure.rise_percent === undefined
+        ? "" : S.report.pressure_rise.replace("{p}", pressure.rise_percent),
+      pressure.due ? { text: S.report.wash_filter, status: "high" } : null));
+  }
+
   ["pump", "pool_light", "cover"].forEach(role => {
     if (!roles[role]) return;
     const on = roles[role].state === "on" || roles[role].state === "open";
@@ -382,8 +393,19 @@ function renderFiltrationHint(){
   const strong = document.createElement("b");
   strong.textContent = S.report.hours.replace("{h}", filtration.recommended_hours);
   hint.appendChild(strong);
-  hint.appendChild(document.createTextNode(
-    " · " + K.at_temperature.replace("{t}", filtration.temperature)));
+  const tail = [];
+  if (filtration.basis === "turnover" && filtration.flow) {
+    tail.push(S.report.turnovers_basis
+      .replace("{n}", String(filtration.turnovers)).replace("{flow}", String(filtration.flow)));
+  } else if (filtration.basis === "chlorination" && filtration.cell_output) {
+    tail.push(S.report.chlorination_basis.replace("{cell}", decimal(filtration.cell_output)));
+  } else {
+    tail.push(K.at_temperature.replace("{t}", filtration.temperature));
+  }
+  if (filtration.actual_hours !== null && filtration.actual_hours !== undefined) {
+    tail.push(S.report.actual_today.replace("{h}", filtration.actual_hours));
+  }
+  hint.appendChild(document.createTextNode(" · " + tail.join(" · ")));
 }
 
 function renderCycle(){
@@ -425,12 +447,22 @@ function taskLabel(task){
   return S.tiles[task.key] || S.report.values[task.key] || task.key;
 }
 
+/* A filter flagged by its gauge is not "late" — say what the gauge saw */
+function pressureReason(task){
+  const pressure = report.filter_pressure;
+  if (task.key !== "filter_wash" || !pressure || pressure.due === null
+      || pressure.due === undefined || pressure.rise_percent === null
+      || pressure.rise_percent === undefined) return null;
+  return S.report.pressure_rise.replace("{p}", pressure.rise_percent);
+}
+
 function renderAttention(){
   const box = document.getElementById("attention");
   const items = document.getElementById("attention-items");
   items.innerHTML = "";
   const due = (report.tasks || []).filter(task => task.due);
-  const acidLow = report.values && report.values.acid_tank_level === "quarter";
+  const acidLevel = report.values ? report.values.acid_tank_level : undefined;
+  const acidLow = acidLevel === "quarter" || acidLevel === "empty";
   if (!due.length && !acidLow) { box.style.display = "none"; return; }
   box.style.display = "";
   due.slice(0, 3).forEach(task => {
@@ -438,15 +470,15 @@ function renderAttention(){
     item.appendChild(el("div", "n", taskLabel(task)));
     const overdueDays = task.next
       ? Math.floor((Date.now() - new Date(task.next).getTime()) / 86400000) : 0;
-    item.appendChild(el("div", "d", task.last
+    item.appendChild(el("div", "d", pressureReason(task) || (task.last
       ? K.overdue_days.replace("{days}", Math.max(overdueDays, 0))
-      : K.never_recorded));
+      : K.never_recorded)));
     items.appendChild(item);
   });
   if (acidLow) {
     const item = el("div", "item");
     item.appendChild(el("div", "n", S.report.values.acid_tank_level));
-    item.appendChild(el("div", "d", S.acid_levels.quarter));
+    item.appendChild(el("div", "d", S.acid_levels[acidLevel]));
     items.appendChild(item);
   }
 }

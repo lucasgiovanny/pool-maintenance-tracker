@@ -61,7 +61,9 @@
     "full": "Lleno",
     "three_quarters": "¾",
     "half": "½",
-    "quarter": "¼"
+    "quarter": "¼",
+    "empty": "Vacío",
+    "none": "Sin depósito"
   },
   "modes": {
     "smart": "Smart",
@@ -128,7 +130,7 @@
     "next_due": "próxima {date}",
     "schedule_off": "se apaga {date} a las {time}",
     "schedule_on": "se enciende {date} a las {time}",
-    "alert_acid": "Depósito de ácido a ¼ — planifica un rellenado",
+    "alert_acid": "Depósito de ácido {level} — planea un rellenado",
     "in_time": "en {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtración",
@@ -140,7 +142,14 @@
       "ideal": "ideal"
     },
     "filtration_recommended": "Filtración recomendada",
-    "recommended": "recomendado {h} h"
+    "recommended": "recomendado {h} h",
+    "turnovers_basis": "{n} renovaciones a {flow} m³/h",
+    "chlorination_basis": "célula de {cell} g/h",
+    "low_speed": "o {h} h a media velocidad",
+    "actual_today": "funcionó {h} h hoy",
+    "filter_pressure": "Presión del filtro",
+    "pressure_rise": "+{p}% desde el lavado",
+    "wash_filter": "lavar"
   },
   "notes": {
     "title": "Notas",

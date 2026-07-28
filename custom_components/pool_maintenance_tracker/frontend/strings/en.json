@@ -61,7 +61,9 @@
     "full": "Full",
     "three_quarters": "¾",
     "half": "½",
-    "quarter": "¼"
+    "quarter": "¼",
+    "empty": "Empty",
+    "none": "No tank"
   },
   "modes": {
     "smart": "Smart",
@@ -128,7 +130,7 @@
     "next_due": "next {date}",
     "schedule_off": "turns off {date} at {time}",
     "schedule_on": "turns on {date} at {time}",
-    "alert_acid": "Acid tank at ¼ — plan a refill",
+    "alert_acid": "Acid tank {level} — plan a refill",
     "in_time": "in {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtration",
@@ -140,7 +142,14 @@
       "ideal": "ideal"
     },
     "filtration_recommended": "Recommended filtration",
-    "recommended": "recommended {h} h"
+    "recommended": "recommended {h} h",
+    "turnovers_basis": "{n} turnovers at {flow} m³/h",
+    "chlorination_basis": "{cell} g/h cell",
+    "low_speed": "or {h} h at half speed",
+    "actual_today": "ran {h} h today",
+    "filter_pressure": "Filter pressure",
+    "pressure_rise": "+{p}% since the wash",
+    "wash_filter": "wash"
   },
   "notes": {
     "title": "Notes",

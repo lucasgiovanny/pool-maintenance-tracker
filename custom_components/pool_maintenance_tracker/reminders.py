@@ -40,7 +40,9 @@ NOTIFY_STRINGS = {
         TS_PROBE_CALIBRATION: "pH probe calibration is overdue ({when}).",
         "last_done": "last done {days} days ago",
         "never_done": "never recorded",
-        "acid_alert": "Acid tank is at 1/4 — plan a refill.",
+        "acid_alert": "Acid tank is low ({level}) — plan a refill.",
+        "acid_empty": "Empty",
+        "acid_quarter": "1/4",
     },
     "pt": {
         "title": "Piscina: {pool}",
@@ -49,7 +51,9 @@ NOTIFY_STRINGS = {
         TS_PROBE_CALIBRATION: "A calibração da sonda de pH está atrasada ({when}).",
         "last_done": "última há {days} dias",
         "never_done": "nunca registada",
-        "acid_alert": "O depósito de ácido está a 1/4 — planeia um atesto.",
+        "acid_alert": "O depósito de ácido está baixo ({level}) — planeia um atesto.",
+        "acid_empty": "Vazio",
+        "acid_quarter": "1/4",
     },
 }
 
@@ -103,6 +107,19 @@ class ReminderEngine:
         return self.tracker.get_timestamp(timestamp_key) or self.tracker.installed_at_dt
 
     def is_overdue(self, timestamp_key: str, days: int, now: datetime) -> bool:
+        """Whether a task is past due.
+
+        The filter is special: with a pressure gauge linked and a clean
+        baseline known, the gauge decides — a filter that is still clean
+        after the interval should not be washed, and one that clogged early
+        should not wait.
+        """
+        if timestamp_key == TS_FILTER_WASH:
+            from . import filter_pressure
+
+            by_pressure = filter_pressure.is_due(self.entry, self.tracker)
+            if by_pressure is not None:
+                return by_pressure
         return now - self.overdue_since(timestamp_key) >= timedelta(days=days)
 
     async def _async_daily_check(self, now: datetime) -> None:
@@ -131,8 +148,11 @@ class ReminderEngine:
         # Refresh the *_due binary sensors even when nothing was notified.
         self.tracker.async_update_listeners()
 
-    async def async_send_acid_alert(self) -> None:
-        await self.async_notify(self._strings()["acid_alert"])
+    async def async_send_acid_alert(self, level: str) -> None:
+        strings = self._strings()
+        await self.async_notify(
+            strings["acid_alert"].format(level=strings.get(f"acid_{level}", level))
+        )
 
     async def async_notify(self, message: str) -> None:
         service = self.entry.options.get(CONF_NOTIFY_SERVICE, "")

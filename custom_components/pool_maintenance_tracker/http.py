@@ -16,6 +16,7 @@ import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from pathlib import Path
+from time import monotonic
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
@@ -24,12 +25,17 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
+from . import filter_pressure
 from .const import (
+    ACID_ALERT_LEVELS,
+    CONF_CELL_OUTPUT,
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_PEOPLE,
     CONF_POOL_VOLUME,
+    CONF_PUMP_FLOW,
+    CONF_PUMP_TYPE,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
     CONF_SALT_TARGET_MAX,
@@ -46,7 +52,6 @@ from .const import (
     DEFAULT_SALT_TARGET_MIN,
     DOMAIN,
     EQUIPMENT_ROLES,
-    FILTRATION_MIN_HOURS,
     HISTORY_PERIODS,
     IDEAL_FREE_CHLORINE,
     IDEAL_PH,
@@ -62,6 +67,7 @@ from .const import (
     MAX_NOTE_LENGTH,
     MAX_PERSON_LENGTH,
     NUMBER_RANGES,
+    PUMP_SINGLE_SPEED,
     RECENT_RECORDS_ATTR_COUNT,
     TS_ANY,
     URL_HISTORY,
@@ -72,6 +78,7 @@ from .const import (
     URL_STATE,
 )
 from .entity import page_url
+from .filtration import advise
 from .modules import (
     enabled_reminders,
     enabled_tiles,
@@ -417,22 +424,69 @@ def _today_scheduled_hours(week: list[list[list[str]]] | None) -> float | None:
 
 
 @callback
-def _filtration_hint(
+def _cover_closed(roles: dict[str, Any]) -> bool:
+    """Whether the pool is covered right now.
+
+    Only ever true from a real entity: without one we assume uncovered,
+    which errs towards filtering more rather than less.
+    """
+    cover = roles.get("cover")
+    if not cover:
+        return False
+    return cover.get("state") in ("closed", "on", "true")
+
+
+async def _actual_hours_today(
+    hass: HomeAssistant, entry: ConfigEntry, roles: dict[str, Any]
+) -> float | None:
+    """How long the filtration actually ran today, from the recorder.
+
+    Schedules get overridden by hand, so comparing the advice against what
+    the pump really did is more honest than comparing it against the plan.
+    The answer is cached: the page and the kiosk both poll, and this costs a
+    recorder query.
+    """
+    role = roles.get("pump") or roles.get("pool_system")
+    if not role or not _recorder_ready(hass):
+        return None
+    cache = entry.runtime_data.cache
+    now = monotonic()
+    cached = cache.get(ACTUAL_HOURS_CACHE)
+    if cached and now - cached[0] < ACTUAL_HOURS_TTL:
+        return cached[1]
+
+    start = dt_util.start_of_local_day()
+    series = await _ontime_daily(hass, role["entity_id"], start, dt_util.utcnow())
+    hours = series[-1]["v"] if series else None
+    cache[ACTUAL_HOURS_CACHE] = (now, hours)
+    return hours
+
+
+async def _filtration_hint(
     hass: HomeAssistant, entry: ConfigEntry, temperature: float | None, roles: dict[str, Any]
 ) -> dict[str, Any] | None:
-    """Rule of thumb: run the filtration water-temperature/2 hours a day.
+    """What the filtration should run today, next to what it does run.
 
     Only ever a suggestion — the integration never drives the pump.
     """
     if temperature is None:
         return None
-    recommended = max(FILTRATION_MIN_HOURS, round(temperature / 2 * 2) / 2)
+    advice = advise(
+        temperature,
+        volume=entry.options.get(CONF_POOL_VOLUME),
+        flow=entry.options.get(CONF_PUMP_FLOW),
+        cell_output=entry.options.get(CONF_CELL_OUTPUT),
+        covered=_cover_closed(roles),
+        pump_type=entry.options.get(CONF_PUMP_TYPE, PUMP_SINGLE_SPEED),
+    ).as_dict()
     schedule = roles.get("filtration_schedule")
-    return {
-        "temperature": round(temperature, 1),
-        "recommended_hours": min(24.0, recommended),
-        "scheduled_hours": _today_scheduled_hours(schedule.get("week") if schedule else None),
-    }
+    advice["scheduled_hours"] = _today_scheduled_hours(schedule.get("week") if schedule else None)
+    advice["actual_hours"] = await _actual_hours_today(hass, entry, roles)
+    return advice
+
+
+ACTUAL_HOURS_CACHE = "actual_filtration_hours"
+ACTUAL_HOURS_TTL = 300  # seconds — the page polls every 60, the kiosk every 30
 
 
 # Task order on the report tab
@@ -511,7 +565,8 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "values": values,
         "ranges": _ideal_ranges(entry),
         "volume": entry.options.get(CONF_POOL_VOLUME),
-        "filtration": _filtration_hint(hass, entry, temperature, roles),
+        "filtration": await _filtration_hint(hass, entry, temperature, roles),
+        "filter_pressure": filter_pressure.snapshot(hass, entry, tracker),
         "tasks": tasks,
         "last_maintenance": tracker.timestamps.get(TS_ANY),
         "records": records,
@@ -826,9 +881,10 @@ class PoolLogView(HomeAssistantView):
 
         if note_raw is not None and note_text is None:
             result.ignored.append("note")
+        # Notify on the way down only: repeating "still low" every log is noise
         acid_alert = (
-            result.values.get(KEY_ACID_TANK_LEVEL) == "quarter"
-            and tracker.values.get(KEY_ACID_TANK_LEVEL) != "quarter"
+            result.values.get(KEY_ACID_TANK_LEVEL) in ACID_ALERT_LEVELS
+            and tracker.values.get(KEY_ACID_TANK_LEVEL) not in ACID_ALERT_LEVELS
         )
         # Audit trail: what the linked automatic sensors read at log time.
         live = _live_values(hass, entry)
@@ -851,7 +907,7 @@ class PoolLogView(HomeAssistantView):
                 result.record["person"], note_text, created_at=result.record["logged_at"]
             )
         if acid_alert:
-            await runtime.reminders.async_send_acid_alert()
+            await runtime.reminders.async_send_acid_alert(result.values[KEY_ACID_TANK_LEVEL])
 
         _LOGGER.debug(
             "Accepted record for %s from %s (ignored: %s)",

@@ -53,11 +53,14 @@
       },
       "pool": {
         "title": "Piscina",
-        "description": "O volume desbloqueia a dica de dosagem de sal na página de registo. A faixa de sal é o que serve de referência às leituras — confirma o que o teu clorador pede.",
+        "description": "O volume desbloqueia a dica de dosagem de sal. Com o caudal da bomba dá para dimensionar a filtração por renovações em vez de adivinhar pela temperatura; a produção da célula diz-nos se o clorador tem tempo para fazer o cloro do dia. A faixa de sal é a referência das leituras — confirma o que o teu clorador pede.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Sal alvo — mínimo (g/L)",
-          "salt_target_max": "Sal alvo — máximo (g/L)"
+          "salt_target_max": "Sal alvo — máximo (g/L)",
+          "pump_flow": "Caudal da bomba (m³/h)",
+          "pump_type": "Tipo de bomba",
+          "cell_output": "Produção da célula (g/h)"
         }
       },
       "modules": {
@@ -76,14 +79,15 @@
       },
       "sensors": {
         "title": "Sensores ligados",
-        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registo. Deixa um campo vazio para desligar.",
+        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registo. Deixa um campo vazio para desligar. Com um sensor de pressão ligado, o aviso de lavagem do filtro passa a seguir a subida de pressão face ao filtro limpo em vez do intervalo fixo. A referência é capturada automaticamente na próxima lavagem registada.",
         "data": {
           "ph_source": "Sensor de pH",
           "chlorine_source": "Sensor de cloro livre",
           "salt_source": "Sensor de sal",
           "temperature_source": "Sensor de temperatura da água",
           "linked_mode": "Comportamento dos sensores ligados",
-          "report_sensors": "Entidades extra na aba Estado"
+          "report_sensors": "Entidades extra na aba Estado",
+          "filter_pressure_source": "Manómetro do filtro"
         }
       },
       "equipment": {
@@ -104,7 +108,8 @@
           "filter_days": "Lembrete de lavagem do filtro (dias)",
           "probe_days": "Lembrete de calibração da sonda de pH (dias)",
           "cell_days": "Lembrete de limpeza da célula (dias)",
-          "reminder_time": "Hora da verificação diária (HH:MM)"
+          "reminder_time": "Hora da verificação diária (HH:MM)",
+          "filter_pressure_rise": "Lavar o filtro a esta subida de pressão (%)"
         }
       },
       "page": {
@@ -166,6 +171,13 @@
         "fill_on_record": "Preencher entidades com a sonda ao guardar um registo",
         "mirror": "Espelhar continuamente (sobrepõe valores manuais)"
       }
+    },
+    "pump_type": {
+      "options": {
+        "single_speed": "Velocidade única",
+        "two_speed": "Duas velocidades",
+        "variable_speed": "Velocidade variável"
+      }
     }
   },
   "entity": {
@@ -204,7 +216,9 @@
           "full": "Cheio",
           "three_quarters": "¾",
           "half": "½",
-          "quarter": "¼"
+          "quarter": "¼",
+          "empty": "Vazio",
+          "none": "Sem depósito"
         }
       }
     },

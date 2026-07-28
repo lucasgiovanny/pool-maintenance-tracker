@@ -5,6 +5,9 @@
 
 const TOGGLE_DOMAINS = ["switch", "input_boolean", "light", "fan"];
 const TOGGLE_ROLES = ["pool_system", "heat_pump", "pump", "pool_light", "cover"];
+/* An empty drum needs refilling; no drum at all is a decision, not a fault */
+const ACID_ALERT_LEVELS = ["quarter", "empty"];
+
 const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
 
@@ -101,6 +104,10 @@ function availableItems(data, text) {
   }
   if (values.acid_tank_level !== undefined) {
     equipment.push({ value: "acid_tank", label: text.acid_tank });
+  }
+  if ((report.filter_pressure || {}).value !== undefined
+      && (report.filter_pressure || {}).value !== null) {
+    equipment.push({ value: "filter_pressure", label: S.report.filter_pressure });
   }
   (report.extra || []).forEach(item => {
     equipment.push({ value: "extra:" + item.entity_id, label: item.name });
@@ -326,8 +333,9 @@ class PoolMaintenanceCard extends HTMLElement {
           ? S.kiosk.overdue_days.replace("{days}", days)
           : S.kiosk.never_recorded));
       });
-      if (values.acid_tank_level === "quarter") {
-        alertLines.push(S.report.values.acid_tank_level + " — " + S.acid_levels.quarter);
+      if (ACID_ALERT_LEVELS.includes(values.acid_tank_level)) {
+        alertLines.push(S.report.values.acid_tank_level + " — "
+          + S.acid_levels[values.acid_tank_level]);
       }
     }
 
@@ -361,7 +369,7 @@ class PoolMaintenanceCard extends HTMLElement {
         name: S.report.values.acid_tank_level,
         value: S.acid_levels[values.acid_tank_level] || values.acid_tank_level,
         entity: ids.acid_tank_level,
-        warn: values.acid_tank_level === "quarter",
+        warn: ACID_ALERT_LEVELS.includes(values.acid_tank_level),
       });
     }
     READING_KEYS.forEach(key => {
@@ -406,6 +414,21 @@ class PoolMaintenanceCard extends HTMLElement {
           + (hasSchedule
             ? " · " + S.report.recommended.replace("{h}", filtration.recommended_hours) : ""),
         entity: (roles.filtration_schedule || {}).entity_id,
+      });
+    }
+
+    /* The filter's pressure decides its wash, so it belongs on the card */
+    const pressure = report.filter_pressure;
+    if (shown.has("filter_pressure") && pressure
+        && pressure.value !== null && pressure.value !== undefined) {
+      rows.push({
+        name: S.report.filter_pressure,
+        value: pressure.value + (pressure.unit ? " " + pressure.unit : "")
+          + (pressure.rise_percent === null || pressure.rise_percent === undefined ? ""
+            : " · " + S.report.pressure_rise.replace("{p}", pressure.rise_percent)),
+        entity: pressure.entity_id,
+        badge: pressure.due ? { text: S.report.wash_filter, due: true } : null,
+        warn: !!pressure.due,
       });
     }
 

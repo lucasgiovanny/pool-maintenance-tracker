@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
@@ -11,13 +12,18 @@ from homeassistant.const import CONF_NAME, Platform
 from homeassistant.core import Event, HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
 
+from . import filter_pressure
 from .const import (
+    CATEGORY_FILTER_WASH,
     CONF_LINKED_MODE,
+    CONF_POOL_SYSTEM_ENTITY,
+    CONF_PUMP_ENTITY,
     CONF_TOKEN,
     DATA_TOKENS,
     DOMAIN,
@@ -26,6 +32,7 @@ from .const import (
     LINKED_SOURCES,
     LINKED_VALUE_KEYS,
     NUMBER_RANGES,
+    signal_record,
 )
 from .http import async_register_views
 from .modules import active_entity_keys, enabled_value_keys
@@ -51,6 +58,8 @@ class PoolRuntimeData:
 
     tracker: PoolTracker
     reminders: ReminderEngine
+    # Short-lived answers too expensive to recompute on every poll
+    cache: dict[str, Any] = field(default_factory=dict)
 
 
 type PoolConfigEntry = ConfigEntry[PoolRuntimeData]
@@ -77,6 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
 
     if entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL) == LINKED_MODE_MIRROR:
         _async_setup_linked_mirror(hass, entry, tracker)
+    _async_setup_filter_pressure(hass, entry, tracker)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
@@ -137,6 +147,45 @@ def _async_register_services(hass: HomeAssistant) -> None:
         _handle_delete_record,
         schema=DELETE_RECORD_SCHEMA,
     )
+
+
+@callback
+def _async_setup_filter_pressure(
+    hass: HomeAssistant, entry: PoolConfigEntry, tracker: PoolTracker
+) -> None:
+    """Let the filter's pressure gauge drive its wash alert.
+
+    Two hooks: every logged filter wash re-captures the clean baseline, and
+    every pressure reading is judged against it. Both are no-ops without a
+    linked sensor, which is how the fixed interval keeps working for
+    everybody else.
+    """
+
+    @callback
+    def _handle_record(record: dict) -> None:
+        if CATEGORY_FILTER_WASH in record.get("categories", []):
+            filter_pressure.async_capture_baseline(hass, entry, tracker)
+
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, signal_record(entry.entry_id), _handle_record)
+    )
+
+    entity_id = filter_pressure.source_entity(entry)
+    if not entity_id:
+        return
+
+    @callback
+    def _handle_change(event: Event[EventStateChangedData]) -> None:
+        filter_pressure.async_evaluate(hass, entry, tracker)
+
+    # The pump switching on changes what the gauge means, so watch it too.
+    watched = [entity_id]
+    for conf_key in (CONF_PUMP_ENTITY, CONF_POOL_SYSTEM_ENTITY):
+        if role_entity := entry.options.get(conf_key):
+            watched.append(role_entity)
+
+    filter_pressure.async_evaluate(hass, entry, tracker)
+    entry.async_on_unload(async_track_state_change_event(hass, watched, _handle_change))
 
 
 @callback
