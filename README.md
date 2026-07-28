@@ -101,18 +101,24 @@ depends on how much you have told it — see below.
 
 ### Sizing the filtration
 
-With nothing configured the suggestion is the usual rule of thumb, *water
-temperature ÷ 2* hours a day. That assumes an average pump on an average pool,
-and it can be hours off in either direction. Every field below is optional and
-sharpens it; the surfaces always show the reasoning next to the number, so you
-can disagree with something concrete.
+The baseline is the usual rule of thumb, *water temperature ÷ 2* hours a day,
+and it always applies. Everything below is optional and can only ask for
+**more** hours, never fewer — the surfaces show which constraint is binding, so
+you can disagree with something concrete.
 
-**Pump flow rate (m³/h)** — the single most valuable one. It is on the pump's
-nameplate, and together with the pool volume it replaces the guess with
-turnover maths: `hours = volume × turnovers ÷ flow`. Turnovers per day ramp
-with the water temperature (1 below 18 °C, 2 above 28 °C), because warm water
-grows algae and burns chlorine faster. A 48 m³ pool with a 9 m³/h pump at
-24 °C wants **8.5 h/day** — the rule of thumb would have said 12 h.
+That ordering is deliberate. A pump's nameplate flow is measured at a generous
+point on its curve, and a real installation with a filter and pipework delivers
+noticeably less, so it is a number the owner cannot really verify. Letting it
+lower the recommendation would hand an unverifiable input the power to
+under-filter the pool; letting it only raise the recommendation makes
+overstating it harmless.
+
+**Pump flow rate (m³/h)** — with the pool volume it adds turnover maths:
+`hours = volume × turnovers ÷ flow`, where turnovers per day ramp with the
+water temperature (1 below 18 °C, 2 above 28 °C). It matters for the case the
+rule of thumb gets dangerously wrong: an 80 m³ pool on an 8 m³/h pump at 28 °C
+needs **20 h/day**, where the rule of thumb would have said 14. Use the flow at
+the working point if you know it, or knock about 30 % off the box figure.
 
 **Pump type** — single speed, two speed or variable speed. A variable-speed
 pump moves roughly half the water at half the speed for about a quarter of the
@@ -125,6 +131,13 @@ chlorinator only makes chlorine while the pump runs, so there is a second
 constraint: enough hours to produce what the day burns (which rises with the
 water temperature). The suggestion is whichever of the two is longer, and the
 surfaces say which one is binding.
+
+**UV index** — an optional sensor or weather entity, under *Configure → Linked
+sensors*. The water temperature already carries most of the weather (a pool at
+28 °C has been getting sun), so there is no point feeding in the air
+temperature as well. UV is the part it does not carry: two pools at the same
+temperature under different skies burn chlorine at different rates, so it
+scales the chlorination constraint only.
 
 **A cover, if you have one as an entity** — configure it under *Equipment →
 Cover* and, while it reports closed, the suggestion drops: less debris, and

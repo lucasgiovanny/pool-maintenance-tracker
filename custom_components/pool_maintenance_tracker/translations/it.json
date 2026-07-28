@@ -53,12 +53,12 @@
       },
       "pool": {
         "title": "Piscina",
-        "description": "Il volume abilita il suggerimento di dose di sale. Con la portata della pompa la filtrazione si dimensiona per ricicli invece di indovinarla dalla temperatura; la produzione della cella dice se il clorinatore ha tempo di fare il cloro della giornata. La banda del sale è il riferimento delle letture — controlla cosa richiede il tuo clorinatore.",
+        "description": "Il volume abilita il suggerimento di dose di sale. Con la portata della pompa la filtrazione si dimensiona per ricicli invece di indovinarla dalla temperatura; la produzione della cella dice se il clorinatore ha tempo di fare il cloro della giornata. La banda del sale è il riferimento delle letture — controlla cosa richiede il tuo clorinatore. La portata può solo alzare il suggerimento, mai abbassarlo: il valore di targa è misurato in un punto generoso della curva della pompa, quindi usa quello reale se lo conosci — o togli circa il 30 % a quello della scatola.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Sale obiettivo — minimo (g/L)",
           "salt_target_max": "Sale obiettivo — massimo (g/L)",
-          "pump_flow": "Portata della pompa (m³/h)",
+          "pump_flow": "Portata della pompa (m³/h, al punto di lavoro)",
           "pump_type": "Tipo di pompa",
           "cell_output": "Produzione della cella (g/h)"
         }
@@ -79,7 +79,7 @@
       },
       "sensors": {
         "title": "Sensori collegati",
-        "description": "Collega sensori esistenti (ad esempio di una sonda smart o di un'altra integrazione per piscine). I valori attuali compaiono nella pagina accanto alle letture manuali e con ogni registrazione viene salvato uno snapshot. Lascia un campo vuoto per scollegarlo. Con un sensore di pressione collegato, l'avviso di lavaggio del filtro segue l'aumento di pressione rispetto al filtro pulito invece dell'intervallo fisso. Il riferimento viene catturato automaticamente al prossimo lavaggio registrato.",
+        "description": "Collega sensori esistenti (ad esempio di una sonda smart o di un'altra integrazione per piscine). I valori attuali compaiono nella pagina accanto alle letture manuali e con ogni registrazione viene salvato uno snapshot. Lascia un campo vuoto per scollegarlo. Con un sensore di pressione collegato, l'avviso di lavaggio del filtro segue l'aumento di pressione rispetto al filtro pulito invece dell'intervallo fisso. Il riferimento viene catturato automaticamente al prossimo lavaggio registrato. Una sorgente UV affina il cloro consumato nella giornata — la temperatura dell'acqua porta già il resto del meteo.",
         "data": {
           "ph_source": "Sensore pH",
           "chlorine_source": "Sensore cloro libero",
@@ -87,7 +87,8 @@
           "temperature_source": "Sensore temperatura dell'acqua",
           "linked_mode": "Comportamento dei sensori collegati",
           "report_sensors": "Entità extra nella scheda Stato",
-          "filter_pressure_source": "Manometro del filtro"
+          "filter_pressure_source": "Manometro del filtro",
+          "uv_source": "Indice UV (sensore o entità meteo)"
         }
       },
       "equipment": {

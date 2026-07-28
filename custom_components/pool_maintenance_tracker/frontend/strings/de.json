@@ -149,7 +149,8 @@
     "actual_today": "lief heute {h} h",
     "filter_pressure": "Filterdruck",
     "pressure_rise": "+{p}% seit der Wäsche",
-    "wash_filter": "waschen"
+    "wash_filter": "waschen",
+    "asks": "verlangt {h} h"
   },
   "notes": {
     "title": "Notizen",

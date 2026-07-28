@@ -57,6 +57,7 @@ from .const import (
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TOKEN,
+    CONF_UV_SOURCE,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
     DEFAULT_FILTER_PRESSURE_RISE,
@@ -380,7 +381,11 @@ class PoolOptionsFlow(OptionsFlow):
         """Link external sensors (e.g. a smart probe) to the pool."""
         options = dict(self.config_entry.options)
         if user_input is not None:
-            for conf_key in (*LINKED_SOURCES.values(), CONF_FILTER_PRESSURE_SOURCE):
+            for conf_key in (
+                *LINKED_SOURCES.values(),
+                CONF_FILTER_PRESSURE_SOURCE,
+                CONF_UV_SOURCE,
+            ):
                 if user_input.get(conf_key):
                     options[conf_key] = user_input[conf_key]
                 else:
@@ -400,6 +405,12 @@ class PoolOptionsFlow(OptionsFlow):
                     description={"suggested_value": options.get(conf_key)},
                 )
             ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
+        schema[
+            vol.Optional(
+                CONF_UV_SOURCE,
+                description={"suggested_value": options.get(CONF_UV_SOURCE)},
+            )
+        ] = EntitySelector(EntitySelectorConfig(domain=["sensor", "weather"]))
         schema[
             vol.Optional(
                 CONF_FILTER_PRESSURE_SOURCE,

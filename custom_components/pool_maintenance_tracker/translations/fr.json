@@ -53,12 +53,12 @@
       },
       "pool": {
         "title": "Piscine",
-        "description": "Le volume active l'estimation de dose de sel. Avec le débit de la pompe, la filtration se calcule en renouvellements plutôt qu'en devinant d'après la température ; la production de la cellule indique si l'électrolyseur a le temps de produire le chlore de la journée. La plage de sel sert de référence aux mesures — vérifiez ce que demande votre électrolyseur.",
+        "description": "Le volume active l'estimation de dose de sel. Avec le débit de la pompe, la filtration se calcule en renouvellements plutôt qu'en devinant d'après la température ; la production de la cellule indique si l'électrolyseur a le temps de produire le chlore de la journée. La plage de sel sert de référence aux mesures — vérifiez ce que demande votre électrolyseur. Le débit ne peut qu'augmenter la suggestion, jamais la réduire : la valeur de la plaque est mesurée à un point généreux de la courbe de la pompe, utilisez donc la vraie si vous la connaissez — ou retirez environ 30 % à celle du carton.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Sel cible — minimum (g/L)",
           "salt_target_max": "Sel cible — maximum (g/L)",
-          "pump_flow": "Débit de la pompe (m³/h)",
+          "pump_flow": "Débit de la pompe (m³/h, au point de fonctionnement)",
           "pump_type": "Type de pompe",
           "cell_output": "Production de la cellule (g/h)"
         }
@@ -79,7 +79,7 @@
       },
       "sensors": {
         "title": "Capteurs liés",
-        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier. Avec un capteur de pression lié, l'alerte de lavage du filtre suit la hausse de pression par rapport au filtre propre au lieu de l'intervalle fixe. La référence est capturée automatiquement au prochain lavage enregistré.",
+        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier. Avec un capteur de pression lié, l'alerte de lavage du filtre suit la hausse de pression par rapport au filtre propre au lieu de l'intervalle fixe. La référence est capturée automatiquement au prochain lavage enregistré. Une source UV affine le chlore consommé dans la journée — la température de l'eau porte déjà le reste de la météo.",
         "data": {
           "ph_source": "Capteur de pH",
           "chlorine_source": "Capteur de chlore libre",
@@ -87,7 +87,8 @@
           "temperature_source": "Capteur de température de l'eau",
           "linked_mode": "Comportement des capteurs liés",
           "report_sensors": "Entités supplémentaires dans l'onglet État",
-          "filter_pressure_source": "Manomètre du filtre"
+          "filter_pressure_source": "Manomètre du filtre",
+          "uv_source": "Indice UV (capteur ou entité météo)"
         }
       },
       "equipment": {

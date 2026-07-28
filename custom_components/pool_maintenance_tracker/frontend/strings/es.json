@@ -149,7 +149,8 @@
     "actual_today": "funcionó {h} h hoy",
     "filter_pressure": "Presión del filtro",
     "pressure_rise": "+{p}% desde el lavado",
-    "wash_filter": "lavar"
+    "wash_filter": "lavar",
+    "asks": "pide {h} h"
   },
   "notes": {
     "title": "Notas",

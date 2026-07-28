@@ -53,12 +53,12 @@
       },
       "pool": {
         "title": "Pool",
-        "description": "The volume unlocks the salt-dose hint. With the pump flow rate we can size the filtration by turnover instead of guessing from the temperature; the cell output tells us whether the chlorinator has time to make the day's chlorine. The salt band is what the readings are judged against — check what your chlorinator asks for.",
+        "description": "The volume unlocks the salt-dose hint. With the pump flow rate we can size the filtration by turnover instead of guessing from the temperature; the cell output tells us whether the chlorinator has time to make the day's chlorine. The salt band is what the readings are judged against — check what your chlorinator asks for. The flow rate only ever raises the suggestion, never lowers it: a nameplate figure is measured at a generous point on the pump curve, so use the real one if you know it — or knock about 30 % off the box figure.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Salt target — minimum (g/L)",
           "salt_target_max": "Salt target — maximum (g/L)",
-          "pump_flow": "Pump flow rate (m³/h)",
+          "pump_flow": "Pump flow rate (m³/h, at the working point)",
           "pump_type": "Pump type",
           "cell_output": "Chlorinator cell output (g/h)"
         }
@@ -79,7 +79,7 @@
       },
       "sensors": {
         "title": "Linked sensors",
-        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it. With a pressure sensor linked, the filter wash alert follows the pressure rise over the clean baseline instead of the fixed interval. The baseline is captured automatically the next time a filter wash is logged.",
+        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it. With a pressure sensor linked, the filter wash alert follows the pressure rise over the clean baseline instead of the fixed interval. The baseline is captured automatically the next time a filter wash is logged. A UV source refines how much chlorine the day burns — the water temperature already carries the rest of the weather.",
         "data": {
           "ph_source": "pH sensor",
           "chlorine_source": "Free chlorine sensor",
@@ -87,7 +87,8 @@
           "temperature_source": "Water temperature sensor",
           "linked_mode": "Linked sensor behavior",
           "report_sensors": "Extra entities on the Status tab",
-          "filter_pressure_source": "Filter pressure gauge"
+          "filter_pressure_source": "Filter pressure gauge",
+          "uv_source": "UV index (sensor or weather entity)"
         }
       },
       "equipment": {

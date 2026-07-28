@@ -3,13 +3,20 @@
 Everything here is advice. The integration never drives the pump — these
 numbers exist so whoever does can decide with something better than a guess.
 
-Every input is optional. With the pool volume and the pump flow rate we can
-do the real thing (turnover: how many times a day the whole pool passes
-through the filter). On a salt pool with the cell output we can also check
-the chlorinator has enough running time to make the chlorine the day burns.
-With none of it we fall back to the usual rule of thumb, water temperature
-divided by two, which is what the integration did before any of this
-existed.
+The rule of thumb — water temperature divided by two — is the baseline and
+always applies. Everything else can only ask for *more* hours, never fewer:
+
+- turnover (volume ÷ flow) catches the big pool on a weak pump, which the
+  temperature rule would badly under-filter;
+- on a salt pool, the cell needs enough running time to make the chlorine
+  the day burns.
+
+That ordering matters. A pump's nameplate flow is measured at a generous
+point on its curve, and a real installation with a filter and pipework
+delivers noticeably less — so a flow rate is a number the owner cannot
+really verify. Letting it *lower* the recommendation would give an
+unverifiable input the power to under-filter the pool. Letting it only
+raise the recommendation makes overstating it harmless.
 
 The result carries the reasoning, not just the number, so every surface can
 show *why* and the reader can disagree with something concrete.
@@ -35,6 +42,10 @@ from .const import (
     TURNOVER_MAX,
     TURNOVER_MIN,
     TURNOVER_WARM_C,
+    UV_FACTOR_MAX,
+    UV_FACTOR_MIN,
+    UV_PER_INDEX,
+    UV_REFERENCE,
 )
 
 BASIS_TURNOVER = "turnover"
@@ -57,7 +68,9 @@ class FiltrationAdvice:
     cell_output: float | None = None
     turnover_hours: float | None = None
     chlorine_hours: float | None = None
+    rule_hours: float | None = None
     covered: bool = False
+    uv: float | None = None
     low_speed_hours: float | None = None
 
     def as_dict(self) -> dict[str, Any]:
@@ -79,10 +92,23 @@ def turnovers_for(temperature: float) -> float:
     return TURNOVER_MIN + (TURNOVER_MAX - TURNOVER_MIN) * (temperature - TURNOVER_COOL_C) / span
 
 
-def chlorine_demand(temperature: float) -> float:
-    """Grams of chlorine consumed per m³ per day at this temperature."""
+def uv_factor(uv: float | None) -> float:
+    """How much harder the sun is working than an average day.
+
+    The water temperature already carries most of the weather — a pool at
+    28 °C has been getting sun. UV is the part it does not carry: two pools
+    at the same temperature under different skies burn chlorine at
+    different rates.
+    """
+    if uv is None:
+        return 1.0
+    return min(UV_FACTOR_MAX, max(UV_FACTOR_MIN, 1 + (uv - UV_REFERENCE) * UV_PER_INDEX))
+
+
+def chlorine_demand(temperature: float, uv: float | None = None) -> float:
+    """Grams of chlorine consumed per m³ per day in these conditions."""
     demand = DEMAND_PER_DEGREE * temperature - DEMAND_OFFSET
-    return min(DEMAND_MAX, max(DEMAND_MIN, demand))
+    return min(DEMAND_MAX, max(DEMAND_MIN, demand)) * uv_factor(uv)
 
 
 def advise(
@@ -92,6 +118,7 @@ def advise(
     flow: float | None = None,
     cell_output: float | None = None,
     covered: bool = False,
+    uv: float | None = None,
     pump_type: str = PUMP_SINGLE_SPEED,
 ) -> FiltrationAdvice:
     """Recommended daily filtration hours for these conditions."""
@@ -105,24 +132,23 @@ def advise(
 
     chlorine_hours: float | None = None
     if volume and cell_output:
-        demand = chlorine_demand(temperature) * volume
+        demand = chlorine_demand(temperature, uv) * volume
         if covered:
             demand *= COVER_CHLORINE_FACTOR
         chlorine_hours = demand / cell_output
 
-    candidates = [hours for hours in (turnover_hours, chlorine_hours) if hours is not None]
-    if candidates:
-        raw = max(candidates)
-        # Whichever constraint is binding is the one worth explaining.
-        basis = (
-            BASIS_CHLORINATION
-            if chlorine_hours is not None and raw == chlorine_hours
-            else BASIS_TURNOVER
-        )
+    rule_hours = temperature / 2
+    if covered:
+        rule_hours *= COVER_HOURS_FACTOR
+
+    # The baseline always applies; the rest can only ask for more.
+    raw = max(hours for hours in (rule_hours, turnover_hours, chlorine_hours) if hours is not None)
+    # Whichever constraint is binding is the one worth explaining.
+    if chlorine_hours is not None and raw == chlorine_hours:
+        basis = BASIS_CHLORINATION
+    elif turnover_hours is not None and raw == turnover_hours:
+        basis = BASIS_TURNOVER
     else:
-        raw = temperature / 2
-        if covered:
-            raw *= COVER_HOURS_FACTOR
         basis = BASIS_RULE_OF_THUMB
 
     hours = min(MAX_HOURS, max(FILTRATION_MIN_HOURS, _round_half(raw)))
@@ -145,6 +171,8 @@ def advise(
         cell_output=cell_output,
         turnover_hours=None if turnover_hours is None else _round_half(turnover_hours),
         chlorine_hours=None if chlorine_hours is None else _round_half(chlorine_hours),
+        rule_hours=_round_half(rule_hours),
         covered=covered,
+        uv=uv,
         low_speed_hours=low_speed_hours,
     )

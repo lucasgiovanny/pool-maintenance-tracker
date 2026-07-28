@@ -41,6 +41,7 @@ from .const import (
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TEMPERATURE_SOURCE,
+    CONF_UV_SOURCE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
     DATA_TOKENS,
@@ -469,6 +470,19 @@ def _current_readings(
 
 
 @callback
+def _uv_index(hass: HomeAssistant, entry: ConfigEntry) -> float | None:
+    """Today's UV index, from a sensor or a weather entity's attribute."""
+    entity_id = entry.options.get(CONF_UV_SOURCE)
+    if not entity_id or (state := hass.states.get(entity_id)) is None:
+        return None
+    raw = state.attributes.get("uv_index") if state.domain == "weather" else state.state
+    try:
+        return max(0.0, float(raw))
+    except (TypeError, ValueError):
+        return None
+
+
+@callback
 def _cover_closed(roles: dict[str, Any]) -> bool:
     """Whether the pool is covered right now.
 
@@ -522,6 +536,7 @@ async def _filtration_hint(
         flow=entry.options.get(CONF_PUMP_FLOW),
         cell_output=entry.options.get(CONF_CELL_OUTPUT),
         covered=_cover_closed(roles),
+        uv=_uv_index(hass, entry),
         pump_type=entry.options.get(CONF_PUMP_TYPE, PUMP_SINGLE_SPEED),
     ).as_dict()
     schedule = roles.get("filtration_schedule")

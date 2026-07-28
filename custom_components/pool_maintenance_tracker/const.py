@@ -121,6 +121,15 @@ TURNOVER_WARM_C: Final = 28.0
 TURNOVER_MIN: Final = 1.0
 TURNOVER_MAX: Final = 2.0
 
+# UV burns chlorine off, and it is the one thing about the weather the
+# water temperature does not already carry. Applied to the chlorine demand
+# only — it has nothing to say about how much water needs filtering.
+CONF_UV_SOURCE: Final = "uv_source"
+UV_REFERENCE: Final = 5.0  # the index the demand figures below assume
+UV_PER_INDEX: Final = 0.06
+UV_FACTOR_MIN: Final = 0.7
+UV_FACTOR_MAX: Final = 1.4
+
 # Chlorine demand in grams per m³ per day, ramped by water temperature
 # (roughly 1 g/m³ = 1 ppm of free chlorine).
 DEMAND_PER_DEGREE: Final = 0.1

@@ -20,6 +20,7 @@ from custom_components.pool_maintenance_tracker.const import (
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TEMPERATURE_SOURCE,
+    CONF_UV_SOURCE,
     KEY_FREE_CHLORINE,
     KEY_PH,
     KEY_SALT_LEVEL,
@@ -183,15 +184,15 @@ async def test_filtration_hint_falls_back_to_logged_temperature(
 
 
 async def test_sizing_reaches_every_surface(hass, salt_entry, hass_client_no_auth):
-    """Volume + flow turn the guess into turnover maths, everywhere at once."""
-    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
+    """A big pool on a weak pump gets more hours, everywhere at once."""
+    hass.states.async_set("sensor.probe_temperature", "28", {"unit_of_measurement": "°C"})
     await setup_with_options(
         hass,
         salt_entry,
         **{
             CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_POOL_VOLUME: 48,
-            CONF_PUMP_FLOW: 9,
+            CONF_POOL_VOLUME: 80,
+            CONF_PUMP_FLOW: 8,
             CONF_PUMP_TYPE: "variable_speed",
         },
     )
@@ -199,12 +200,55 @@ async def test_sizing_reaches_every_surface(hass, salt_entry, hass_client_no_aut
 
     hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
     assert hint["basis"] == "turnover"
-    assert hint["recommended_hours"] == 8.5  # not the 12 h the rule of thumb gives
-    assert hint["turnovers"] == 1.6
-    assert hint["low_speed_hours"] == 17.0
+    assert hint["recommended_hours"] == 20.0  # the rule of thumb would say 14 h
+    assert hint["turnovers"] == 2.0
+    assert hint["low_speed_hours"] == 24.0
 
     state = await (await client.get(STATE_URL)).json()
-    assert state["report"]["filtration"]["recommended_hours"] == 8.5
+    assert state["report"]["filtration"]["recommended_hours"] == 20.0
+
+
+async def test_a_flow_rate_can_never_under_filter(hass, salt_entry, hass_client_no_auth):
+    """The nameplate figure is unverifiable, so it only ever raises hours."""
+    hass.states.async_set("sensor.probe_temperature", "25", {"unit_of_measurement": "°C"})
+    await setup_with_options(
+        hass,
+        salt_entry,
+        **{
+            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
+            CONF_POOL_VOLUME: 26,
+            CONF_PUMP_FLOW: 10,
+        },
+    )
+    client = await hass_client_no_auth()
+
+    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hint["turnover_hours"] == 4.5
+    assert hint["recommended_hours"] == 12.5  # the baseline wins
+    assert hint["basis"] == "rule_of_thumb"
+
+
+async def test_uv_reaches_the_advice(hass, salt_entry, hass_client_no_auth):
+    """Read from a plain sensor or from a weather entity's attribute."""
+    hass.states.async_set("sensor.probe_temperature", "30", {"unit_of_measurement": "°C"})
+    hass.states.async_set("weather.home", "sunny", {"uv_index": 10})
+    await setup_with_options(
+        hass,
+        salt_entry,
+        **{
+            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
+            CONF_POOL_VOLUME: 60,
+            CONF_PUMP_FLOW: 20,
+            CONF_CELL_OUTPUT: 6,
+            CONF_UV_SOURCE: "weather.home",
+        },
+    )
+    client = await hass_client_no_auth()
+
+    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hint["uv"] == 10.0
+    assert hint["basis"] == "chlorination"
+    assert hint["chlorine_hours"] == 26.0  # capped to 24 h once recommended
 
 
 async def test_a_small_cell_takes_over_from_turnover(hass, salt_entry, hass_client_no_auth):

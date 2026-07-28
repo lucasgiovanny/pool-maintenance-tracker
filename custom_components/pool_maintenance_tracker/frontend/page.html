@@ -85,7 +85,7 @@
   .kv .probe{display:block;font-size:.75rem;font-weight:700;color:var(--aqua);text-align:right}
   .kv .v .why{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-align:right}
 
-  .runbar{padding:0 0 11px}
+  .runbar{padding:12px 0 11px}
   .runbar .track{
     position:relative;height:8px;border-radius:999px;background:var(--bg);
     border:1px solid var(--line);overflow:hidden;
@@ -596,11 +596,22 @@ function renderReport(){
      thumb: "temperature / 2" explains itself and the row is small. */
   function filtrationBasis(f){
     const parts = [];
-    if (f.basis === "turnover" && f.flow) {
-      parts.push(S.report.turnovers_basis
-        .replace("{n}", decimal(f.turnovers)).replace("{flow}", decimal(f.flow)));
-    } else if (f.basis === "chlorination" && f.cell_output) {
-      parts.push(S.report.chlorination_basis.replace("{cell}", decimal(f.cell_output)));
+    /* Show a configured constraint even when it is not the one binding —
+       otherwise the pump you told us about looks quietly ignored. */
+    if (f.flow) {
+      let text = S.report.turnovers_basis
+        .replace("{n}", decimal(f.turnovers)).replace("{flow}", decimal(f.flow));
+      if (f.basis !== "turnover") {
+        text += " · " + S.report.asks.replace("{h}", f.turnover_hours);
+      }
+      parts.push(text);
+    }
+    if (f.cell_output) {
+      let text = S.report.chlorination_basis.replace("{cell}", decimal(f.cell_output));
+      if (f.basis !== "chlorination") {
+        text += " · " + S.report.asks.replace("{h}", f.chlorine_hours);
+      }
+      parts.push(text);
     }
     if (f.low_speed_hours) parts.push(S.report.low_speed.replace("{h}", f.low_speed_hours));
     return parts.join(" · ");

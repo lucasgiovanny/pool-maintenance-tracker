@@ -30,14 +30,25 @@ def test_volume_alone_is_not_enough():
     assert advise(24, volume=48).basis == BASIS_RULE_OF_THUMB
 
 
-def test_turnover_replaces_the_guess():
-    """48 m³ at 9 m³/h, 1.6 turnovers at 24 °C -> 8.5 h."""
+def test_turnover_never_lowers_the_baseline():
+    """A flow rate nobody can verify must not be able to under-filter.
+
+    48 m³ at 9 m³/h works out at 8.5 h, but the rule of thumb asks for 12 —
+    so 12 it is, and the turnover figure stays visible as the reasoning.
+    """
     advice = advise(24, volume=48, flow=9)
+    assert advice.recommended_hours == 12.0
+    assert advice.basis == BASIS_RULE_OF_THUMB
+    assert advice.turnover_hours == 8.5
+    assert advice.rule_hours == 12.0
+
+
+def test_turnover_raises_it_for_a_big_pool_on_a_weak_pump():
+    """The case the rule of thumb gets dangerously wrong."""
+    advice = advise(28, volume=80, flow=8)
     assert advice.basis == BASIS_TURNOVER
-    assert advice.turnovers == 1.6
-    assert advice.recommended_hours == 8.5
-    # the rule of thumb would have said 12 h — the point of asking for the pump
-    assert advise(24).recommended_hours == 12.0
+    assert advice.turnovers == 2.0
+    assert advice.recommended_hours == 20.0  # the rule of thumb would say 14 h
 
 
 @pytest.mark.parametrize(
@@ -58,10 +69,27 @@ def test_chlorination_wins_when_the_cell_is_small():
     assert advice.recommended_hours == 20.0
 
 
-def test_a_generous_cell_leaves_turnover_in_charge():
-    advice = advise(30, volume=60, flow=9, cell_output=30)
+def test_a_generous_cell_leaves_the_others_in_charge():
+    advice = advise(30, volume=90, flow=9, cell_output=30)
     assert advice.basis == BASIS_TURNOVER
-    assert advice.recommended_hours == 13.5
+    assert advice.recommended_hours == 20.0
+
+
+def test_uv_scales_the_chlorine_demand():
+    """Two pools at the same temperature under different skies differ."""
+    from custom_components.pool_maintenance_tracker.filtration import uv_factor
+
+    assert uv_factor(None) == 1.0
+    assert uv_factor(5) == 1.0  # the reference the demand figures assume
+    assert uv_factor(0) == 0.7
+    assert uv_factor(11) == pytest.approx(1.36)
+    assert uv_factor(30) == 1.4  # clamped: no sky is that bad
+
+    cloudy = advise(30, volume=60, flow=20, cell_output=6, uv=1)
+    blazing = advise(30, volume=60, flow=20, cell_output=6, uv=10)
+    assert blazing.chlorine_hours > cloudy.chlorine_hours
+    assert blazing.basis == BASIS_CHLORINATION
+    assert blazing.uv == 10
 
 
 def test_chlorine_demand_is_clamped():
@@ -78,10 +106,10 @@ def test_a_closed_cover_buys_time():
 
 
 def test_low_speed_alternative_only_for_pumps_that_have_one():
-    assert advise(24, volume=48, flow=9).low_speed_hours is None
-    advice = advise(24, volume=48, flow=9, pump_type="variable_speed")
-    assert advice.recommended_hours == 8.5
-    assert advice.low_speed_hours == 17.0
+    assert advise(20, volume=48, flow=9).low_speed_hours is None
+    advice = advise(20, volume=48, flow=9, pump_type="variable_speed")
+    assert advice.recommended_hours == 10.0
+    assert advice.low_speed_hours == 20.0
 
 
 def test_nothing_ever_exceeds_a_full_day():

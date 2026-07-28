@@ -53,12 +53,12 @@
       },
       "pool": {
         "title": "Piscina",
-        "description": "O volume desbloqueia a dica de dosagem de sal. Com o caudal da bomba dá para dimensionar a filtração por renovações em vez de adivinhar pela temperatura; a produção da célula diz-nos se o clorador tem tempo para fazer o cloro do dia. A faixa de sal é a referência das leituras — confirma o que o teu clorador pede.",
+        "description": "O volume desbloqueia a dica de dosagem de sal. Com o caudal da bomba dá para dimensionar a filtração por renovações em vez de adivinhar pela temperatura; a produção da célula diz-nos se o clorador tem tempo para fazer o cloro do dia. A faixa de sal é a referência das leituras — confirma o que o teu clorador pede. O caudal só pode subir a sugestão, nunca baixá-la: o valor da chapa é medido num ponto generoso da curva da bomba, por isso usa o real se o souberes — ou desconta uns 30 % ao da caixa.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Sal alvo — mínimo (g/L)",
           "salt_target_max": "Sal alvo — máximo (g/L)",
-          "pump_flow": "Caudal da bomba (m³/h)",
+          "pump_flow": "Caudal da bomba (m³/h, no ponto de funcionamento)",
           "pump_type": "Tipo de bomba",
           "cell_output": "Produção da célula (g/h)"
         }
@@ -79,7 +79,7 @@
       },
       "sensors": {
         "title": "Sensores ligados",
-        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registo. Deixa um campo vazio para desligar. Com um sensor de pressão ligado, o aviso de lavagem do filtro passa a seguir a subida de pressão face ao filtro limpo em vez do intervalo fixo. A referência é capturada automaticamente na próxima lavagem registada.",
+        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registo. Deixa um campo vazio para desligar. Com um sensor de pressão ligado, o aviso de lavagem do filtro passa a seguir a subida de pressão face ao filtro limpo em vez do intervalo fixo. A referência é capturada automaticamente na próxima lavagem registada. Uma fonte de UV afina quanto cloro o dia consome — a temperatura da água já carrega o resto do clima.",
         "data": {
           "ph_source": "Sensor de pH",
           "chlorine_source": "Sensor de cloro livre",
@@ -87,7 +87,8 @@
           "temperature_source": "Sensor de temperatura da água",
           "linked_mode": "Comportamento dos sensores ligados",
           "report_sensors": "Entidades extra na aba Estado",
-          "filter_pressure_source": "Manómetro do filtro"
+          "filter_pressure_source": "Manómetro do filtro",
+          "uv_source": "Índice UV (sensor ou entidade de meteorologia)"
         }
       },
       "equipment": {
