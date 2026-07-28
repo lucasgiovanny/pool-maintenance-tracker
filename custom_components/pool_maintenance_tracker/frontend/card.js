@@ -825,4 +825,7 @@ window.customCards.push({
   name: "Pool Maintenance Tracker",
   description: "Pool status, equipment and maintenance tasks at a glance.",
   documentationURL: "https://github.com/lucasgiovanny/pool-maintenance-tracker",
+  /* Tells the picker this card can render itself from the stub config,
+     so the tile shows the real card instead of a text row. */
+  preview: true,
 });
