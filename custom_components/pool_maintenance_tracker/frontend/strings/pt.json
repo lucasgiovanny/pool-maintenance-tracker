@@ -149,7 +149,9 @@
     "actual_today": "correu {h} h hoje",
     "filter_pressure": "Pressão do filtro",
     "pressure_rise": "+{p}% desde a lavagem",
-    "wash_filter": "lavar"
+    "wash_filter": "lavar",
+    "alert_filtration_short": "Filtração programada para {scheduled} h/dia, recomendado {recommended} h",
+    "alert_acid_missing": "Sem depósito de ácido — o pH não está a ser doseado"
   },
   "notes": {
     "title": "Notas",

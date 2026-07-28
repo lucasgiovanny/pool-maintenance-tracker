@@ -6,7 +6,7 @@
 const TOGGLE_DOMAINS = ["switch", "input_boolean", "light", "fan"];
 const TOGGLE_ROLES = ["pool_system", "heat_pump", "pump", "pool_light", "cover"];
 /* An empty drum needs refilling; no drum at all is a decision, not a fault */
-const ACID_ALERT_LEVELS = ["quarter", "empty"];
+const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
 
 const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
@@ -335,9 +335,16 @@ class PoolMaintenanceCard extends HTMLElement {
           ? S.kiosk.overdue_days.replace("{days}", days)
           : S.kiosk.never_recorded));
       });
-      if (ACID_ALERT_LEVELS.includes(values.acid_tank_level)) {
+      if (values.acid_tank_level === "none") {
+        alertLines.push(S.report.alert_acid_missing);
+      } else if (ACID_ALERT_LEVELS.includes(values.acid_tank_level)) {
         alertLines.push(S.report.values.acid_tank_level + " — "
           + S.acid_levels[values.acid_tank_level]);
+      }
+      if ((report.filtration || {}).short_by) {
+        alertLines.push(S.report.alert_filtration_short
+          .replace("{scheduled}", report.filtration.scheduled_hours)
+          .replace("{recommended}", report.filtration.recommended_hours));
       }
     }
 

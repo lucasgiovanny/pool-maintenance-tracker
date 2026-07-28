@@ -53,6 +53,8 @@ from .const import (
     DEFAULT_SALT_TARGET_MIN,
     DOMAIN,
     EQUIPMENT_ROLES,
+    FILTRATION_SHORT_FRACTION,
+    FILTRATION_SHORT_MIN_HOURS,
     HISTORY_PERIODS,
     IDEAL_FREE_CHLORINE,
     IDEAL_PH,
@@ -540,8 +542,18 @@ async def _filtration_hint(
         pump_type=entry.options.get(CONF_PUMP_TYPE, PUMP_SINGLE_SPEED),
     ).as_dict()
     schedule = roles.get("filtration_schedule")
-    advice["scheduled_hours"] = _today_scheduled_hours(schedule.get("week") if schedule else None)
+    scheduled = _today_scheduled_hours(schedule.get("week") if schedule else None)
+    advice["scheduled_hours"] = scheduled
     advice["actual_hours"] = await _actual_hours_today(hass, entry, roles)
+    # A schedule that cannot reach the recommendation is worth flagging, but
+    # only once the gap is big enough that changing it is worth the trouble.
+    advice["short_by"] = None
+    if scheduled is not None:
+        recommended = advice["recommended_hours"]
+        gap = recommended - scheduled
+        tolerance = max(FILTRATION_SHORT_MIN_HOURS, recommended * FILTRATION_SHORT_FRACTION)
+        if gap >= tolerance:
+            advice["short_by"] = round(gap, 1)
     return advice
 
 

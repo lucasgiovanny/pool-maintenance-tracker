@@ -149,7 +149,9 @@
     "actual_today": "ran {h} h today",
     "filter_pressure": "Filter pressure",
     "pressure_rise": "+{p}% since the wash",
-    "wash_filter": "wash"
+    "wash_filter": "wash",
+    "alert_filtration_short": "Filtration set to {scheduled} h/day, {recommended} h recommended",
+    "alert_acid_missing": "No acid tank — pH is not being dosed"
   },
   "notes": {
     "title": "Notes",

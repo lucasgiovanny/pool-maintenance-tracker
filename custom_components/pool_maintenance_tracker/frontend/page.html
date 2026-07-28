@@ -522,7 +522,7 @@ function decimal(value){
 }
 /* Levels worth an alert. A pool running without a drum is a decision,
    not a fault, so it stays quiet. */
-const ACID_ALERT_LEVELS = ["quarter", "empty"];
+const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
 function acidClass(level){
   if (ACID_ALERT_LEVELS.includes(level)) return "due";
   if (level === "full") return "ok";
@@ -905,9 +905,18 @@ function renderAlerts(){
         " — " + S.report.overdue.toLowerCase());
     }
   });
-  if (report.values && ACID_ALERT_LEVELS.includes(report.values.acid_tank_level)) {
+  const acid = report.values ? report.values.acid_tank_level : undefined;
+  if (acid === "none") {
+    messages.push(S.report.alert_acid_missing);
+  } else if (ACID_ALERT_LEVELS.includes(acid)) {
     messages.push(S.report.alert_acid.replace("{level}",
-      (S.acid_levels[report.values.acid_tank_level] || "").toLowerCase()));
+      (S.acid_levels[acid] || "").toLowerCase()));
+  }
+  const short = (report.filtration || {}).short_by;
+  if (short) {
+    messages.push(S.report.alert_filtration_short
+      .replace("{scheduled}", report.filtration.scheduled_hours)
+      .replace("{recommended}", report.filtration.recommended_hours));
   }
   if (!messages.length) { box.style.display = "none"; return; }
   messages.forEach(message => {

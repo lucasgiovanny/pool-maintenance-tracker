@@ -481,8 +481,9 @@ function renderAttention(){
   items.innerHTML = "";
   const due = (report.tasks || []).filter(task => task.due);
   const acidLevel = report.values ? report.values.acid_tank_level : undefined;
-  const acidLow = acidLevel === "quarter" || acidLevel === "empty";
-  if (!due.length && !acidLow) { box.style.display = "none"; return; }
+  const acidLow = acidLevel === "quarter" || acidLevel === "empty" || acidLevel === "none";
+  const short = (report.filtration || {}).short_by;
+  if (!due.length && !acidLow && !short) { box.style.display = "none"; return; }
   box.style.display = "";
   due.slice(0, 3).forEach(task => {
     const item = el("div", "item");
@@ -494,6 +495,14 @@ function renderAttention(){
       : K.never_recorded)));
     items.appendChild(item);
   });
+  if (short) {
+    const item = el("div", "item");
+    item.appendChild(el("div", "n", S.report.filtration));
+    item.appendChild(el("div", "d",
+      S.report.hours.replace("{h}", report.filtration.scheduled_hours) + " · "
+      + S.report.recommended.replace("{h}", report.filtration.recommended_hours)));
+    items.appendChild(item);
+  }
   if (acidLow) {
     const item = el("div", "item");
     item.appendChild(el("div", "n", S.report.values.acid_tank_level));

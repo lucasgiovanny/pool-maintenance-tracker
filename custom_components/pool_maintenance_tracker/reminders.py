@@ -11,6 +11,7 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    ACID_LEVEL_NONE,
     CONF_LANGUAGE,
     CONF_NOTIFY_SERVICE,
     CONF_REMINDER_TIME,
@@ -41,6 +42,7 @@ NOTIFY_STRINGS = {
         "last_done": "last done {days} days ago",
         "never_done": "never recorded",
         "acid_alert": "Acid tank is low ({level}) — plan a refill.",
+        "acid_missing": "The acid tank is gone — pH is no longer being dosed.",
         "acid_empty": "Empty",
         "acid_quarter": "1/4",
     },
@@ -52,6 +54,7 @@ NOTIFY_STRINGS = {
         "last_done": "última há {days} dias",
         "never_done": "nunca registada",
         "acid_alert": "O depósito de ácido está baixo ({level}) — planeia um atesto.",
+        "acid_missing": "O depósito de ácido foi retirado — o pH deixou de ser doseado.",
         "acid_empty": "Vazio",
         "acid_quarter": "1/4",
     },
@@ -149,7 +152,11 @@ class ReminderEngine:
         self.tracker.async_update_listeners()
 
     async def async_send_acid_alert(self, level: str) -> None:
+        """Said once, when the level changes — never repeated daily."""
         strings = self._strings()
+        if level == ACID_LEVEL_NONE:
+            await self.async_notify(strings["acid_missing"])
+            return
         await self.async_notify(
             strings["acid_alert"].format(level=strings.get(f"acid_{level}", level))
         )

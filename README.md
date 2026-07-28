@@ -153,6 +153,30 @@ it is a progress bar against the recommendation, which turns green once the
 target is met and keeps a tick where the target was when the pump runs past
 it.
 
+### Alerts
+
+Everything the integration flags, on the page's alert bar, the wall
+dashboard's *Needs attention* box and the card:
+
+| Alert | When |
+|---|---|
+| Filter wash overdue | Past its interval — or, with a pressure gauge linked, past its pressure rise |
+| Chlorinator cell cleaning overdue | Past its interval |
+| pH probe calibration overdue | Past its interval |
+| Acid tank low | At ¼ or empty |
+| No acid tank | The level is set to *no tank* — nothing to refill, but the pH is no longer being dosed |
+| Filtration below the recommendation | Today's schedule runs less than the recommendation, by more than an hour and more than 20 % |
+
+The three overdue ones also have a `binary_sensor` each and, if you set a
+`notify.*` service, a daily notification (re-sent at most every three days).
+The acid tank notifies once, when a logged record changes the level — never
+repeatedly. The filtration one lives on the surfaces only: it is a standing
+condition that drifts with the water temperature rather than an event, and a
+push every morning saying the same thing trains people to ignore alerts.
+
+The filtration alert needs a tolerance for the same reason. Half an hour short
+is not news; it would just make the bar permanent.
+
 ### Filter pressure
 
 A filter does not clog on a schedule. Link a pressure sensor under

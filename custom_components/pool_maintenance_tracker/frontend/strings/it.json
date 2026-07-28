@@ -149,7 +149,9 @@
     "actual_today": "ha girato {h} h oggi",
     "filter_pressure": "Pressione del filtro",
     "pressure_rise": "+{p}% dal lavaggio",
-    "wash_filter": "lavare"
+    "wash_filter": "lavare",
+    "alert_filtration_short": "Filtrazione impostata su {scheduled} h/giorno, consigliate {recommended} h",
+    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato"
   },
   "notes": {
     "title": "Note",

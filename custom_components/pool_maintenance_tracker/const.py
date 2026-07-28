@@ -94,6 +94,11 @@ DEFAULT_SALT_TARGET_MAX: Final = 4.5
 IDEAL_PH: Final = (7.2, 7.6)
 IDEAL_FREE_CHLORINE: Final = (1.0, 3.0)
 
+# A schedule below the recommendation is only worth flagging once the gap
+# is big enough to act on — rounding and a spare half hour are not news.
+FILTRATION_SHORT_MIN_HOURS: Final = 1.0
+FILTRATION_SHORT_FRACTION: Final = 0.2
+
 # Filtration rule of thumb: hours per day ≈ water temperature / 2.
 # Used only when the pool was not sized (see below).
 FILTRATION_MIN_HOURS: Final = 2.0
@@ -192,7 +197,9 @@ ACID_TANK_LEVELS: Final = ["full", "three_quarters", "half", "quarter", "empty",
 ACID_LEVEL_NONE: Final = "none"
 # Levels worth telling somebody about. "none" is not one of them: there is
 # nothing to refill, so nagging about it would be noise.
-ACID_ALERT_LEVELS: Final = ("quarter", "empty")
+# "none" is not a refill problem — it is a pool whose pH is not being
+# dosed at all, which is worth saying once in different words.
+ACID_ALERT_LEVELS: Final = ("quarter", "empty", ACID_LEVEL_NONE)
 CLEANING_TYPES: Final = ["vacuum", "waterline", "baskets"]
 
 # Validation ranges: key -> (min, max, step)
