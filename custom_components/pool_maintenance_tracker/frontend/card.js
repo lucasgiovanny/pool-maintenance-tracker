@@ -465,7 +465,7 @@ class PoolMaintenanceCard extends HTMLElement {
         : (task.next
           ? { text: S.report.next_due.replace("{date}", this._shortDate(task.next)), due: false }
           : null);
-      let value = this._daysAgo(task.last);
+      let value = task.last ? this._daysAgo(task.last) : "–";
       if (task.key === "salt_added" && values.salt_added !== undefined && task.last) {
         value += " · " + values.salt_added + " " + S.units.salt_added;
       }
@@ -720,8 +720,7 @@ class PoolMaintenanceCard extends HTMLElement {
       ha-card.tiles-layout{background:none;border:none;box-shadow:none}
       .tiles-layout .mini,.tiles-layout .tile,.tiles-layout .countdown{
         background:var(--ha-card-background,var(--card-background-color,#fff));
-        border:var(--ha-card-border-width,1px) solid
-          var(--ha-card-border-color,var(--divider-color,rgba(127,127,127,.2)));
+        border:1px solid var(--ha-card-border-color,var(--divider-color,rgba(127,127,127,.25)));
         border-radius:var(--ha-card-border-radius,12px);
         box-shadow:var(--ha-card-box-shadow,none);
       }
