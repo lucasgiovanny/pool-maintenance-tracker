@@ -7,6 +7,7 @@ from custom_components.pool_maintenance_tracker.const import (
     CONF_CELL_DAYS,
     CONF_FILTER_DAYS,
     CONF_MODULES,
+    CONF_NOTIFY_SERVICE,
     CONF_POOL_VOLUME,
     CONF_PROBE_DAYS,
     CONF_REMINDER_TIME,
@@ -211,3 +212,56 @@ async def test_pool_options_step(hass, salt_entry):
     )
     await hass.async_block_till_done()
     assert CONF_POOL_VOLUME not in salt_entry.options
+
+
+async def test_notify_dropdown_lists_services_and_entities(hass, salt_entry):
+    """Notify exists twice over; an entity picker would hide half of it."""
+    hass.services.async_register("notify", "mobile_app_lucas", lambda call: None)
+    hass.states.async_set("notify.kitchen_speaker", "unknown", {"friendly_name": "Kitchen"})
+    await setup_entry(hass, salt_entry)
+
+    result = await hass.config_entries.options.async_init(salt_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "page"}
+    )
+    schema = result["data_schema"].schema
+    marker = next(key for key in schema if str(key) == CONF_NOTIFY_SERVICE)
+    options = schema[marker].config["options"]
+    assert "notify.mobile_app_lucas" in options
+    assert "notify.kitchen_speaker" in options
+    # the verb for entities is not a target
+    assert "notify.send_message" not in options
+
+
+async def test_a_notify_entity_is_called_with_send_message(hass, salt_entry):
+    """Legacy services take a title; entities only if they support one."""
+    calls = []
+    hass.services.async_register(
+        "notify", "send_message", lambda call: calls.append(dict(call.data))
+    )
+    hass.states.async_set("notify.kitchen_speaker", "unknown", {"supported_features": 0})
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry, options={**salt_entry.options, CONF_NOTIFY_SERVICE: "notify.kitchen_speaker"}
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+
+    await salt_entry.runtime_data.reminders.async_notify("Filter is overdue")
+    await hass.async_block_till_done()
+
+    assert calls == [{"entity_id": "notify.kitchen_speaker", "message": "Filter is overdue"}]
+
+
+async def test_a_legacy_notify_service_still_gets_a_title(hass, salt_entry):
+    calls = []
+    hass.services.async_register(
+        "notify", "test_target", lambda call: calls.append(dict(call.data))
+    )
+    await setup_entry(hass, salt_entry)
+
+    await salt_entry.runtime_data.reminders.async_notify("Filter is overdue")
+    await hass.async_block_till_done()
+
+    assert calls[0]["message"] == "Filter is overdue"
+    assert "Piscina" in calls[0]["title"]

@@ -23,7 +23,7 @@
         "title": "Página y recordatorios",
         "data": {
           "language": "Idioma de la página",
-          "notify_service": "Servicio de notificación (opcional)",
+          "notify_service": "Destino de las notificaciones",
           "filter_days": "Recordatorio de lavado del filtro (días)",
           "probe_days": "Recordatorio de calibración de la sonda de pH (días)",
           "cell_days": "Recordatorio de limpieza de la célula (días)"
@@ -117,7 +117,7 @@
         "title": "Página y notificaciones",
         "data": {
           "language": "Idioma de la página",
-          "notify_service": "Servicio de notificación (opcional)",
+          "notify_service": "Destino de las notificaciones",
           "report_enabled": "Pestaña \"Estado\" en la página",
           "kiosk_enabled": "Página de panel de pared"
         },
@@ -125,7 +125,8 @@
           "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones.",
           "report_enabled": "Añade una pestaña de informe (solo lectura) a la página pública: valores actuales, estado de las tareas y registros recientes. Visible para quien tenga la URL.",
           "kiosk_enabled": "Un panel oscuro, solo de visualización, para una pantalla junto a la piscina (7\" horizontal o mayor): lecturas del agua, equipamiento y cuenta atrás para el próximo cambio del horario. Sin táctil ni navegación. La URL está en los atributos de la entidad del código QR."
-        }
+        },
+        "description": " Elige un servicio notify (por ejemplo tu móvil, de la app companion) o una entidad notify. Déjalo vacío y la integración no envía nada — los binary sensors de retraso y el evento de mantenimiento siguen disponibles para tus automatizaciones."
       },
       "security": {
         "title": "Seguridad",

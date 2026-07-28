@@ -13,7 +13,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.const import CONF_NAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.selector import (
     BooleanSelector,
     EntitySelector,
@@ -88,6 +88,7 @@ from .modules import (
 )
 
 CONF_REGENERATE_TOKEN = "regenerate_token"
+NOTIFY_DOMAIN = "notify"
 
 REMINDER_DAY_FIELDS: tuple[tuple[str, str, int], ...] = (
     # (module key, options key, default)
@@ -133,13 +134,42 @@ def _reminder_days_schema(modules: list[str], current: dict[str, Any]) -> dict[v
 
 
 def _validate_notify_service(value: str) -> str | None:
-    """Normalize a notify service; return None when invalid."""
+    """Normalize a notify target; return None when invalid."""
     service = value.strip()
     if not service:
         return ""
     if service.startswith("notify.") and len(service.split(".")) == 2:
         return service
     return None
+
+
+def _notify_selector(hass: HomeAssistant, current: str) -> SelectSelector:
+    """Every way this Home Assistant can send a message, in one dropdown.
+
+    Notify comes in two shapes and both are current: the legacy services
+    (`notify.mobile_app_*`, which is still how the companion app pushes to
+    a phone) and the newer notify entities. An entity picker would quietly
+    hide the first, which is the one most people actually want, so the list
+    is built from both. A custom value stays possible for anything odd.
+    """
+    targets = {
+        f"{NOTIFY_DOMAIN}.{service}"
+        for service in hass.services.async_services_for_domain(NOTIFY_DOMAIN)
+    }
+    # send_message is the verb for notify entities, not a target itself
+    targets.discard(f"{NOTIFY_DOMAIN}.send_message")
+    targets.discard(f"{NOTIFY_DOMAIN}.persistent_notification")
+    targets.update(state.entity_id for state in hass.states.async_all(NOTIFY_DOMAIN))
+    if current:
+        targets.add(current)
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=sorted(targets),
+            mode=SelectSelectorMode.DROPDOWN,
+            custom_value=True,
+            sort=True,
+        )
+    )
 
 
 class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -228,7 +258,12 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         schema: dict[vol.Marker, Any] = {
             vol.Required(CONF_LANGUAGE, default=default_language): _language_selector(),
-            vol.Optional(CONF_NOTIFY_SERVICE, default=""): TextSelector(),
+            vol.Optional(
+                CONF_NOTIFY_SERVICE,
+                description={"suggested_value": user_input.get(CONF_NOTIFY_SERVICE)}
+                if user_input
+                else None,
+            ): _notify_selector(self.hass, ""),
         }
         schema.update(_reminder_days_schema(self._modules, {}))
         return self.async_show_form(
@@ -540,8 +575,8 @@ class PoolOptionsFlow(OptionsFlow):
                     ): _language_selector(),
                     vol.Optional(
                         CONF_NOTIFY_SERVICE,
-                        default=options.get(CONF_NOTIFY_SERVICE, ""),
-                    ): TextSelector(),
+                        description={"suggested_value": options.get(CONF_NOTIFY_SERVICE)},
+                    ): _notify_selector(self.hass, options.get(CONF_NOTIFY_SERVICE, "")),
                     vol.Required(
                         CONF_REPORT_ENABLED,
                         default=options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED),

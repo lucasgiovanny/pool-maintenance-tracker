@@ -31,6 +31,9 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+NOTIFY_DOMAIN = "notify"
+SERVICE_SEND_MESSAGE = "send_message"
+
 # Notification texts keyed by the page language of the entry — the reminder
 # audience is the same people who use the page.
 NOTIFY_STRINGS = {
@@ -162,14 +165,28 @@ class ReminderEngine:
         )
 
     async def async_notify(self, message: str) -> None:
-        service = self.entry.options.get(CONF_NOTIFY_SERVICE, "")
-        if not service:
+        """Send through whichever kind of notify target was configured.
+
+        Notify exists twice over: the legacy services and the newer notify
+        entities, called with send_message. Both are picked from the same
+        dropdown, so tell them apart by whether the target has a state.
+        """
+        target = self.entry.options.get(CONF_NOTIFY_SERVICE, "")
+        if not target:
             return
-        domain, _, service_name = service.partition(".")
         title = self._strings()["title"].format(pool=self.tracker.pool_name)
         try:
+            state = self.hass.states.get(target)
+            if state is not None and target.startswith(f"{NOTIFY_DOMAIN}."):
+                data: dict[str, str] = {"entity_id": target, "message": message}
+                # NotifyEntityFeature.TITLE — an entity without it rejects a title
+                if state.attributes.get("supported_features", 0) & 1:
+                    data["title"] = title
+                await self.hass.services.async_call(NOTIFY_DOMAIN, SERVICE_SEND_MESSAGE, data)
+                return
+            domain, _, service_name = target.partition(".")
             await self.hass.services.async_call(
                 domain, service_name, {"title": title, "message": message}
             )
         except Exception:
-            _LOGGER.exception("Failed to send notification via %s", service)
+            _LOGGER.exception("Failed to send notification via %s", target)

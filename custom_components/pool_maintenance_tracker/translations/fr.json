@@ -23,7 +23,7 @@
         "title": "Page et rappels",
         "data": {
           "language": "Langue de la page",
-          "notify_service": "Service de notification (facultatif)",
+          "notify_service": "Destination des notifications",
           "filter_days": "Rappel de lavage du filtre (jours)",
           "probe_days": "Rappel d'étalonnage de la sonde pH (jours)",
           "cell_days": "Rappel de nettoyage de la cellule (jours)"
@@ -117,7 +117,7 @@
         "title": "Page et notifications",
         "data": {
           "language": "Langue de la page",
-          "notify_service": "Service de notification (facultatif)",
+          "notify_service": "Destination des notifications",
           "report_enabled": "Onglet « État » sur la page",
           "kiosk_enabled": "Page tableau de bord mural"
         },
@@ -125,7 +125,8 @@
           "notify_service": "Par exemple notify.mobile_app_montelephone. Laissez vide pour désactiver les notifications intégrées : les capteurs binaires de retard et l'événement d'entretien restent disponibles pour vos propres automatisations.",
           "report_enabled": "Ajoute un onglet rapport (lecture seule) à la page publique : valeurs actuelles, état des tâches et dernières saisies. Visible par quiconque a l'URL.",
           "kiosk_enabled": "Un tableau de bord sombre, en affichage seul, pour un écran près de la piscine (7\" paysage ou plus) : mesures de l'eau, équipement et compte à rebours avant le prochain changement d'horaire. Sans tactile ni navigation. L'URL se trouve dans les attributs de l'entité du code QR."
-        }
+        },
+        "description": " Choisissez un service notify (votre téléphone via l'app companion, par exemple) ou une entité notify. Laissez vide et l'intégration n'envoie rien — les binary sensors de retard et l'événement de maintenance restent disponibles pour vos automatisations."
       },
       "security": {
         "title": "Sécurité",

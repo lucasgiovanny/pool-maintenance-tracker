@@ -290,13 +290,19 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
    Water testing (pH, free chlorine, temperature) and the maintenance log are
    always on.
 3. **Page and reminders** — page language (English, Portuguese, Spanish,
-   French, German, Italian), optional `notify.*` service for alerts, and
-   reminder periods (defaults: filter 30 days, pH probe 60 days, chlorinator
-   cell 90 days).
+   French, German, Italian), an optional notification target, and reminder
+   periods (defaults: filter 30 days, pH probe 60 days, chlorinator cell
+   90 days).
 
-   Notifications are entirely optional: leave the service empty and the
-   integration sends nothing — the "due" binary sensors and the maintenance
-   event remain available to drive your own automations instead.
+   The notification target is a dropdown of what your Home Assistant can
+   actually reach: both the legacy `notify.*` **services** (which is how the
+   companion app pushes to a phone) and the newer notify **entities**, which
+   are called with `notify.send_message`. Picking only entities would hide the
+   half most people want.
+
+   Notifications are entirely optional: leave it empty and the integration
+   sends nothing — the "due" binary sensors and the maintenance event remain
+   available to drive your own automations instead.
 
 Everything can be changed later via **Configure** on the integration — including
 disabling modules (their entities are removed) and regenerating the access token.

@@ -17,6 +17,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
+from homeassistant.helpers.typing import ConfigType
 
 from . import filter_pressure
 from .const import (
@@ -63,6 +64,20 @@ class PoolRuntimeData:
 
 
 type PoolConfigEntry = ConfigEntry[PoolRuntimeData]
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Get the Lovelace card onto the dashboards as early as we can.
+
+    The card URL is injected into the page Home Assistant serves, so a
+    dashboard opened before it is registered never fetches the script and
+    Lovelace reports "Custom element doesn't exist" until that page is
+    reloaded. Component setup runs before any config entry, which is the
+    earliest this integration gets a say.
+    """
+    hass.data.setdefault(DOMAIN, {DATA_TOKENS: {}})
+    await _async_register_frontend(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool:

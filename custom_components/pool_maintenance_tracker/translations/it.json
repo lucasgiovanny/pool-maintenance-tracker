@@ -23,7 +23,7 @@
         "title": "Pagina e promemoria",
         "data": {
           "language": "Lingua della pagina",
-          "notify_service": "Servizio di notifica (facoltativo)",
+          "notify_service": "Destinazione delle notifiche",
           "filter_days": "Promemoria lavaggio filtro (giorni)",
           "probe_days": "Promemoria calibrazione sonda pH (giorni)",
           "cell_days": "Promemoria pulizia cella (giorni)"
@@ -117,7 +117,7 @@
         "title": "Pagina e notifiche",
         "data": {
           "language": "Lingua della pagina",
-          "notify_service": "Servizio di notifica (facoltativo)",
+          "notify_service": "Destinazione delle notifiche",
           "report_enabled": "Scheda \"Stato\" nella pagina",
           "kiosk_enabled": "Pagina dashboard da parete"
         },
@@ -125,7 +125,8 @@
           "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni.",
           "report_enabled": "Aggiunge una scheda rapporto (sola lettura) alla pagina pubblica: valori attuali, stato delle attività e registrazioni recenti. Visibile a chiunque abbia l'URL.",
           "kiosk_enabled": "Una dashboard scura, di sola visualizzazione, per uno schermo vicino alla piscina (7\" orizzontale o più): letture dell'acqua, attrezzatura e conto alla rovescia per il prossimo cambio della programmazione. Senza touch né navigazione. L'URL è negli attributi dell'entità del codice QR."
-        }
+        },
+        "description": " Scegli un servizio notify (per esempio il telefono, dall'app companion) o un'entità notify. Lascialo vuoto e l'integrazione non invia nulla — i binary sensor di scadenza e l'evento di manutenzione restano disponibili per le tue automazioni."
       },
       "security": {
         "title": "Sicurezza",
