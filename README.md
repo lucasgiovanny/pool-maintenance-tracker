@@ -67,9 +67,18 @@ type: custom:pool-maintenance-card
 # entry: <config entry id>   # only needed when you have several pools
 ```
 
-It has a **visual editor**: pick the pool from a dropdown, set an optional
-title, and switch each section on or off (temperature, alerts, equipment
-toggles, chlorinator, tasks, only-overdue filter). The card speaks the
+It has a **visual editor** where you tick exactly what the card shows,
+grouped by category:
+
+- **General** — water temperature in the header, alerts, and a live
+  **countdown** to the next filtration-schedule change;
+- **Equipment** — one entry per role you configured (pool system, heat pump,
+  pump, light, cover), the chlorinator, the acid tank, and any extra entity;
+- **Water readings** — pH, free chlorine, salt, temperature;
+- **Tasks** — every periodic task, individually, plus an *only overdue* filter.
+
+You can also override the title and pick the pool when you have several.
+Tapping a row opens the usual more-info dialog, and the card speaks the
 **Home Assistant UI language** of whoever is looking at it, independently of
 the language you chose for the public page. It shows the pool name,
 water temperature, an alert box for overdue tasks, toggles for your pool

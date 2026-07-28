@@ -194,5 +194,10 @@
     "pump": "Pumpe",
     "pool_light": "Poolbeleuchtung",
     "cover": "Abdeckung"
+  },
+  "card": {
+    "turns_on": "Schaltet ein in",
+    "turns_off": "Schaltet aus in",
+    "no_schedule": "Kein Zeitplan verknüpft"
   }
 }

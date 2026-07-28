@@ -1,69 +1,71 @@
 /* Pool Maintenance Tracker — Lovelace card + visual editor
- * Shows one pool at a glance: alerts, equipment toggles and task status.
+ * Pick exactly which items to show: equipment, readings, tasks, alerts
+ * and a live countdown to the next schedule change.
  */
 
 const TOGGLE_DOMAINS = ["switch", "input_boolean", "light", "fan"];
+const TOGGLE_ROLES = ["pool_system", "heat_pump", "pump", "pool_light", "cover"];
+const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
 
-/* Card options and their defaults. Anything left at the default is kept
-   out of the stored YAML so configs stay readable. */
+const GROUPS = ["general", "equipment", "readings", "tasks"];
+const GENERAL_ITEMS = ["temperature", "alerts", "countdown"];
+
 const DEFAULTS = {
   entry: undefined,
   title: "",
-  show_temperature: true,
-  show_alerts: true,
-  show_equipment: true,
-  show_chlorinator: true,
-  show_tasks: true,
+  items: undefined,   /* undefined = everything the pool offers */
   only_due_tasks: false,
 };
 
-/* Editor labels — the card ships six languages, same as the pages. */
+/* Editor labels — same six languages as the pages. */
 const EDITOR_TEXT = {
   en: {
     entry: "Pool", entry_help: "Leave empty to use the only pool you have.",
-    title: "Title (optional)", show_temperature: "Water temperature",
-    show_alerts: "Alerts", show_equipment: "Equipment toggles",
-    show_chlorinator: "Chlorinator", show_tasks: "Maintenance tasks",
-    only_due_tasks: "Only overdue tasks",
-    sections: "Sections",
+    title: "Title (optional)", only_due_tasks: "Only show overdue tasks",
+    general: "General", equipment: "Equipment", readings: "Water readings", tasks: "Tasks",
+    temperature: "Water temperature (header)", alerts: "Alerts",
+    countdown: "Schedule countdown", chlorinator: "Chlorinator", acid_tank: "Acid tank",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
-    title: "Título (opcional)", show_temperature: "Temperatura da água",
-    show_alerts: "Alertas", show_equipment: "Interruptores de equipamento",
-    show_chlorinator: "Clorador", show_tasks: "Tarefas de manutenção",
-    only_due_tasks: "Apenas tarefas em atraso",
-    sections: "Secções",
+    title: "Título (opcional)", only_due_tasks: "Mostrar só tarefas em atraso",
+    general: "Geral", equipment: "Equipamento", readings: "Leituras da água", tasks: "Tarefas",
+    temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
+    countdown: "Contagem decrescente do horário", chlorinator: "Clorador",
+    acid_tank: "Depósito de ácido",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
-    title: "Título (opcional)", show_temperature: "Temperatura del agua",
-    show_alerts: "Alertas", show_equipment: "Interruptores de equipamiento",
-    show_chlorinator: "Clorador", show_tasks: "Tareas de mantenimiento",
-    only_due_tasks: "Solo tareas atrasadas",
-    sections: "Secciones",
+    title: "Título (opcional)", only_due_tasks: "Mostrar solo tareas atrasadas",
+    general: "General", equipment: "Equipamiento", readings: "Lecturas del agua", tasks: "Tareas",
+    temperature: "Temperatura del agua (encabezado)", alerts: "Alertas",
+    countdown: "Cuenta atrás del horario", chlorinator: "Clorador",
+    acid_tank: "Depósito de ácido",
   },
   fr: {
     entry: "Piscine", entry_help: "Laissez vide pour utiliser votre seule piscine.",
-    title: "Titre (facultatif)", show_temperature: "Température de l'eau",
-    show_alerts: "Alertes", show_equipment: "Interrupteurs d'équipement",
-    show_chlorinator: "Électrolyseur", show_tasks: "Tâches d'entretien",
-    only_due_tasks: "Uniquement les tâches en retard", sections: "Sections",
+    title: "Titre (facultatif)", only_due_tasks: "N'afficher que les tâches en retard",
+    general: "Général", equipment: "Équipement", readings: "Mesures de l'eau", tasks: "Tâches",
+    temperature: "Température de l'eau (en-tête)", alerts: "Alertes",
+    countdown: "Compte à rebours de l'horaire", chlorinator: "Électrolyseur",
+    acid_tank: "Réservoir d'acide",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
-    title: "Titel (optional)", show_temperature: "Wassertemperatur",
-    show_alerts: "Warnungen", show_equipment: "Geräteschalter",
-    show_chlorinator: "Elektrolyseur", show_tasks: "Wartungsaufgaben",
-    only_due_tasks: "Nur überfällige Aufgaben", sections: "Abschnitte",
+    title: "Titel (optional)", only_due_tasks: "Nur überfällige Aufgaben zeigen",
+    general: "Allgemein", equipment: "Geräte", readings: "Wasserwerte", tasks: "Aufgaben",
+    temperature: "Wassertemperatur (Kopfzeile)", alerts: "Warnungen",
+    countdown: "Countdown des Zeitplans", chlorinator: "Elektrolyseur",
+    acid_tank: "Säuretank",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
-    title: "Titolo (facoltativo)", show_temperature: "Temperatura dell'acqua",
-    show_alerts: "Avvisi", show_equipment: "Interruttori attrezzatura",
-    show_chlorinator: "Clorinatore", show_tasks: "Attività di manutenzione",
-    only_due_tasks: "Solo attività in ritardo", sections: "Sezioni",
+    title: "Titolo (facoltativo)", only_due_tasks: "Mostra solo attività in ritardo",
+    general: "Generale", equipment: "Attrezzatura", readings: "Letture dell'acqua",
+    tasks: "Attività", temperature: "Temperatura dell'acqua (intestazione)",
+    alerts: "Avvisi", countdown: "Conto alla rovescia dell'orario",
+    chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
   },
 };
 
@@ -78,17 +80,65 @@ function fireEvent(node, type, detail) {
   }));
 }
 
+/* Everything this pool can show, grouped, in render order. */
+function availableItems(data, text) {
+  const S = data.strings;
+  const report = data.report || {};
+  const roles = report.roles || {};
+  const values = report.values || {};
+
+  const general = GENERAL_ITEMS.map(item => ({ value: item, label: text[item] }));
+
+  const equipment = [];
+  TOGGLE_ROLES.forEach(role => {
+    if (roles[role]) {
+      equipment.push({ value: "role:" + role, label: roles[role].name || S.roles[role] });
+    }
+  });
+  if (values.chlorinator_mode !== undefined || values.chlorinator_output !== undefined) {
+    equipment.push({ value: "chlorinator", label: text.chlorinator });
+  }
+  if (values.acid_tank_level !== undefined) {
+    equipment.push({ value: "acid_tank", label: text.acid_tank });
+  }
+  (report.extra || []).forEach(item => {
+    equipment.push({ value: "extra:" + item.entity_id, label: item.name });
+  });
+
+  const readings = READING_KEYS
+    .filter(key => values[key] !== undefined || (data.live || {})[key === "salt_level"
+      ? "salt" : key === "water_temperature" ? "temperature" : key])
+    .map(key => ({ value: "value:" + key, label: S.report.values[key] || key }));
+
+  const tasks = (report.tasks || []).map(task => ({
+    value: "task:" + task.key,
+    label: S.tiles[task.key] || S.report.values[task.key] || task.key,
+  }));
+
+  return { general, equipment, readings, tasks };
+}
+
+function allItemValues(available) {
+  return GROUPS.reduce((all, group) =>
+    all.concat(available[group].map(item => item.value)), []);
+}
+
 class PoolMaintenanceCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this._data = null;
     this._timer = null;
+    this._tick = null;
     this._loading = false;
   }
 
   setConfig(config) {
     this._config = Object.assign({}, DEFAULTS, config || {});
+    /* Cards written before per-item selection used show_* booleans. */
+    if (!this._config.items && config && "show_temperature" in config) {
+      this._legacy = config;
+    }
     if (this._data) this._render();
   }
 
@@ -105,7 +155,8 @@ class PoolMaintenanceCard extends HTMLElement {
 
   disconnectedCallback() {
     if (this._timer) clearInterval(this._timer);
-    this._timer = null;
+    if (this._tick) clearInterval(this._tick);
+    this._timer = this._tick = null;
   }
 
   getCardSize() {
@@ -135,8 +186,7 @@ class PoolMaintenanceCard extends HTMLElement {
       this._data = await this._hass.callWS({
         type: "pool_maintenance_tracker/status",
         entry_id: entryId,
-        /* The card follows the Home Assistant UI language, not the
-           language configured for the public page. */
+        /* The card follows the Home Assistant UI language. */
         language: this._hass.language || "en",
       });
       this._error = null;
@@ -150,8 +200,32 @@ class PoolMaintenanceCard extends HTMLElement {
   /* ---------------- helpers ---------------- */
   _locale() {
     if (this._hass && this._hass.language) return this._hass.language;
-    const language = (this._data && this._data.language) || "en";
-    return language === "pt" ? "pt-PT" : language;
+    return (this._data && this._data.language) || "en";
+  }
+
+  _selection(available) {
+    if (this._config.items) return this._config.items;
+    if (this._legacy) return this._fromLegacy(available);
+    /* Nothing configured: show everything except the extra entities,
+       which already have their place on the page and the kiosk. */
+    return allItemValues(available).filter(value => !value.startsWith("extra:"));
+  }
+
+  _fromLegacy(available) {
+    const legacy = this._legacy;
+    const items = [];
+    if (legacy.show_temperature !== false) items.push("temperature");
+    if (legacy.show_alerts !== false) items.push("alerts");
+    if (legacy.show_equipment !== false) {
+      available.equipment
+        .filter(item => item.value.startsWith("role:"))
+        .forEach(item => items.push(item.value));
+    }
+    if (legacy.show_chlorinator !== false) items.push("chlorinator");
+    if (legacy.show_tasks !== false) {
+      available.tasks.forEach(item => items.push(item.value));
+    }
+    return items;
   }
 
   _daysAgo(iso) {
@@ -178,6 +252,14 @@ class PoolMaintenanceCard extends HTMLElement {
     return Math.max(0, Math.floor((Date.now() - new Date(task.next).getTime()) / 86400000));
   }
 
+  _relTime(iso) {
+    const S = this._data.strings.kiosk;
+    const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (seconds < 3600) return S.minutes_short.replace("{n}", Math.max(1, Math.floor(seconds / 60)));
+    if (seconds < 86400) return S.hours_short.replace("{n}", Math.floor(seconds / 3600));
+    return this._daysAgo(iso);
+  }
+
   _openMoreInfo(entityId) {
     if (entityId) fireEvent(this, "hass-more-info", { entityId: entityId });
   }
@@ -193,6 +275,7 @@ class PoolMaintenanceCard extends HTMLElement {
 
   /* ---------------- render ---------------- */
   _render() {
+    if (this._tick) { clearInterval(this._tick); this._tick = null; }
     if (!this._data) {
       this.shadowRoot.innerHTML = `<ha-card><div class="empty">${
         this._error ? this._escape(this._error) : "…"}</div>${this._styles()}</ha-card>`;
@@ -206,49 +289,50 @@ class PoolMaintenanceCard extends HTMLElement {
     const values = report.values || {};
     const ids = report.entity_ids || {};
     const tasks = report.tasks || [];
-    const due = tasks.filter(task => task.due);
-    const acidLow = values.acid_tank_level === "quarter";
+    const text = editorText(this._hass);
+    const available = availableItems(data, text);
+    const shown = new Set(this._selection(available));
 
     /* header ------------------------------------------------------- */
     const probe = (data.live || {}).temperature;
     const temp = probe ? probe.value : values.water_temperature;
     const tempUnit = (probe && probe.unit) || S.units.water_temperature;
-    const showTemp = config.show_temperature && temp !== undefined && temp !== null;
+    const showTemp = shown.has("temperature") && temp !== undefined && temp !== null;
 
+    const due = tasks.filter(task => task.due);
     const subtitleBits = [];
     if (roles.pool_system) {
       subtitleBits.push(S.roles.pool_system + " " +
         (roles.pool_system.state === "on"
           ? S.report.state_on.toLowerCase() : S.report.state_off.toLowerCase()));
     }
-    if (due.length) {
-      subtitleBits.push(due.length + " " + S.kiosk.overdue_count);
-    }
+    if (due.length) subtitleBits.push(due.length + " " + S.kiosk.overdue_count);
 
     /* alerts ------------------------------------------------------- */
     const alertLines = [];
-    if (config.show_alerts) {
+    if (shown.has("alerts")) {
       due.forEach(task => {
         const days = this._overdueDays(task);
         alertLines.push(this._taskLabel(task) + " — " + (task.last && days !== null
           ? S.kiosk.overdue_days.replace("{days}", days)
           : S.kiosk.never_recorded));
       });
-      if (acidLow) {
+      if (values.acid_tank_level === "quarter") {
         alertLines.push(S.report.values.acid_tank_level + " — " + S.acid_levels.quarter);
       }
     }
 
-    /* toggles ------------------------------------------------------ */
-    const toggles = config.show_equipment
-      ? ["pool_system", "heat_pump", "pump", "pool_light"]
-        .filter(role => roles[role]).slice(0, 2)
-      : [];
+    /* countdown ---------------------------------------------------- */
+    const schedule = roles.filtration_schedule;
+    const countdown = shown.has("countdown") && schedule && schedule.next_change
+      ? schedule : null;
+
+    /* equipment toggles -------------------------------------------- */
+    const toggles = TOGGLE_ROLES.filter(role => roles[role] && shown.has("role:" + role));
 
     /* rows --------------------------------------------------------- */
     const rows = [];
-    if (config.show_chlorinator
-        && (values.chlorinator_mode !== undefined || values.chlorinator_output !== undefined)) {
+    if (shown.has("chlorinator")) {
       const bits = [];
       if (values.chlorinator_mode !== undefined) {
         bits.push(S.modes[values.chlorinator_mode] || values.chlorinator_mode);
@@ -256,29 +340,65 @@ class PoolMaintenanceCard extends HTMLElement {
       if (values.chlorinator_output !== undefined) {
         bits.push(values.chlorinator_output + " " + S.units.chlorinator_output);
       }
+      if (bits.length) {
+        rows.push({
+          name: text.chlorinator, value: bits.join(" · "),
+          entity: ids.chlorinator_mode || ids.chlorinator_output
+        });
+      }
+    }
+    if (shown.has("acid_tank") && values.acid_tank_level !== undefined) {
       rows.push({
-        name: S.kiosk.chlorinator, value: bits.join(" · "),
-        entity: ids.chlorinator_mode || ids.chlorinator_output
+        name: S.report.values.acid_tank_level,
+        value: S.acid_levels[values.acid_tank_level] || values.acid_tank_level,
+        entity: ids.acid_tank_level,
+        warn: values.acid_tank_level === "quarter",
       });
     }
-    if (config.show_tasks) {
-      tasks
-        .filter(task => !config.only_due_tasks || task.due)
-        .forEach(task => {
-          const badge = task.due
-            ? { text: S.kiosk.overdue_days.replace("{days}", this._overdueDays(task) ?? 0), due: true }
-            : (task.next ? { text: this._shortDate(task.next), due: false } : null);
-          let value = this._daysAgo(task.last);
-          if (task.key === "salt_added" && values.salt_added !== undefined && task.last) {
-            value += " · " + values.salt_added + " " + S.units.salt_added;
-          }
-          rows.push({
-            name: this._taskLabel(task), value: value, badge: badge,
-            entity: ids["last_" + task.key] || ids[task.key],
-            warn: task.due || !task.last
-          });
-        });
-    }
+    READING_KEYS.forEach(key => {
+      if (!shown.has("value:" + key)) return;
+      const liveKey = key === "salt_level" ? "salt"
+        : key === "water_temperature" ? "temperature" : key;
+      const liveValue = (data.live || {})[liveKey];
+      const value = liveValue ? liveValue.value : values[key];
+      if (value === undefined || value === null) return;
+      const name = S.report.values[key] || key;
+      const unit = (liveValue && liveValue.unit) || S.units[key] || "";
+      /* "pH 7.2 pH" reads silly — drop a unit that repeats the label. */
+      const showUnit = unit && unit.toLowerCase() !== name.toLowerCase();
+      rows.push({
+        name: name,
+        value: showUnit ? value + " " + unit : String(value),
+        entity: ids[key],
+      });
+    });
+    (report.extra || []).forEach(item => {
+      if (!shown.has("extra:" + item.entity_id)) return;
+      const onOff = item.state === "on" || item.state === "off";
+      rows.push({
+        name: item.name, entity: item.entity_id,
+        value: onOff
+          ? (item.state === "on" ? S.report.state_on : S.report.state_off)
+            + " · " + this._relTime(item.last_changed)
+          : item.state + (item.unit ? " " + item.unit : ""),
+      });
+    });
+    tasks.forEach(task => {
+      if (!shown.has("task:" + task.key)) return;
+      if (config.only_due_tasks && !task.due) return;
+      const badge = task.due
+        ? { text: S.kiosk.overdue_days.replace("{days}", this._overdueDays(task) ?? 0), due: true }
+        : (task.next ? { text: this._shortDate(task.next), due: false } : null);
+      let value = this._daysAgo(task.last);
+      if (task.key === "salt_added" && values.salt_added !== undefined && task.last) {
+        value += " · " + values.salt_added + " " + S.units.salt_added;
+      }
+      rows.push({
+        name: this._taskLabel(task), value: value, badge: badge,
+        entity: ids["last_" + task.key] || ids[task.key],
+        warn: task.due || !task.last,
+      });
+    });
 
     /* html --------------------------------------------------------- */
     this.shadowRoot.innerHTML = `
@@ -305,10 +425,15 @@ class PoolMaintenanceCard extends HTMLElement {
           <div>${alertLines.map(line => `<div>${this._escape(line)}</div>`).join("")}</div>
         </div>` : ""}
 
+        ${countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
+          <span class="cd-label">${this._escape(countdown.state === "on"
+            ? S.card.turns_off : S.card.turns_on)}</span>
+          <span class="cd-value" id="cd">—</span>
+        </div>` : ""}
+
         ${toggles.length ? `<div class="toggles">${toggles.map((role, index) => {
           const item = roles[role];
           const on = item.state === "on" || item.state === "open";
-          const schedule = roles.filtration_schedule;
           let sub = on ? S.report.state_on : S.report.state_off;
           if (role === "pool_system" && on && schedule && schedule.next_change) {
             sub = S.kiosk.until.replace("{time}", new Date(schedule.next_change)
@@ -332,11 +457,10 @@ class PoolMaintenanceCard extends HTMLElement {
               <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
             </div>`).join("")}
         </div>` : ""}
-
         ${this._styles()}
       </ha-card>`;
 
-    /* events ------------------------------------------------------- */
+    /* events + countdown ------------------------------------------- */
     const root = this.shadowRoot;
     root.querySelectorAll("[data-toggle]").forEach(node => {
       const item = roles[toggles[Number(node.dataset.toggle)]];
@@ -356,6 +480,27 @@ class PoolMaintenanceCard extends HTMLElement {
       temperature.addEventListener("click",
         () => this._openMoreInfo(temperature.dataset.entity));
     }
+    if (countdown) {
+      const box = root.querySelector(".countdown");
+      box.classList.add("clickable");
+      box.addEventListener("click", () => this._openMoreInfo(countdown.entity_id));
+      const target = new Date(countdown.next_change).getTime();
+      const paint = () => {
+        const total = Math.floor((target - Date.now()) / 1000);
+        const node = root.getElementById ? root.getElementById("cd") : root.querySelector("#cd");
+        if (!node) return;
+        if (total <= 0) { node.textContent = "…"; this._load(); return; }
+        let seconds = total;
+        const days = Math.floor(seconds / 86400); seconds %= 86400;
+        node.textContent = (days ? days + "d " : "")
+          + String(Math.floor(seconds / 3600)).padStart(2, "0") + ":"
+          + String(Math.floor((seconds % 3600) / 60)).padStart(2, "0") + ":"
+          + String(seconds % 60).padStart(2, "0");
+        box.classList.toggle("soon", total <= 3600);
+      };
+      paint();
+      this._tick = setInterval(paint, 1000);
+    }
   }
 
   _escape(value) {
@@ -365,6 +510,7 @@ class PoolMaintenanceCard extends HTMLElement {
 
   _styles() {
     return `<style>
+      *{box-sizing:border-box}
       ha-card{padding:16px;display:block}
       .empty{color:var(--secondary-text-color);padding:8px 0}
       .clickable{cursor:pointer}
@@ -389,10 +535,21 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       .alert svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;flex:none;margin-top:1px}
 
-      .toggles{display:flex;gap:10px;margin-top:14px}
+      .countdown{
+        display:flex;align-items:center;gap:10px;margin-top:14px;
+        padding:10px 12px;border-radius:10px;background:var(--secondary-background-color);
+      }
+      .cd-label{color:var(--secondary-text-color);font-size:.92rem;font-weight:500;flex:1}
+      .cd-value{
+        font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;
+        color:var(--primary-color);
+      }
+      .countdown.soon .cd-value{color:var(--warning-color,#E9B94F)}
+
+      .toggles{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
       .tile{
-        flex:1;min-width:0;border:1px solid var(--divider-color);border-radius:12px;
-        padding:10px 12px;cursor:pointer;
+        flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color);
+        border-radius:12px;padding:10px 12px;cursor:pointer;
       }
       .tile.on{border-color:var(--primary-color)}
       .tile-top{display:flex;align-items:center;gap:8px}
@@ -424,7 +581,6 @@ class PoolMaintenanceCard extends HTMLElement {
         background:var(--secondary-background-color);color:var(--secondary-text-color);
       }
       .badge.due{background:rgba(233,185,79,.2);color:var(--warning-color,#E9B94F)}
-
     </style>`;
   }
 }
@@ -437,11 +593,13 @@ class PoolMaintenanceCardEditor extends HTMLElement {
   constructor() {
     super();
     this._pools = [];
+    this._available = null;
     this._form = null;
   }
 
   setConfig(config) {
     this._config = Object.assign({}, DEFAULTS, config || {});
+    this._loadAvailable();
     this._update();
   }
 
@@ -449,7 +607,10 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     const first = !this._hass;
     this._hass = hass;
     if (this._form) this._form.hass = hass;
-    if (first) this._loadPools();
+    if (first) {
+      this._loadPools();
+      this._loadAvailable();
+    }
   }
 
   async _loadPools() {
@@ -461,34 +622,84 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     this._update();
   }
 
+  /* The option list depends on how this particular pool is set up. */
+  async _loadAvailable() {
+    if (!this._hass || !this._config) return;
+    try {
+      let entryId = this._config.entry;
+      if (!entryId) {
+        const pools = this._pools.length
+          ? this._pools
+          : await this._hass.callWS({ type: "pool_maintenance_tracker/pools" });
+        if (!pools.length) return;
+        entryId = pools[0].entry_id;
+      }
+      if (this._loadedFor === entryId) return;
+      const data = await this._hass.callWS({
+        type: "pool_maintenance_tracker/status",
+        entry_id: entryId,
+        language: this._hass.language || "en",
+      });
+      this._loadedFor = entryId;
+      this._data = data;
+      this._available = availableItems(data, editorText(this._hass));
+    } catch (error) {
+      this._available = null;
+    }
+    this._update();
+  }
+
+  _selectionFor(group) {
+    const available = this._available[group].map(item => item.value);
+    const items = this._config.items
+      || (this._data ? allItemValues(this._available)
+        .filter(value => !value.startsWith("extra:")) : []);
+    return items.filter(value => available.includes(value));
+  }
+
   _schema() {
-    return [
+    const text = editorText(this._hass);
+    const schema = [
       {
         name: "entry",
         selector: {
           select: {
             mode: "dropdown",
-            options: this._pools.map(pool => ({
-              value: pool.entry_id, label: pool.title
-            })),
+            options: this._pools.map(pool => ({ value: pool.entry_id, label: pool.title })),
           },
         },
       },
       { name: "title", selector: { text: {} } },
-      {
-        name: "",
-        type: "grid",
-        column_min_width: "180px",
-        schema: [
-          { name: "show_temperature", selector: { boolean: {} } },
-          { name: "show_alerts", selector: { boolean: {} } },
-          { name: "show_equipment", selector: { boolean: {} } },
-          { name: "show_chlorinator", selector: { boolean: {} } },
-          { name: "show_tasks", selector: { boolean: {} } },
-          { name: "only_due_tasks", selector: { boolean: {} } },
-        ],
-      },
     ];
+    if (this._available) {
+      GROUPS.forEach(group => {
+        if (!this._available[group].length) return;
+        schema.push({
+          name: "group_" + group,
+          selector: {
+            select: {
+              multiple: true, mode: "list", options: this._available[group],
+            },
+          },
+        });
+      });
+    }
+    schema.push({ name: "only_due_tasks", selector: { boolean: {} } });
+    return schema;
+  }
+
+  _formData() {
+    const data = {
+      entry: this._config.entry,
+      title: this._config.title,
+      only_due_tasks: this._config.only_due_tasks,
+    };
+    if (this._available) {
+      GROUPS.forEach(group => {
+        data["group_" + group] = this._selectionFor(group);
+      });
+    }
+    return data;
   }
 
   _update() {
@@ -501,9 +712,11 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     }
     const text = editorText(this._hass);
     this._form.hass = this._hass;
-    this._form.data = this._config;
+    this._form.data = this._formData();
     this._form.schema = this._schema();
-    this._form.computeLabel = schema => text[schema.name] || schema.name;
+    this._form.computeLabel = schema => schema.name.startsWith("group_")
+      ? text[schema.name.slice(6)]
+      : (text[schema.name] || schema.name);
     this._form.computeHelper = schema =>
       schema.name === "entry" ? text.entry_help : undefined;
   }
@@ -511,18 +724,27 @@ class PoolMaintenanceCardEditor extends HTMLElement {
   _valueChanged(event) {
     event.stopPropagation();
     const value = Object.assign({}, event.detail.value);
-    /* Keep the stored YAML tidy: the card type plus only what differs
-       from the defaults. The type must always be there — without it the
-       dashboard cannot build the card. */
     const config = {
       type: (this._config && this._config.type) || "custom:pool-maintenance-card",
     };
-    Object.keys(DEFAULTS).forEach(key => {
-      const current = value[key];
-      if (current === undefined || current === null || current === "") return;
-      if (current === DEFAULTS[key]) return;
-      config[key] = current;
-    });
+    if (value.entry) config.entry = value.entry;
+    if (value.title) config.title = value.title;
+    if (value.only_due_tasks) config.only_due_tasks = true;
+    if (this._available) {
+      /* Store one flat list, in the card's own render order. */
+      const items = [];
+      GROUPS.forEach(group => {
+        const selected = value["group_" + group] || [];
+        this._available[group].forEach(item => {
+          if (selected.includes(item.value)) items.push(item.value);
+        });
+      });
+      config.items = items;
+    } else if (this._config.items) {
+      config.items = this._config.items;
+    }
+    this._config = Object.assign({}, this._config, config);
+    if (config.entry !== this._loadedFor) this._loadAvailable();
     fireEvent(this, "config-changed", { config: config });
   }
 }

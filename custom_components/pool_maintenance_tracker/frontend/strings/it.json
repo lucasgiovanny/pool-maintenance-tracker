@@ -183,7 +183,7 @@
     "minutes_short": "{n} min fa",
     "hours_short": "{n} h fa",
     "overdue_days": "in ritardo di {days} giorni",
-    "never_recorded": "mai registrate",
+    "never_recorded": "nessuna registrazione",
     "no_visits": "Ancora nessun intervento.",
     "overdue_count": "in ritardo"
   },
@@ -194,5 +194,10 @@
     "pump": "Pompa",
     "pool_light": "Luce piscina",
     "cover": "Copertura"
+  },
+  "card": {
+    "turns_on": "Si accende tra",
+    "turns_off": "Si spegne tra",
+    "no_schedule": "Nessun orario associato"
   }
 }

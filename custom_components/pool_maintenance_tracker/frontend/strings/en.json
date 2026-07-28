@@ -194,5 +194,10 @@
     "pump": "Pump",
     "pool_light": "Pool light",
     "cover": "Cover"
+  },
+  "card": {
+    "turns_on": "Turns on in",
+    "turns_off": "Turns off in",
+    "no_schedule": "No schedule linked"
   }
 }

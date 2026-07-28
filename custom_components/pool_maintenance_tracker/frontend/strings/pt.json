@@ -183,7 +183,7 @@
     "minutes_short": "há {n} min",
     "hours_short": "há {n} h",
     "overdue_days": "atrasado {days} dias",
-    "never_recorded": "nunca registadas",
+    "never_recorded": "sem registo",
     "no_visits": "Ainda não há intervenções.",
     "overdue_count": "em atraso"
   },
@@ -194,5 +194,10 @@
     "pump": "Bomba",
     "pool_light": "Luz da piscina",
     "cover": "Cobertura"
+  },
+  "card": {
+    "turns_on": "Liga em",
+    "turns_off": "Desliga em",
+    "no_schedule": "Sem horário associado"
   }
 }

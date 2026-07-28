@@ -183,7 +183,7 @@
     "minutes_short": "il y a {n} min",
     "hours_short": "il y a {n} h",
     "overdue_days": "{days} jours de retard",
-    "never_recorded": "jamais enregistrées",
+    "never_recorded": "aucun enregistrement",
     "no_visits": "Aucune intervention pour l'instant.",
     "overdue_count": "en retard"
   },
@@ -194,5 +194,10 @@
     "pump": "Pompe",
     "pool_light": "Éclairage",
     "cover": "Couverture"
+  },
+  "card": {
+    "turns_on": "S'allume dans",
+    "turns_off": "S'éteint dans",
+    "no_schedule": "Aucun horaire associé"
   }
 }
