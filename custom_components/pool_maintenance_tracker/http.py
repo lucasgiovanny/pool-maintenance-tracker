@@ -343,9 +343,47 @@ async def _schedule_week(hass: HomeAssistant, entity_id: str) -> list[list[list[
             start = str(block.get("from", ""))[:5]
             end = str(block.get("to", ""))[:5]
             if start and end:
+                # A block running to midnight is stored as "00:00" — as an
+                # end time that means 24:00, not before the block starts.
+                if end <= start:
+                    end = "24:00"
                 blocks.append([start, end])
         week.append(blocks)
     return week
+
+
+def _minutes_of(text: str) -> int:
+    hours, minutes = (int(part) for part in text.split(":")[:2])
+    return hours * 60 + minutes
+
+
+@callback
+def _schedule_next_change(week: list[list[list[str]]], now: datetime) -> datetime | None:
+    """When the schedule really flips next, merging blocks that touch.
+
+    A schedule "on 22:00-24:00 Monday, 00:00-01:00 Tuesday" is one run that
+    ends at 01:00 — but the raw block edges (and the entity's next_event)
+    say it turns off at midnight, which is false: it never goes off.
+    Expanding a week ahead into absolute intervals and merging the touching
+    ones yields the boundary that actually changes the state.
+    """
+    local = dt_util.as_local(now)
+    day_start = local.replace(hour=0, minute=0, second=0, microsecond=0)
+    intervals: list[list[datetime]] = []
+    for offset in range(9):  # a week ahead covers every repeating pattern
+        day = day_start + timedelta(days=offset)
+        for start, end in week[day.weekday() % 7]:
+            begin = day + timedelta(minutes=_minutes_of(start))
+            finish = day + timedelta(minutes=_minutes_of(end))
+            if intervals and intervals[-1][1] == begin:
+                intervals[-1][1] = finish  # touching blocks are one run
+            else:
+                intervals.append([begin, finish])
+    for begin, finish in intervals:
+        if finish <= local:
+            continue
+        return begin if begin > local else finish
+    return None
 
 
 async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | None:
@@ -357,11 +395,15 @@ async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
     next_change = None
     week = None
     if domain == "schedule":
-        if next_event := state.attributes.get("next_event"):
+        week = await _schedule_week(hass, entity_id)
+        # Computed from the grid, because the entity's own next_event
+        # reports a phantom off at midnight between touching blocks.
+        if week is not None and (computed := _schedule_next_change(week, dt_util.utcnow())):
+            next_change = computed.isoformat()
+        if next_change is None and (next_event := state.attributes.get("next_event")):
             next_change = (
                 next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
             )
-        week = await _schedule_week(hass, entity_id)
     return {
         "entity_id": entity_id,
         "name": state.attributes.get("friendly_name") or entity_id,

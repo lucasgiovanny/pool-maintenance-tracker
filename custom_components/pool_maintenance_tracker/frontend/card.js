@@ -462,7 +462,9 @@ class PoolMaintenanceCard extends HTMLElement {
       if (config.only_due_tasks && !task.due) return;
       const badge = task.due
         ? { text: S.kiosk.overdue_days.replace("{days}", this._overdueDays(task) ?? 0), due: true }
-        : (task.next ? { text: this._shortDate(task.next), due: false } : null);
+        : (task.next
+          ? { text: S.report.next_due.replace("{date}", this._shortDate(task.next)), due: false }
+          : null);
       let value = this._daysAgo(task.last);
       if (task.key === "salt_added" && values.salt_added !== undefined && task.last) {
         value += " · " + values.salt_added + " " + S.units.salt_added;
@@ -603,6 +605,7 @@ class PoolMaintenanceCard extends HTMLElement {
               ${cycle.blocks.map(block => `<i style="left:${block.left}%;width:${block.width}%"></i>`).join("")}
               <b style="left:${cycle.now}%"></b>
             </div>
+            <div class="cycle-axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
             ${cycle.sub ? `<div class="mini-sub">${this._escape(cycle.sub)}</div>` : ""}
           </div>` : ""}
         </div>` : ""}
@@ -673,8 +676,8 @@ class PoolMaintenanceCard extends HTMLElement {
       ha-card.panel{height:100%;display:flex;flex-direction:column;overflow:auto}
       .panel .grid{flex:1;grid-auto-rows:minmax(90px,1fr)}
       .panel .mini{display:flex;flex-direction:column;justify-content:center}
-      .panel .hero-value{font-size:clamp(2.3rem,7vh,4rem)}
-      .panel .mini-value{font-size:clamp(1.25rem,3.2vh,1.9rem)}
+      .panel .hero-value{font-size:clamp(1.9rem,5.5vh,3.2rem)}
+      .panel .mini-value{font-size:clamp(1.1rem,2.8vh,1.6rem)}
       .empty{color:var(--secondary-text-color,#8a8f94);padding:8px 0}
       .clickable{cursor:pointer}
 
@@ -737,15 +740,14 @@ class PoolMaintenanceCard extends HTMLElement {
         color:var(--secondary-text-color,#8a8f94);
         overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       }
-      .mini-value{font-size:1.25rem;font-weight:600;margin-top:4px;line-height:1.25}
-      .mini-value.warn{color:var(--warning-color,#E9B94F)}
+      .mini-value{font-size:1.1rem;font-weight:600;margin-top:4px;line-height:1.3}
       .mini-sub{
         font-size:.74rem;font-weight:600;color:var(--secondary-text-color,#8a8f94);
         margin-top:2px;line-height:1.35;
       }
       .mini-badge{margin-top:6px}
       .hero{grid-column:span 2;display:flex;flex-direction:column;justify-content:center}
-      .hero-value{font-size:2.3rem;font-weight:600;line-height:1.15;margin-top:2px}
+      .hero-value{font-size:1.9rem;font-weight:600;line-height:1.15;margin-top:2px}
       .hero-value small{font-size:1rem;color:var(--secondary-text-color,#8a8f94);margin-left:4px}
       .cycle{grid-column:1/-1}
       .cycle-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
@@ -761,6 +763,10 @@ class PoolMaintenanceCard extends HTMLElement {
       .cycle-track b{
         position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
         background:var(--primary-text-color,#333);
+      }
+      .cycle-axis{
+        display:flex;justify-content:space-between;margin-top:4px;
+        font-size:.68rem;font-weight:600;color:var(--secondary-text-color,#8a8f94);
       }
       .tiles-layout .toggles .tile{flex:1 1 150px}
       .tile{
@@ -794,12 +800,18 @@ class PoolMaintenanceCard extends HTMLElement {
       .row:last-child{border-bottom:none}
       .row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .row-value{font-weight:500;white-space:nowrap}
-      .row-value.warn{color:var(--warning-color,#E9B94F)}
       .badge{
         border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:500;white-space:nowrap;
         background:var(--secondary-background-color,rgba(127,127,127,.12));color:var(--secondary-text-color,#8a8f94);
       }
-      .badge.due,.badge.low,.badge.high{background:rgba(233,185,79,.2);color:var(--warning-color,#E9B94F)}
+      .badge.due,.badge.low,.badge.high{
+        background:rgba(33,150,243,.14);color:var(--primary-color,#2196F3);
+      }
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .badge.due,.badge.low,.badge.high{
+          background:color-mix(in srgb,var(--primary-color,#2196F3) 14%,transparent);
+        }
+      }
       .badge.ideal{background:rgba(47,204,139,.18);color:var(--success-color,#2FCC8B)}
     </style>`;
   }
