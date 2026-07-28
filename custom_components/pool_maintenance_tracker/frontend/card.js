@@ -32,7 +32,7 @@ const EDITOR_TEXT = {
     general: "General", equipment: "Equipment", readings: "Water readings", tasks: "Tasks",
     temperature: "Water temperature (header)", alerts: "Alerts",
     countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
-    layout: "Layout", layout_list: "List", layout_tiles: "Tiles (like the wall dashboard)",
+    layout: "Layout", layout_list: "List", layout_tiles: "Tiles",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -41,7 +41,7 @@ const EDITOR_TEXT = {
     temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
     countdown: "Contagem decrescente do horário", filtration: "Sugestão de filtração", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
-    layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões (como o painel de parede)",
+    layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -50,7 +50,7 @@ const EDITOR_TEXT = {
     temperature: "Temperatura del agua (encabezado)", alerts: "Alertas",
     countdown: "Cuenta atrás del horario", filtration: "Sugerencia de filtración", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
-    layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas (como el panel de pared)",
+    layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas",
   },
   fr: {
     entry: "Piscine", entry_help: "Laissez vide pour utiliser votre seule piscine.",
@@ -59,7 +59,7 @@ const EDITOR_TEXT = {
     temperature: "Température de l'eau (en-tête)", alerts: "Alertes",
     countdown: "Compte à rebours de l'horaire", filtration: "Suggestion de filtration", chlorinator: "Électrolyseur",
     acid_tank: "Réservoir d'acide",
-    layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes (comme l'écran mural)",
+    layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -68,7 +68,7 @@ const EDITOR_TEXT = {
     temperature: "Wassertemperatur (Kopfzeile)", alerts: "Warnungen",
     countdown: "Countdown des Zeitplans", filtration: "Filtrationsempfehlung", chlorinator: "Elektrolyseur",
     acid_tank: "Säuretank",
-    layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln (wie das Wanddisplay)",
+    layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -78,7 +78,7 @@ const EDITOR_TEXT = {
     alerts: "Avvisi", countdown: "Conto alla rovescia dell'orario",
     filtration: "Suggerimento di filtrazione",
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
-    layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri (come il pannello a parete)",
+    layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri",
   },
 };
 
@@ -404,6 +404,7 @@ class PoolMaintenanceCard extends HTMLElement {
       const showUnit = unit && unit.toLowerCase() !== name.toLowerCase();
       const status = this._rangeStatus(key, value);
       rows.push({
+        key: "value:" + key,
         name: name,
         value: showUnit ? value + " " + unit : String(value),
         entity: ids[key],
@@ -428,6 +429,7 @@ class PoolMaintenanceCard extends HTMLElement {
       const scheduled = filtration.scheduled_hours;
       const hasSchedule = scheduled !== null && scheduled !== undefined;
       rows.push({
+        key: "filtration",
         name: hasSchedule ? S.report.filtration : S.report.filtration_recommended,
         value: S.report.hours.replace("{h}", hasSchedule ? scheduled : filtration.recommended_hours)
           + (hasSchedule
@@ -470,6 +472,45 @@ class PoolMaintenanceCard extends HTMLElement {
 
     /* html --------------------------------------------------------- */
     const tiles = config.layout === "tiles";
+
+    /* Tiles layout borrows the kiosk's two anchors: the temperature as a
+       hero tile, and today's filtration cycle as a bar. Both stay inside
+       HA's design language — same borders, same theme variables. */
+    const hero = tiles && showTemp;
+    let cycle = null;
+    if (tiles && shown.has("filtration") && schedule && schedule.week) {
+      const todayIndex = (new Date().getDay() + 6) % 7;  /* Monday = 0 */
+      const blocks = schedule.week[todayIndex] || [];
+      const minutesOf = text => {
+        const [hours, minutes] = text.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
+      if (blocks.length) {
+        const now = new Date();
+        cycle = {
+          blocks: blocks.map(([from, to]) => {
+            const start = minutesOf(from);
+            const end = Math.max(minutesOf(to), start + 10);
+            return { left: start / 1440 * 100, width: (end - start) / 1440 * 100 };
+          }),
+          now: (now.getHours() * 60 + now.getMinutes()) / 1440 * 100,
+          header: blocks.length <= 2
+            ? blocks.map(([from, to]) => from + " – " + to).join("  ·  ")
+            : S.kiosk.blocks_total.replace("{n}", blocks.length).replace("{h}",
+                Math.round(blocks.reduce((total, [from, to]) =>
+                  total + Math.max(0, minutesOf(to) - minutesOf(from)), 0) / 6) / 10),
+          sub: filtration ? [
+            S.report.recommended.replace("{h}", filtration.recommended_hours),
+            filtration.actual_hours !== null && filtration.actual_hours !== undefined
+              ? S.report.actual_today.replace("{h}", filtration.actual_hours) : null,
+          ].filter(Boolean).join(" · ") : "",
+        };
+      }
+    }
+    /* The hero and the cycle bar already say what their minis would */
+    const gridRows = rows.filter(row =>
+      !(cycle && row.key === "filtration")
+      && !(hero && row.key === "value:water_temperature"));
     this.shadowRoot.innerHTML = `
       <ha-card class="${tiles ? "tiles-layout" : ""}">
         <div class="head">
@@ -484,7 +525,7 @@ class PoolMaintenanceCard extends HTMLElement {
             <div class="name">${this._escape(config.title || data.title)}</div>
             <div class="sub">${this._escape(subtitleBits.join(" · "))}</div>
           </div>
-          ${showTemp ? `<div class="temp" data-entity="${
+          ${showTemp && !hero ? `<div class="temp" data-entity="${
             ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
         </div>
 
@@ -517,13 +558,17 @@ class PoolMaintenanceCard extends HTMLElement {
           </div>`;
         }).join("")}</div>` : ""}
 
-        ${rows.length ? (tiles ? `<div class="grid">
-          ${rows.map((row, index) => {
+        ${tiles && (hero || cycle || gridRows.length) ? `<div class="grid">
+          ${hero ? `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
+            <div class="mini-name">${this._escape(S.report.values.water_temperature)}</div>
+            <div class="hero-value">${temp}<small>${tempUnit}</small></div>
+          </div>` : ""}
+          ${gridRows.map(row => {
             /* Rows join auxiliary facts with " · " — in a tile the value
                must stay one big figure, so the rest drops to a sub line. */
             const [main, ...aux] = String(row.value).split(" · ");
             return `
-            <div class="mini" data-row="${index}">
+            <div class="mini" data-row="${rows.indexOf(row)}">
               <div class="mini-name">${this._escape(row.name)}</div>
               <div class="mini-value ${row.warn ? "warn" : ""}">${this._escape(main)}</div>
               ${aux.length ? `<div class="mini-sub">${this._escape(aux.join(" · "))}</div>` : ""}
@@ -532,7 +577,19 @@ class PoolMaintenanceCard extends HTMLElement {
                 this._escape(row.badge.text)}</span></div>` : ""}
             </div>`;
           }).join("")}
-        </div>` : `<div class="rows">
+          ${cycle ? `<div class="mini cycle clickable" data-entity="${schedule.entity_id}">
+            <div class="cycle-head">
+              <span class="mini-name">${this._escape(S.kiosk.filtration_cycle)}</span>
+              <span class="cycle-hours">${this._escape(cycle.header)}</span>
+            </div>
+            <div class="cycle-track">
+              ${cycle.blocks.map(block => `<i style="left:${block.left}%;width:${block.width}%"></i>`).join("")}
+              <b style="left:${cycle.now}%"></b>
+            </div>
+            ${cycle.sub ? `<div class="mini-sub">${this._escape(cycle.sub)}</div>` : ""}
+          </div>` : ""}
+        </div>` : ""}
+        ${rows.length && !tiles ? `<div class="rows">
           ${rows.map((row, index) => `
             <div class="row" data-row="${index}">
               <span class="row-name">${this._escape(row.name)}</span>
@@ -540,7 +597,7 @@ class PoolMaintenanceCard extends HTMLElement {
                 this._escape(row.badge.text)}</span>` : ""}
               <span class="row-value ${row.warn ? "warn" : ""}">${this._escape(row.value)}</span>
             </div>`).join("")}
-        </div>`) : ""}
+        </div>` : ""}
         ${this._styles()}
       </ha-card>`;
 
@@ -558,12 +615,11 @@ class PoolMaintenanceCard extends HTMLElement {
       node.classList.add("clickable");
       node.addEventListener("click", () => this._openMoreInfo(row.entity));
     });
-    const temperature = root.querySelector(".temp[data-entity]");
-    if (temperature && temperature.dataset.entity) {
-      temperature.classList.add("clickable");
-      temperature.addEventListener("click",
-        () => this._openMoreInfo(temperature.dataset.entity));
-    }
+    root.querySelectorAll(".temp[data-entity], .mini[data-entity]").forEach(node => {
+      if (!node.dataset.entity) return;
+      node.classList.add("clickable");
+      node.addEventListener("click", () => this._openMoreInfo(node.dataset.entity));
+    });
     if (countdown) {
       const box = root.querySelector(".countdown");
       box.classList.add("clickable");
@@ -653,6 +709,24 @@ class PoolMaintenanceCard extends HTMLElement {
         margin-top:2px;line-height:1.35;
       }
       .mini-badge{margin-top:6px}
+      .hero{grid-column:span 2;display:flex;flex-direction:column;justify-content:center}
+      .hero-value{font-size:2.3rem;font-weight:600;line-height:1.15;margin-top:2px}
+      .hero-value small{font-size:1rem;color:var(--secondary-text-color,#8a8f94);margin-left:4px}
+      .cycle{grid-column:1/-1}
+      .cycle-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+      .cycle-hours{font-size:.85rem;font-weight:600;white-space:nowrap}
+      .cycle-track{
+        position:relative;height:8px;border-radius:999px;margin:10px 0 2px;
+        background:var(--secondary-background-color,rgba(127,127,127,.15));
+      }
+      .cycle-track i{
+        position:absolute;top:0;bottom:0;border-radius:999px;
+        background:var(--primary-color,#4fc3d7);
+      }
+      .cycle-track b{
+        position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
+        background:var(--primary-text-color,#333);
+      }
       .tiles-layout .toggles .tile{flex:1 1 150px}
       .tile{
         flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color,rgba(127,127,127,.35));
@@ -853,6 +927,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     };
     if (value.entry) config.entry = value.entry;
     if (value.title) config.title = value.title;
+    if (value.layout && value.layout !== "list") config.layout = value.layout;
     if (value.only_due_tasks) config.only_due_tasks = true;
     if (this._available) {
       /* Store one flat list, in the card's own render order. */
@@ -868,6 +943,8 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       config.items = this._config.items;
     }
     this._config = Object.assign({}, this._config, config);
+    /* Back to the default: the stale value must not shadow the emitted one */
+    if (!config.layout) delete this._config.layout;
     if (config.entry !== this._loadedFor) this._loadAvailable();
     fireEvent(this, "config-changed", { config: config });
   }

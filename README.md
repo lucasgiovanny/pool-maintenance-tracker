@@ -225,7 +225,10 @@ by category:
 There is also a **layout** choice: *List* (the default, compact rows for a
 column of cards) or *Tiles*, which spreads every item into kiosk-style minis —
 made for a dashboard built from this card alone, as a lightweight take on the
-wall dashboard inside Home Assistant.
+wall dashboard inside Home Assistant. In tiles, the water temperature becomes
+a wide hero tile and, when a filtration schedule is configured, today's cycle
+renders as a full-width 24-hour bar with a "now" marker — the same two anchors
+the wall dashboard leads with, drawn with HA's own theme variables.
 
 You can also override the title and pick the pool when you have several.
 Tapping a row opens the usual more-info dialog, the toggles switch your
