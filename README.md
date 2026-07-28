@@ -136,6 +136,11 @@ entity; turn it off under **Configure → Page and notifications**.
 2. Add `https://github.com/lucasgiovanny/pool-maintenance-tracker` with category **Integration**.
 3. Search for **Pool Maintenance Tracker**, install it, and restart Home Assistant.
 
+> Inclusion in the HACS default store is
+> [pending review](https://github.com/hacs/default/pull/9549). Once it is
+> merged, steps 1 and 2 go away — the integration will show up in the HACS
+> search directly.
+
 ### Manual
 
 Copy `custom_components/pool_maintenance_tracker` into your `config/custom_components`
