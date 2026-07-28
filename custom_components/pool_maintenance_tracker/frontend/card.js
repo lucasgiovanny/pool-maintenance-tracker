@@ -718,11 +718,16 @@ class PoolMaintenanceCard extends HTMLElement {
          theme's own card surface — so a tiles dashboard reads as native
          HA cards on the transparent background, dark or light. */
       ha-card.tiles-layout{background:none;border:none;box-shadow:none}
+      /* Radius is fixed on purpose. Reading --ha-card-border-radius looked
+         right, but on installs where the token resolves to nothing valid,
+         a failed var() does not fall back — the property resets to its
+         initial value, and the corners (and once, the border) vanish.
+         12px is HA's own default; the colors stay the theme's. */
       .tiles-layout .mini,.tiles-layout .tile,.tiles-layout .countdown{
         background:var(--ha-card-background,var(--card-background-color,#fff));
         border:1px solid var(--ha-card-border-color,var(--divider-color,rgba(127,127,127,.25)));
-        border-radius:var(--ha-card-border-radius,12px);
-        box-shadow:var(--ha-card-box-shadow,none);
+        border-radius:12px;
+        box-shadow:none;
       }
 
       /* Tiles layout: kiosk-style minis for a single-card dashboard */
