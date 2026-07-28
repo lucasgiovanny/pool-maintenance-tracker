@@ -512,7 +512,7 @@ class PoolMaintenanceCard extends HTMLElement {
     return `<style>
       *{box-sizing:border-box}
       ha-card{padding:16px;display:block}
-      .empty{color:var(--secondary-text-color);padding:8px 0}
+      .empty{color:var(--secondary-text-color,#8a8f94);padding:8px 0}
       .clickable{cursor:pointer}
 
       .head{display:flex;align-items:center;gap:14px}
@@ -524,9 +524,9 @@ class PoolMaintenanceCard extends HTMLElement {
       .icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round}
       .titles{flex:1;min-width:0}
       .name{font-size:1.3rem;font-weight:600;line-height:1.2}
-      .sub{color:var(--secondary-text-color);font-size:.92rem;margin-top:2px}
+      .sub{color:var(--secondary-text-color,#8a8f94);font-size:.92rem;margin-top:2px}
       .temp{font-size:1.9rem;font-weight:500;white-space:nowrap}
-      .temp small{font-size:.95rem;color:var(--secondary-text-color);margin-left:3px}
+      .temp small{font-size:.95rem;color:var(--secondary-text-color,#8a8f94);margin-left:3px}
 
       .alert{
         display:flex;gap:10px;margin-top:14px;padding:10px 12px;border-radius:10px;
@@ -537,30 +537,33 @@ class PoolMaintenanceCard extends HTMLElement {
 
       .countdown{
         display:flex;align-items:center;gap:10px;margin-top:14px;
-        padding:10px 12px;border-radius:10px;background:var(--secondary-background-color);
+        padding:10px 12px;border-radius:10px;background:var(--secondary-background-color,rgba(127,127,127,.12));
       }
-      .cd-label{color:var(--secondary-text-color);font-size:.92rem;font-weight:500;flex:1}
+      .cd-label{color:var(--secondary-text-color,#8a8f94);font-size:.92rem;font-weight:500;flex:1}
       .cd-value{
         font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;
-        color:var(--primary-color);
+        color:var(--primary-color,#4fc3d7);
       }
       .countdown.soon .cd-value{color:var(--warning-color,#E9B94F)}
 
       .toggles{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
       .tile{
-        flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color);
+        flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color,rgba(127,127,127,.35));
         border-radius:12px;padding:10px 12px;cursor:pointer;
       }
-      .tile.on{border-color:var(--primary-color)}
+      .tile.on{border-color:var(--primary-color,#4fc3d7)}
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .tile.on{background:color-mix(in srgb,var(--primary-color,#4fc3d7) 8%,transparent)}
+      }
       .tile-top{display:flex;align-items:center;gap:8px}
       .tile-name{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      .tile-sub{color:var(--secondary-text-color);font-size:.88rem;margin-top:3px}
-      .tile.on .tile-sub{color:var(--primary-color)}
+      .tile-sub{color:var(--secondary-text-color,#8a8f94);font-size:.88rem;margin-top:3px}
+      .tile.on .tile-sub{color:var(--primary-color,#4fc3d7)}
       .switch{
         width:38px;height:22px;border-radius:11px;background:var(--disabled-text-color,#8c8c8c);
         flex:none;position:relative;transition:background .15s;
       }
-      .switch.on{background:var(--primary-color)}
+      .switch.on{background:var(--primary-color,#4fc3d7)}
       .switch i{
         position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
         background:#fff;transition:transform .15s;
@@ -570,7 +573,7 @@ class PoolMaintenanceCard extends HTMLElement {
       .rows{margin-top:6px}
       .row{
         display:flex;align-items:center;gap:10px;padding:12px 0;
-        border-bottom:1px solid var(--divider-color);
+        border-bottom:1px solid var(--divider-color,rgba(127,127,127,.35));
       }
       .row:last-child{border-bottom:none}
       .row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -578,7 +581,7 @@ class PoolMaintenanceCard extends HTMLElement {
       .row-value.warn{color:var(--warning-color,#E9B94F)}
       .badge{
         border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:500;white-space:nowrap;
-        background:var(--secondary-background-color);color:var(--secondary-text-color);
+        background:var(--secondary-background-color,rgba(127,127,127,.12));color:var(--secondary-text-color,#8a8f94);
       }
       .badge.due{background:rgba(233,185,79,.2);color:var(--warning-color,#E9B94F)}
     </style>`;
