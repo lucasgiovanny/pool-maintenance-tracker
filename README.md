@@ -232,8 +232,7 @@ a wide hero tile and, when a filtration schedule is configured, today's cycle
 renders as a full-width 24-hour bar with a "now" marker — the same two anchors
 the wall dashboard leads with. In tiles the outer card dissolves: each mini
 takes the theme's own card surface on the dashboard's transparent background,
-so it reads as native HA cards, dark or light. On a **panel view** ("single
-card") the card fills the full height of the screen.
+so it reads as native HA cards, dark or light.
 
 You can also override the title and pick the pool when you have several.
 Tapping a row opens the usual more-info dialog, the toggles switch your

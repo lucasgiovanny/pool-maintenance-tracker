@@ -507,10 +507,6 @@ class PoolMaintenanceCard extends HTMLElement {
 
     /* html --------------------------------------------------------- */
     const tiles = config.layout === "tiles";
-    /* Set by Lovelace on panel ("single card") views — the hook the map
-       card uses to fill the screen. The grid stretches to the viewport
-       and each mini centers itself in its share of it. */
-    const panel = this.isPanel === true;
 
     /* Tiles layout borrows the kiosk's two anchors: the temperature as a
        hero tile, and today's filtration cycle as a bar. Both stay inside
@@ -664,7 +660,7 @@ class PoolMaintenanceCard extends HTMLElement {
         + (rows.length ? `<div class="rows">${rows.map(rowHtml).join("")}</div>` : "");
     }
     this.shadowRoot.innerHTML = `
-      <ha-card class="${tiles ? "tiles-layout" : ""}${panel ? " panel" : ""}">
+      <ha-card class="${tiles ? "tiles-layout" : ""}">
         <div class="head">
           <div class="icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -740,13 +736,8 @@ class PoolMaintenanceCard extends HTMLElement {
   _styles() {
     return `<style>
       *{box-sizing:border-box}
-      :host{display:block;height:100%}
+      :host{display:block}
       ha-card{padding:16px;display:block}
-      ha-card.panel{height:100%;display:flex;flex-direction:column;overflow:auto}
-      .panel .grid{flex:1;justify-content:space-evenly}
-      .panel .mini{display:flex;flex-direction:column;justify-content:center}
-      .panel .hero-value{font-size:clamp(1.9rem,5.5vh,3.2rem)}
-      .panel .mini-value{font-size:clamp(1.1rem,2.8vh,1.6rem)}
       .empty{color:var(--secondary-text-color,#8a8f94);padding:8px 0}
       .clickable{cursor:pointer}
 
