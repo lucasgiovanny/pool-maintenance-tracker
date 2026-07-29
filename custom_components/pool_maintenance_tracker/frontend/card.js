@@ -671,7 +671,9 @@ class PoolMaintenanceCard extends HTMLElement {
           </div>
           <div class="titles">
             <div class="name">${this._escape(config.title || data.title)}</div>
-            <div class="sub">${this._escape(subtitleBits.join(" · "))}</div>
+            <div class="sub">${roles.pool_system
+              ? `<span class="dot ${roles.pool_system.state === "on" ? "on" : "off"}"></span>` : ""}${
+              this._escape(subtitleBits.join(" · "))}</div>
           </div>
           ${showTemp && !hero ? `<div class="temp" data-entity="${
             ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
@@ -750,7 +752,20 @@ class PoolMaintenanceCard extends HTMLElement {
       .icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round}
       .titles{flex:1;min-width:0}
       .name{font-size:1.3rem;font-weight:600;line-height:1.2}
-      .sub{color:var(--secondary-text-color,#8a8f94);font-size:.92rem;margin-top:2px}
+      .sub{
+        color:var(--secondary-text-color,#8a8f94);font-size:.92rem;margin-top:2px;
+        display:flex;align-items:center;gap:6px;
+      }
+      .dot{width:8px;height:8px;border-radius:50%;flex:none}
+      .dot.on{
+        background:var(--success-color,#4caf50);
+        animation:dot-pulse 2s ease-in-out infinite;
+      }
+      .dot.off{background:var(--error-color,#f44336)}
+      @keyframes dot-pulse{
+        0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(76,175,80,.45)}
+        50%{opacity:.6;box-shadow:0 0 0 4px rgba(76,175,80,0)}
+      }
       .temp{font-size:1.9rem;font-weight:500;white-space:nowrap}
       .temp small{font-size:.95rem;color:var(--secondary-text-color,#8a8f94);margin-left:3px}
 
