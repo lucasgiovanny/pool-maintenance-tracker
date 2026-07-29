@@ -41,6 +41,16 @@ CONF_REPORT_SENSORS: Final = "report_sensors"
 CONF_KIOSK_ENABLED: Final = "kiosk_enabled"
 DEFAULT_KIOSK_ENABLED: Final = True
 
+# Maintenance mode: a flag raised while somebody works on the pool. Nothing
+# in here acts on it — it exists so that automations can (stop the pump,
+# mute an alarm, skip a schedule), and so that whoever is standing at the
+# machine room can raise it from the page. On by default, because a pool
+# being worked on is a normal thing to want to know; switch it off in the
+# options and the entity and every toggle go away with it.
+CONF_MAINTENANCE_MODE: Final = "maintenance_mode_enabled"
+DEFAULT_MAINTENANCE_MODE: Final = True
+KEY_MAINTENANCE_MODE: Final = "maintenance_mode"
+
 # Named equipment roles: explicitly picked entities the dashboards give a
 # fixed place to, instead of guessing from the generic extra-entity list.
 CONF_POOL_SYSTEM_ENTITY: Final = "pool_system_entity"
@@ -247,6 +257,7 @@ URL_HISTORY: Final = "/api/pool_maintenance_tracker/{token}/history"
 URL_MANUAL: Final = "/api/pool_maintenance_tracker/{token}/manual"
 URL_STATE: Final = "/api/pool_maintenance_tracker/{token}/state"
 URL_KIOSK: Final = "/api/pool_maintenance_tracker/{token}/kiosk"
+URL_MODE: Final = "/api/pool_maintenance_tracker/{token}/mode"
 HISTORY_PERIODS: Final = (7, 30, 180)
 
 TECHNICIAN_PERSON: Final = "technician"

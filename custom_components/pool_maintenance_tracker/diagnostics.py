@@ -35,5 +35,8 @@ async def async_get_config_entry_diagnostics(
             "installed_at": tracker.installed_at,
             "records_count": len(tracker.records),
             "reminders_last_notified": tracker.reminders_last_notified,
+            "maintenance_mode": tracker.maintenance_mode,
+            "maintenance_mode_at": tracker.maintenance_mode_at,
+            "maintenance_mode_by": tracker.maintenance_mode_by,
         },
     }

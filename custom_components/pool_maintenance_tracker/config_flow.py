@@ -40,6 +40,7 @@ from .const import (
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
+    CONF_MAINTENANCE_MODE,
     CONF_MODULES,
     CONF_NOTIFY_SERVICE,
     CONF_PEOPLE,
@@ -63,6 +64,7 @@ from .const import (
     DEFAULT_FILTER_PRESSURE_RISE,
     DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
+    DEFAULT_MAINTENANCE_MODE,
     DEFAULT_PROBE_DAYS,
     DEFAULT_REMINDER_TIME,
     DEFAULT_REPORT_ENABLED,
@@ -321,6 +323,7 @@ class PoolOptionsFlow(OptionsFlow):
                 else:
                     options.pop(conf_key, None)
             options[CONF_PUMP_TYPE] = user_input[CONF_PUMP_TYPE]
+            options[CONF_MAINTENANCE_MODE] = user_input[CONF_MAINTENANCE_MODE]
             return await self._save(options)
 
         salt_selector = NumberSelector(
@@ -372,6 +375,10 @@ class PoolOptionsFlow(OptionsFlow):
                         )
                     ),
                     **cell_field,
+                    vol.Required(
+                        CONF_MAINTENANCE_MODE,
+                        default=options.get(CONF_MAINTENANCE_MODE, DEFAULT_MAINTENANCE_MODE),
+                    ): BooleanSelector(),
                 }
             ),
         )

@@ -54,6 +54,12 @@ class PoolTracker:
         # Derived facts that are neither a reading nor a timestamp — today
         # just the filter's clean pressure and the verdict drawn from it.
         self.metrics: dict[str, Any] = {}
+        # Maintenance mode: a flag, when it was last flipped, and by whom.
+        # It survives restarts on purpose — a technician who raised it and
+        # went home should not have it dropped by a Home Assistant update.
+        self.maintenance_mode: bool = False
+        self.maintenance_mode_at: str | None = None
+        self.maintenance_mode_by: str | None = None
         self.installed_at: str = dt_util.utcnow().isoformat()
 
     async def async_load(self) -> None:
@@ -70,6 +76,9 @@ class PoolTracker:
         self.notes = data.get("notes", [])
         self.reminders_last_notified = data.get("reminders_last_notified", {})
         self.metrics = data.get("metrics", {})
+        self.maintenance_mode = bool(data.get("maintenance_mode", False))
+        self.maintenance_mode_at = data.get("maintenance_mode_at")
+        self.maintenance_mode_by = data.get("maintenance_mode_by")
         self.installed_at = data.get("installed_at", self.installed_at)
 
     async def async_flush(self) -> None:
@@ -94,6 +103,9 @@ class PoolTracker:
             "notes": self.notes,
             "reminders_last_notified": self.reminders_last_notified,
             "metrics": self.metrics,
+            "maintenance_mode": self.maintenance_mode,
+            "maintenance_mode_at": self.maintenance_mode_at,
+            "maintenance_mode_by": self.maintenance_mode_by,
             "installed_at": self.installed_at,
         }
 
@@ -112,6 +124,22 @@ class PoolTracker:
         self.values_at[key] = dt_util.utcnow().isoformat()
         self.async_update_listeners()
         self.async_save()
+
+    @callback
+    def async_set_maintenance_mode(self, on: bool, person: str | None = None) -> bool:
+        """Raise or drop the maintenance flag; True when it actually changed.
+
+        ``person`` is whoever flipped it on the page — left empty when it
+        came from Home Assistant itself, where the logbook already says who.
+        """
+        if self.maintenance_mode == on:
+            return False
+        self.maintenance_mode = on
+        self.maintenance_mode_at = dt_util.utcnow().isoformat()
+        self.maintenance_mode_by = person or None
+        self.async_update_listeners()
+        self.async_save()
+        return True
 
     @callback
     def async_apply(self, result: ProcessResult) -> None:

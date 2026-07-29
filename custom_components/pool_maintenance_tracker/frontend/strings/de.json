@@ -220,6 +220,12 @@
     "pool_light": "Poolbeleuchtung",
     "cover": "Abdeckung"
   },
+  "maintenance": {
+    "title": "Wartungsmodus",
+    "hint": "Einschalten, solange am Pool gearbeitet wird. Das Haussystem kann darauf reagieren.",
+    "by": "von {who}",
+    "error": "Der Wartungsmodus konnte nicht geändert werden."
+  },
   "card": {
     "turns_on": "Schaltet ein in",
     "turns_off": "Schaltet aus in",

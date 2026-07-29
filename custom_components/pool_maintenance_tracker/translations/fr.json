@@ -60,7 +60,11 @@
           "salt_target_max": "Sel cible — maximum (g/L)",
           "pump_flow": "Débit de la pompe (m³/h, au point de fonctionnement)",
           "pump_type": "Type de pompe",
-          "cell_output": "Production de la cellule (g/h)"
+          "cell_output": "Production de la cellule (g/h)",
+          "maintenance_mode_enabled": "Interrupteur mode maintenance"
+        },
+        "data_description": {
+          "maintenance_mode_enabled": "Ajoute un interrupteur qui indique que quelqu'un travaille sur la piscine, à utiliser dans vos propres automatisations (arrêter la pompe, couper une alarme, ignorer l'horaire du jour). Rien dans cette intégration n'y réagit. Il peut aussi être basculé depuis la page de maintenance et la carte : toute personne ayant le lien de la page peut donc l'activer."
         }
       },
       "modules": {
@@ -262,6 +266,11 @@
       },
       "probe_calibration_due": {
         "name": "Étalonnage de la sonde en retard"
+      }
+    },
+    "switch": {
+      "maintenance_mode": {
+        "name": "Mode maintenance"
       }
     },
     "event": {

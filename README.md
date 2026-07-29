@@ -69,6 +69,29 @@ notifications**.
 Charts are lightweight inline SVG — no external libraries, still one
 self-contained page.
 
+### Maintenance mode
+
+A single flag that says *somebody is working on this pool right now*. It is on
+by default and lives in four places — as `switch.<pool>_maintenance_mode` in
+Home Assistant, as a full-width toggle at the top of the maintenance page (so
+the technician can raise it from their phone, no HA account needed), on the
+dashboard card, and as a header pill on the wall dashboard, which states it
+either way: quiet when off, amber when on. Don't want any of it? Turn it off
+under **Configure → Pool → Maintenance mode switch** and the entity and every
+toggle go away with it.
+
+Nothing in this integration reacts to it. That is the point: it is a flag for
+*your* automations — stop the pump, mute a water alarm, skip tonight's
+filtration schedule, or hold back reminders while a person is in the machine
+room. See [Automations](#automations).
+
+It survives restarts on purpose (a technician who raised it and went home
+should not have it dropped by an HA update), and it carries two attributes:
+`since` and `set_by` — the name of whoever flipped it on the page, empty when
+it was flipped inside Home Assistant. The card and the page turn amber while
+it is on, because leaving it up by accident is the one mistake worth shouting
+about.
+
 ### Notes
 
 Notes are a page-only diary — they never become HA entities. Add one on the
@@ -258,6 +281,9 @@ display-only dashboard** designed for a 7-inch landscape screen (and up).
   maintenance was logged.
 - **Right** — the last visits (who, when, what) and a **QR card** so anyone can
   log a visit from their phone.
+- **Header** — the clock, the connection status, and the [maintenance
+  mode](#maintenance-mode) pill, which states it either way: quiet when off,
+  amber with the technician's name when on.
 
 No touch targets, no navigation, no scrolling — just point a browser at it in
 kiosk mode. It refreshes itself every 30 seconds and keeps the last good data
@@ -329,7 +355,8 @@ Multiple pools? Just add the integration again.
 **Configure → Pool** holds everything about the pool itself: the volume (used
 for the salt-dose hint and the turnover maths), the pump's flow rate and type,
 the chlorinator cell output on salt pools, and the salt band the readings are
-judged against — check what your chlorinator asks for before changing it.
+judged against — check what your chlorinator asks for before changing it. The
+optional [maintenance mode](#maintenance-mode) switch is turned on here too.
 
 ### People on the page
 
@@ -421,6 +448,9 @@ Created per pool (depending on enabled modules):
   all driven by the date picked on the page, so back-dated work is recorded on
   the right day
 - **Binary sensors**: filter wash due, cell cleaning due, probe calibration due
+- **`switch.<pool>_maintenance_mode`**: the [maintenance
+  mode](#maintenance-mode) flag, with `since` and `set_by` attributes (can be
+  switched off in the options)
 - **`sensor.<pool>_last_record`**: `who · date · what` summary, with the last
   20 records (including their ids) as attributes
 - **`event.<pool>_maintenance_logged`**: fires on every submission
@@ -451,6 +481,43 @@ action:
         {{ trigger.event.data.categories | join(', ') }}
 ```
 
+The [maintenance mode](#maintenance-mode) switch is the trigger for everything
+that should behave differently while a person is at the pool:
+
+```yaml
+# Stop the pump while somebody is working, and say who raised the flag
+trigger:
+  - platform: state
+    entity_id: switch.piscina_maintenance_mode
+    to: "on"
+action:
+  - service: switch.turn_off
+    target:
+      entity_id: switch.pool_pump
+  - service: notify.mobile_app_me
+    data:
+      message: >
+        Maintenance mode on
+        {{ state_attr('switch.piscina_maintenance_mode', 'set_by') or '' }}
+```
+
+```yaml
+# And a nudge if it was left up overnight
+trigger:
+  - platform: state
+    entity_id: switch.piscina_maintenance_mode
+    to: "on"
+    for: "08:00:00"
+action:
+  - service: notify.mobile_app_me
+    data:
+      message: The pool is still in maintenance mode.
+```
+
+Conditions work just as well — `state: "off"` on `switch.<pool>_maintenance_mode`
+in front of your filtration schedule automation keeps it from starting the pump
+under somebody's hands.
+
 ## Payload API
 
 The page posts JSON to `/api/pool_maintenance_tracker/<token>/log`. You can use
@@ -478,6 +545,12 @@ Valid `categories`: `water_test`, `chlorinator`, `salt`, `filter_wash`,
 `cell_clean`, `probe_calibration`, `acid_refill`, `cleaning` (limited to the
 enabled modules).
 
+The page also posts to `/api/pool_maintenance_tracker/<token>/mode` for
+[maintenance mode](#maintenance-mode), which takes `{"on": true|false,
+"person": "Technician"}` and answers with the flag's new state. `on` must be a
+boolean; the endpoint 404s if the feature was switched off and shares the log
+endpoint's rate limits.
+
 Rules: every field is optional; `null`/absent fields change nothing;
 out-of-range values (pH 6–9, chlorine 0–10 ppm, salt 0–10 g/L, salt added
 0–500 kg, output 0–10 g/h) are ignored and echoed back in the `ignored` list;
@@ -487,11 +560,15 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page, wall dashboard) and `POST` (log); nothing
-  can command your equipment. With the Status tab enabled, anyone holding the
-  page URL can also *read* the declared pool state, the entities you chose and
-  recent records, and *add notes* — disable the tab in the options if you
-  don't want that.
+- Endpoints accept only `GET` (page, wall dashboard) and `POST` (log,
+  maintenance mode); nothing can command your equipment. With the Status tab
+  enabled, anyone holding the page URL can also *read* the declared pool state,
+  the entities you chose and recent records, and *add notes* — disable the tab
+  in the options if you don't want that.
+- [Maintenance mode](#maintenance-mode) is on by default, and anyone holding
+  the page URL can raise or drop that flag. It commands nothing by itself —
+  only the automations you write on top of it do. Switch the feature off under
+  **Configure → Pool** if you would rather it did not exist.
 - Non-guessable 256-bit token in the path, compared in constant time.
 - Rate limits: 10 posts/min per IP, 30 posts/5 min per token, and repeated
   invalid-token attempts get an IP timeout.

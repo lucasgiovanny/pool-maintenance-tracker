@@ -28,6 +28,7 @@ const ITEM_ICONS = {
   "role:pump": "mdi:pump",
   "role:pool_light": "mdi:lightbulb",
   "role:cover": "mdi:window-shutter",
+  maintenance_mode: "mdi:account-wrench",
 };
 
 /* An empty drum needs refilling; no drum at all is a decision, not a fault */
@@ -37,7 +38,7 @@ const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
 
 const GROUPS = ["general", "equipment", "readings", "tasks"];
-const GENERAL_ITEMS = ["temperature", "alerts", "countdown", "filtration"];
+const GENERAL_ITEMS = ["temperature", "alerts", "maintenance_mode", "countdown", "filtration"];
 
 const DEFAULTS = {
   entry: undefined,
@@ -137,7 +138,13 @@ function availableItems(data, text) {
   const roles = report.roles || {};
   const values = report.values || {};
 
-  const general = GENERAL_ITEMS.map(item => ({ value: item, label: text[item] }));
+  /* Maintenance mode is only an item on pools that switched it on */
+  const general = GENERAL_ITEMS
+    .filter(item => item !== "maintenance_mode" || (report.maintenance_mode || {}).enabled)
+    .map(item => ({
+      value: item,
+      label: item === "maintenance_mode" ? (S.maintenance || {}).title : text[item],
+    }));
 
   const equipment = [];
   TOGGLE_ROLES.forEach(role => {
@@ -583,6 +590,25 @@ class PoolMaintenanceCard extends HTMLElement {
         <div class="tile-sub">${this._escape(sub)}</div>
       </div>`;
     };
+    /* Maintenance mode: a flag for the automations, not a piece of kit —
+       so it gets the switch shape of a tile, but its own place. */
+    const mode = report.maintenance_mode || {};
+    const modeSub = mode.on
+      ? [S.report.state_on,
+         mode.since ? this._relTime(mode.since) : null,
+         mode.by ? S.maintenance.by.replace("{who}", mode.by) : null]
+        .filter(Boolean).join(" · ")
+      : S.report.state_off;
+    const modeHtml = (shown.has("maintenance_mode") && mode.enabled)
+      ? `<div class="tile mode ${mode.on ? "on" : ""}" data-mode="1">
+          <div class="tile-top">
+            <span class="tile-name">${this._iconTag("maintenance_mode", ids.maintenance_mode)}<span class="nm">${
+              this._escape(S.maintenance.title)}</span></span>
+            <span class="switch ${mode.on ? "on" : ""}"><i></i></span>
+          </div>
+          <div class="tile-sub">${this._escape(modeSub)}</div>
+        </div>`
+      : "";
     const countdownHtml = countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
           <span class="cd-label">${this._escape(countdown.state === "on"
             ? S.card.turns_off : S.card.turns_on)}</span>
@@ -594,7 +620,9 @@ class PoolMaintenanceCard extends HTMLElement {
          water right now (temperature hero beside the readings), the
          equipment, then the filtration plan, then the task history.
          One full-width row per section; no configuration involved. */
-      const SECTION_RANK = { alerts: 0, water: 1, equipment: 2, countdown: 3, cycle: 4, tasks: 5 };
+      const SECTION_RANK = {
+        alerts: 0, mode: 1, water: 2, equipment: 3, countdown: 4, cycle: 5, tasks: 6,
+      };
       let sequence = 0;
       const sections = new Map();
       const put = (name, html) => {
@@ -612,6 +640,7 @@ class PoolMaintenanceCard extends HTMLElement {
             <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
           <div class="alert-text">${this._escape(line)}</div>
         </div>`));
+      if (modeHtml) put("mode", modeHtml);
       if (hero) {
         put("water",
           `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
@@ -679,6 +708,8 @@ class PoolMaintenanceCard extends HTMLElement {
             ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
         </div>
 
+        ${!tiles && modeHtml ? `<div class="toggles mode-row">${modeHtml}</div>` : ""}
+
         ${!tiles && countdown ? countdownHtml : ""}
 
         ${!tiles && toggles.length
@@ -695,6 +726,18 @@ class PoolMaintenanceCard extends HTMLElement {
       node.querySelector(".switch").addEventListener("click",
         event => this._toggle(item, event));
       node.addEventListener("click", () => this._openMoreInfo(item.entity_id));
+    });
+    /* The mode switch drives our own switch entity; a tap anywhere else on
+       the tile opens it, like every other tile here. */
+    root.querySelectorAll("[data-mode]").forEach(node => {
+      const entityId = ids.maintenance_mode;
+      node.querySelector(".switch").addEventListener("click", event => {
+        event.stopPropagation();
+        if (!entityId) return;
+        this._hass.callService("switch", "toggle", { entity_id: entityId })
+          .then(() => this._load());
+      });
+      node.addEventListener("click", () => this._openMoreInfo(entityId));
     });
     root.querySelectorAll("[data-row]").forEach(node => {
       const row = rows[Number(node.dataset.row)];
@@ -883,6 +926,20 @@ class PoolMaintenanceCard extends HTMLElement {
         background:#fff;transition:transform .15s;
       }
       .switch.on i{transform:translateX(16px)}
+
+      /* Maintenance mode takes the full width and, when on, the warning
+         color: a flag left up by mistake has to be impossible to miss. */
+      .toggles.mode-row{margin-top:14px}
+      .toggles.mode-row .tile,.sec-mode .tile{flex:1 1 100%}
+      .tile.mode.on{
+        border-color:var(--warning-color,#E9B94F);
+        background:rgba(233,185,79,.12);
+      }
+      .tile.mode.on .tile-sub{color:var(--warning-color,#E9B94F)}
+      .tile.mode.on .switch.on{background:var(--warning-color,#E9B94F)}
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .tile.mode.on{background:color-mix(in srgb,var(--warning-color,#E9B94F) 12%,transparent)}
+      }
 
       .rows{margin-top:6px}
       .row{

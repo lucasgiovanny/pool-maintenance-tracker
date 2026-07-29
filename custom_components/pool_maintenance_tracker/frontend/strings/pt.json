@@ -220,6 +220,12 @@
     "pool_light": "Luz da piscina",
     "cover": "Cobertura"
   },
+  "maintenance": {
+    "title": "Modo manutenção",
+    "hint": "Liga enquanto trabalhas na piscina. O sistema da casa pode reagir a isso.",
+    "by": "por {who}",
+    "error": "Não foi possível mudar o modo manutenção."
+  },
   "card": {
     "turns_on": "Liga em",
     "turns_off": "Desliga em",

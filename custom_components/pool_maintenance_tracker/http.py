@@ -5,6 +5,10 @@ code/NFC tag by people without HA accounts. Access control relies on the
 non-guessable 256-bit token in the path, constant-time token comparison,
 rate limiting, and the fact that the endpoints only accept declarative
 maintenance state (they can never command equipment).
+
+The maintenance-mode flag is part of that declarative state and is off by
+default: raising it changes nothing here, and what it means for the pool is
+decided entirely by the automations its owner writes.
 """
 
 from __future__ import annotations
@@ -32,6 +36,7 @@ from .const import (
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
+    CONF_MAINTENANCE_MODE,
     CONF_PEOPLE,
     CONF_POOL_VOLUME,
     CONF_PUMP_FLOW,
@@ -48,6 +53,7 @@ from .const import (
     DATA_VIEWS_REGISTERED,
     DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
+    DEFAULT_MAINTENANCE_MODE,
     DEFAULT_REPORT_ENABLED,
     DEFAULT_SALT_TARGET_MAX,
     DEFAULT_SALT_TARGET_MIN,
@@ -78,6 +84,7 @@ from .const import (
     URL_KIOSK,
     URL_LOG,
     URL_MANUAL,
+    URL_MODE,
     URL_PAGE,
     URL_STATE,
 )
@@ -153,6 +160,7 @@ def async_register_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PoolManualView())
     hass.http.register_view(PoolStateView())
     hass.http.register_view(PoolKioskView())
+    hass.http.register_view(PoolModeView())
     domain_data[DATA_VIEWS_REGISTERED] = True
 
 
@@ -175,6 +183,27 @@ def _report_on(entry: ConfigEntry) -> bool:
 
 def _kiosk_on(entry: ConfigEntry) -> bool:
     return bool(entry.options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED))
+
+
+def _maintenance_on(entry: ConfigEntry) -> bool:
+    return bool(entry.options.get(CONF_MAINTENANCE_MODE, DEFAULT_MAINTENANCE_MODE))
+
+
+@callback
+def _maintenance_mode(entry: ConfigEntry) -> dict[str, Any]:
+    """The maintenance flag as every surface shows it.
+
+    ``enabled`` is the option; ``on`` is the flag itself. A disabled feature
+    still reports its flag so nothing looks half-configured, but no surface
+    offers the toggle.
+    """
+    tracker = entry.runtime_data.tracker
+    return {
+        "enabled": _maintenance_on(entry),
+        "on": tracker.maintenance_mode,
+        "since": tracker.maintenance_mode_at,
+        "by": tracker.maintenance_mode_by,
+    }
 
 
 def _clean_person(raw: Any) -> str:
@@ -681,6 +710,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "volume": entry.options.get(CONF_POOL_VOLUME),
         "filtration": await _filtration_hint(hass, entry, temperature, roles),
         "filter_pressure": filter_pressure.snapshot(hass, entry, tracker),
+        "maintenance_mode": _maintenance_mode(entry),
         "tasks": tasks,
         "last_maintenance": tracker.timestamps.get(TS_ANY),
         "records": records,
@@ -908,6 +938,10 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "history_endpoint": URL_HISTORY.format(token=token),
         "state_endpoint": URL_STATE.format(token=token),
         "manual_endpoint": URL_MANUAL.format(token=token),
+        "mode_endpoint": URL_MODE.format(token=token),
+        # Top level, not inside the report: the flag is offered even when the
+        # status tab is switched off.
+        "maintenance_mode": _maintenance_mode(entry),
         "history_periods": list(HISTORY_PERIODS),
         "report": (
             await _build_report(hass, entry)
@@ -1119,8 +1153,64 @@ class PoolStateView(HomeAssistantView):
                 "live": _live_values(hass, entry),
                 "report": await _build_report(hass, entry),
                 "temperature": await _temperature_trend(hass, entry),
+                "maintenance_mode": _maintenance_mode(entry),
             }
         )
+
+
+class PoolModeView(HomeAssistantView):
+    """Raise or drop the maintenance flag from the page.
+
+    The technician standing at the machine room has the page open and no
+    Home Assistant account, so this is the only way they can say "I am
+    working on it". Still declarative: it writes one flag of our own state,
+    shares the log endpoint's rate-limit buckets, and 404s while the
+    feature is switched off.
+    """
+
+    url = URL_MODE
+    name = "api:pool_maintenance_tracker:mode"
+    requires_auth = False
+
+    async def post(self, request: web.Request, token: str) -> web.Response:
+        hass = request.app[KEY_HASS]
+        ip = request.remote or "unknown"
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+        if not _maintenance_on(entry):
+            return web.Response(status=404)
+
+        limiter = _limiter(hass)
+        if not limiter.allow("post_ip", ip, *LIMIT_POST_IP) or not limiter.allow(
+            "post_token", token, *LIMIT_POST_TOKEN
+        ):
+            return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
+
+        if request.content_type != "application/json":
+            return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
+        body = await request.content.read(MAX_BODY_SIZE + 1)
+        if len(body) > MAX_BODY_SIZE:
+            return self.json({"ok": False, "error": "payload_too_large"}, status_code=400)
+        try:
+            payload = json.loads(body)
+        except ValueError:
+            return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
+        if not isinstance(payload, dict) or not isinstance(payload.get("on"), bool):
+            return self.json({"ok": False, "error": "invalid_payload"}, status_code=400)
+
+        tracker = entry.runtime_data.tracker
+        changed = tracker.async_set_maintenance_mode(
+            payload["on"], _clean_person(payload.get("person"))
+        )
+        if changed:
+            _LOGGER.debug(
+                "Maintenance mode %s for %s by %s",
+                "on" if payload["on"] else "off",
+                entry.title,
+                tracker.maintenance_mode_by,
+            )
+        return self.json({"ok": True, **_maintenance_mode(entry)})
 
 
 class PoolKioskView(HomeAssistantView):

@@ -257,6 +257,33 @@
   }
   .alert svg{width:17px;height:17px;stroke:#8A5200;fill:none;stroke-width:2.2;stroke-linecap:round;flex:none;margin-top:1px}
 
+  /* Maintenance mode: a flag for the home system, flipped from here. It
+     turns amber when on, because leaving it on by accident is the one
+     mistake worth shouting about. */
+  .mode{
+    display:flex;align-items:center;gap:14px;margin-top:16px;padding:13px 16px;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  }
+  .mode.on{background:#FBE9D0;border-color:var(--warn)}
+  .mode .mode-text{flex:1;min-width:0}
+  .mode .mode-text strong{display:block;font-size:.95rem;font-weight:700}
+  .mode .mode-text small{
+    display:block;color:var(--muted);font-size:.75rem;font-weight:600;
+    margin-top:3px;line-height:1.4;
+  }
+  .mode.on .mode-text small{color:#8A5200}
+  .mode .toggle{
+    flex:none;width:58px;height:32px;border-radius:999px;border:none;position:relative;
+    background:var(--line);cursor:pointer;font-family:inherit;transition:background .15s;
+  }
+  .mode .toggle i{
+    position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;
+    background:var(--white);transition:transform .15s;box-shadow:0 1px 3px rgba(16,34,43,.3);
+  }
+  .mode .toggle[aria-checked="true"]{background:var(--warn)}
+  .mode .toggle[aria-checked="true"] i{transform:translateX(26px)}
+  .mode .toggle:disabled{opacity:.55;cursor:default}
+
   .kv.with-countdown{border-bottom:none;padding-bottom:0}
   .countdown{
     font-size:.8rem;font-weight:700;color:var(--aqua);text-align:right;
@@ -336,6 +363,16 @@
 
 <main>
   <div class="alerts" id="alerts"></div>
+
+  <div class="mode" id="mode" style="display:none">
+    <div class="mode-text">
+      <strong id="mode-title"></strong>
+      <small id="mode-sub"></small>
+    </div>
+    <button type="button" class="toggle" id="mode-toggle" role="switch" aria-checked="false">
+      <i></i>
+    </button>
+  </div>
 
   <div class="tabs" id="tabs">
     <button type="button" class="on" id="tab-log"></button>
@@ -929,6 +966,59 @@ function renderAlerts(){
 }
 renderAlerts();
 
+/* ---------- maintenance mode ---------- */
+/* A flag for the home system's automations, raised by whoever is standing
+   at the pool. Nothing on this page reacts to it — it only says that
+   somebody is working, which is exactly what an automation wants to know. */
+const modeBox = document.getElementById("mode");
+const modeToggle = document.getElementById("mode-toggle");
+let modeBusy = false;
+
+function selectedPerson(){
+  const chip = document.querySelector("#who .chip.on");
+  return chip ? chip.dataset.v : "";
+}
+
+function renderMode(){
+  const mode = CFG.maintenance_mode || {};
+  if (!mode.enabled) { modeBox.style.display = "none"; return; }
+  /* A refresh landing mid-request would repaint the state we just left */
+  if (modeBusy) return;
+  modeBox.style.display = "";
+  modeBox.classList.toggle("on", !!mode.on);
+  modeToggle.setAttribute("aria-checked", mode.on ? "true" : "false");
+  setText("mode-title", S.maintenance.title);
+  if (!mode.on) { setText("mode-sub", S.maintenance.hint); return; }
+  const bits = [S.report.state_on];
+  if (mode.since) bits.push(relTime(mode.since));
+  if (mode.by) bits.push(S.maintenance.by.replace("{who}", mode.by));
+  setText("mode-sub", bits.join(" · "));
+}
+
+async function setMode(on){
+  if (modeBusy) return;
+  modeBusy = true;
+  modeToggle.disabled = true;
+  try {
+    const response = await fetch(CFG.mode_endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ on: on, person: selectedPerson() })
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    CFG.maintenance_mode = await response.json();
+  } catch (error) {
+    showResult(false, S.error_title, S.maintenance.error, "");
+  }
+  modeBusy = false;
+  modeToggle.disabled = false;
+  renderMode();
+}
+
+modeToggle.addEventListener("click", () =>
+  setMode(modeToggle.getAttribute("aria-checked") !== "true"));
+renderMode();
+
 /* ---------- reactivity: countdowns + periodic state refresh ---------- */
 function tickCountdowns(){
   document.querySelectorAll(".countdown").forEach(node => {
@@ -962,7 +1052,9 @@ async function refreshState(){
       const data = await response.json();
       CFG.live = data.live || {};
       CFG.report = data.report;
+      if (data.maintenance_mode) CFG.maintenance_mode = data.maintenance_mode;
       renderAlerts();
+      renderMode();
       renderReport();
     }
   } catch (error) { /* transient network issue — next poll retries */ }

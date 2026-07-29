@@ -27,7 +27,9 @@ LANGUAGES = ("en", "pt", "es", "fr", "de", "it")
 
 SCRIPT_RE = re.compile(r"<script>(.*?)</script>", re.DOTALL)
 # S.a.b / K.c — the shapes the frontends use to reach into the string bundle
-KEY_RE = re.compile(r"\bS\.(report|kiosk|roles|tiles|units|modes)\.([a-z_0-9]+)|\bK\.([a-z_0-9]+)")
+KEY_RE = re.compile(
+    r"\bS\.(report|kiosk|roles|tiles|units|modes|maintenance)\.([a-z_0-9]+)|\bK\.([a-z_0-9]+)"
+)
 
 
 def check_syntax(errors: list[str]) -> None:

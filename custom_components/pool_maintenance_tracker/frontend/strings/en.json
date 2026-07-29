@@ -220,6 +220,12 @@
     "pool_light": "Pool light",
     "cover": "Cover"
   },
+  "maintenance": {
+    "title": "Maintenance mode",
+    "hint": "Turn it on while you work on the pool. The home system can react to it.",
+    "by": "by {who}",
+    "error": "Could not change the maintenance mode."
+  },
   "card": {
     "turns_on": "Turns on in",
     "turns_off": "Turns off in",

@@ -44,6 +44,19 @@
   }
   header .conn .dot{width:1vh;height:1vh;border-radius:50%;background:var(--green)}
   header .conn.stale .dot{background:var(--amber)}
+  /* Maintenance mode, stated either way: "is anybody working on the pool
+     right now" is a question the screen should answer without being asked.
+     Quiet when off, amber when on — the same grammar as the connection. */
+  header .mode{
+    display:flex;align-items:center;gap:.6vw;margin-left:1.2vw;
+    font-size:1.45vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:.55vh 1vw;
+  }
+  header .mode .dot{width:1vh;height:1vh;border-radius:50%;background:#3C4548;flex:none}
+  header .mode.on{
+    color:var(--amber);border-color:rgba(233,185,79,.55);background:rgba(233,185,79,.10);
+  }
+  header .mode.on .dot{background:var(--amber)}
   header .clock{font-size:4.6vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;margin-left:1.4vw}
 
   /* ---------- 3 columns ---------- */
@@ -144,6 +157,9 @@
 <header>
   <h1 id="pool-name"></h1>
   <div class="date" id="date"></div>
+  <div class="mode" id="mode" style="display:none">
+    <span class="dot"></span><span id="mode-label"></span>
+  </div>
   <div class="conn" id="conn"><span class="dot"></span><span id="conn-label"></span></div>
   <div class="clock" id="clock"></div>
 </header>
@@ -461,6 +477,18 @@ function renderCycle(){
   track.appendChild(marker);
 }
 
+/* ---------- maintenance mode ---------- */
+function renderMode(){
+  const mode = report.maintenance_mode || {};
+  const box = document.getElementById("mode");
+  if (!mode.enabled) { box.style.display = "none"; return; }
+  box.style.display = "";
+  box.classList.toggle("on", !!mode.on);
+  const bits = [S.maintenance.title, mode.on ? S.report.state_on : S.report.state_off];
+  if (mode.on && mode.by) bits.push(S.maintenance.by.replace("{who}", mode.by));
+  setText("mode-label", bits.join(" · "));
+}
+
 /* ---------- middle column ---------- */
 function taskLabel(task){
   return S.tiles[task.key] || S.report.values[task.key] || task.key;
@@ -592,6 +620,7 @@ function renderVisits(){
 
 /* ---------- refresh ---------- */
 function renderAll(){
+  renderMode();
   renderTemperature();
   renderMinis();
   renderCycle();

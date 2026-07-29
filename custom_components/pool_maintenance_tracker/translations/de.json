@@ -60,7 +60,11 @@
           "salt_target_max": "Salz-Sollwert — Maximum (g/L)",
           "pump_flow": "Pumpenförderleistung (m³/h, im Betriebspunkt)",
           "pump_type": "Pumpentyp",
-          "cell_output": "Zellenleistung (g/h)"
+          "cell_output": "Zellenleistung (g/h)",
+          "maintenance_mode_enabled": "Schalter für den Wartungsmodus"
+        },
+        "data_description": {
+          "maintenance_mode_enabled": "Fügt einen Schalter hinzu, der sagt, dass jemand am Pool arbeitet — für deine eigenen Automatisierungen (Pumpe stoppen, Alarm stummschalten, den heutigen Zeitplan überspringen). Diese Integration selbst reagiert nicht darauf. Er lässt sich auch auf der Wartungsseite und in der Karte umschalten, also kann ihn jeder mit dem Seiten-Link einschalten."
         }
       },
       "modules": {
@@ -262,6 +266,11 @@
       },
       "probe_calibration_due": {
         "name": "Sonden-Kalibrierung überfällig"
+      }
+    },
+    "switch": {
+      "maintenance_mode": {
+        "name": "Wartungsmodus"
       }
     },
     "event": {

@@ -23,15 +23,18 @@ from .const import (
     CATEGORY_WATER_TEST,
     CONF_CELL_DAYS,
     CONF_FILTER_DAYS,
+    CONF_MAINTENANCE_MODE,
     CONF_MODULES,
     CONF_PROBE_DAYS,
     DEFAULT_CELL_DAYS,
     DEFAULT_FILTER_DAYS,
+    DEFAULT_MAINTENANCE_MODE,
     DEFAULT_PROBE_DAYS,
     KEY_ACID_TANK_LEVEL,
     KEY_CHLORINATOR_MODE,
     KEY_CHLORINATOR_OUTPUT,
     KEY_FREE_CHLORINE,
+    KEY_MAINTENANCE_MODE,
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
@@ -213,6 +216,8 @@ def active_entity_keys(options: Mapping[str, Any]) -> set[str]:
     Used to prune stale registry entries when modules are disabled.
     """
     keys: set[str] = {"last_record", "maintenance_logged", "access_qr"}
+    if options.get(CONF_MAINTENANCE_MODE, DEFAULT_MAINTENANCE_MODE):
+        keys.add(KEY_MAINTENANCE_MODE)
     keys.update(enabled_value_keys(options))
     for ts_key in enabled_timestamp_keys(options):
         keys.add(timestamp_sensor_key(ts_key))

@@ -60,7 +60,11 @@
           "salt_target_max": "Sal objetivo — máximo (g/L)",
           "pump_flow": "Caudal de la bomba (m³/h, en el punto de trabajo)",
           "pump_type": "Tipo de bomba",
-          "cell_output": "Producción de la célula (g/h)"
+          "cell_output": "Producción de la célula (g/h)",
+          "maintenance_mode_enabled": "Interruptor de modo mantenimiento"
+        },
+        "data_description": {
+          "maintenance_mode_enabled": "Añade un interruptor que indica que alguien está trabajando en la piscina, para que lo usen tus automatizaciones (parar la bomba, silenciar una alarma, saltarse el horario de hoy). Nada en esta integración reacciona a él. También se puede activar desde la página de mantenimiento y la tarjeta, así que cualquiera con el enlace de la página puede activarlo."
         }
       },
       "modules": {
@@ -262,6 +266,11 @@
       },
       "probe_calibration_due": {
         "name": "Calibración de la sonda atrasada"
+      }
+    },
+    "switch": {
+      "maintenance_mode": {
+        "name": "Modo mantenimiento"
       }
     },
     "event": {

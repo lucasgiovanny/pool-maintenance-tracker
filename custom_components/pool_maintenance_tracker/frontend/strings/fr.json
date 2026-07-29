@@ -220,6 +220,12 @@
     "pool_light": "Éclairage",
     "cover": "Couverture"
   },
+  "maintenance": {
+    "title": "Mode maintenance",
+    "hint": "Activez-le pendant que vous travaillez sur la piscine. Le système de la maison peut y réagir.",
+    "by": "par {who}",
+    "error": "Impossible de changer le mode maintenance."
+  },
   "card": {
     "turns_on": "S'allume dans",
     "turns_off": "S'éteint dans",

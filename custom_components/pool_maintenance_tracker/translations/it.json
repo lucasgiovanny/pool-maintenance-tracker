@@ -60,7 +60,11 @@
           "salt_target_max": "Sale obiettivo — massimo (g/L)",
           "pump_flow": "Portata della pompa (m³/h, al punto di lavoro)",
           "pump_type": "Tipo di pompa",
-          "cell_output": "Produzione della cella (g/h)"
+          "cell_output": "Produzione della cella (g/h)",
+          "maintenance_mode_enabled": "Interruttore modalità manutenzione"
+        },
+        "data_description": {
+          "maintenance_mode_enabled": "Aggiunge un interruttore che dice che qualcuno sta lavorando sulla piscina, da usare nelle tue automazioni (fermare la pompa, silenziare un allarme, saltare l'orario di oggi). Nulla in questa integrazione reagisce. Può essere attivato anche dalla pagina di manutenzione e dalla scheda, quindi chiunque abbia il link della pagina può attivarlo."
         }
       },
       "modules": {
@@ -262,6 +266,11 @@
       },
       "probe_calibration_due": {
         "name": "Calibrazione sonda in ritardo"
+      }
+    },
+    "switch": {
+      "maintenance_mode": {
+        "name": "Modalità manutenzione"
       }
     },
     "event": {
