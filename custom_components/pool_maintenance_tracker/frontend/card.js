@@ -191,6 +191,9 @@ class PoolMaintenanceCard extends HTMLElement {
     this._data = null;
     this._timer = null;
     this._tick = null;
+    this._pending = null;
+    this._onVisible = null;
+    this._loadedAt = 0;
     this._loading = false;
   }
 
@@ -203,17 +206,88 @@ class PoolMaintenanceCard extends HTMLElement {
     const first = !this._hass;
     this._hass = hass;
     if (first) {
+      this._start();
       this._load();
-      this._timer = setInterval(() => this._load(), REFRESH_MS);
-    } else if (this._data) {
-      this._render();
+      return;
+    }
+    if (!this._data) return;
+    /* Lovelace hands the card a new hass on every state change in the house.
+       Repainting the same data is cheap, but what the card usually needs is
+       fresh data: the pool state lives behind our own websocket command, so
+       a state it shows having moved is the cue to go and fetch it. */
+    if (this._moved()) this._soon(); else this._render();
+  }
+
+  /* Cards are detached and re-attached in ordinary use — switching view,
+     closing the editor, a re-layout. disconnectedCallback stops the poll, so
+     without starting it again here the card would freeze on whatever it last
+     drew until the dashboard was reloaded. */
+  connectedCallback() {
+    this._start();
+    if (this._hass && (!this._loadedAt || Date.now() - this._loadedAt > REFRESH_MS)) {
+      this._load();
     }
   }
 
   disconnectedCallback() {
+    this._stop();
+  }
+
+  _start() {
+    if (!this._timer) this._timer = setInterval(() => this._load(), REFRESH_MS);
+    if (!this._onVisible) {
+      /* Background tabs get their timers throttled, and a phone waking up
+         reconnects the websocket — either way, come back to a fresh card. */
+      this._onVisible = () => {
+        if (document.visibilityState === "visible") this._load();
+      };
+      document.addEventListener("visibilitychange", this._onVisible);
+    }
+  }
+
+  _stop() {
     if (this._timer) clearInterval(this._timer);
     if (this._tick) clearInterval(this._tick);
-    this._timer = this._tick = null;
+    if (this._pending) clearTimeout(this._pending);
+    this._timer = this._tick = this._pending = null;
+    if (this._onVisible) {
+      document.removeEventListener("visibilitychange", this._onVisible);
+      this._onVisible = null;
+    }
+  }
+
+  /* The states the card is currently drawing, as one comparable string */
+  _stamp() {
+    if (!this._hass) return "";
+    const report = (this._data || {}).report || {};
+    const ids = new Set(Object.values(report.entity_ids || {}));
+    Object.values(report.roles || {}).forEach(role => {
+      if (role && role.entity_id) ids.add(role.entity_id);
+    });
+    (report.extra || []).forEach(item => ids.add(item.entity_id));
+    if ((report.filter_pressure || {}).entity_id) ids.add(report.filter_pressure.entity_id);
+    const states = this._hass.states || {};
+    let stamp = "";
+    ids.forEach(id => {
+      stamp += id + "=" + (states[id] ? states[id].state : "?") + ";";
+    });
+    return stamp;
+  }
+
+  _moved() {
+    const stamp = this._stamp();
+    const moved = this._last !== undefined && stamp !== this._last;
+    this._last = stamp;
+    return moved;
+  }
+
+  /* One logged record moves a dozen entities at once — coalesce them */
+  _soon() {
+    if (this._pending) clearTimeout(this._pending);
+    this._pending = setTimeout(() => {
+      this._pending = null;
+      this._load();
+    }, 250);
   }
 
   getCardSize() {
@@ -251,6 +325,10 @@ class PoolMaintenanceCard extends HTMLElement {
       this._error = error && error.message ? error.message : String(error);
     }
     this._loading = false;
+    this._loadedAt = Date.now();
+    /* Take the stamp from the data we just drew, or the next hass would look
+       like a change and send us straight back for more. */
+    this._last = this._stamp();
     this._render();
   }
 
@@ -733,9 +811,9 @@ class PoolMaintenanceCard extends HTMLElement {
       const entityId = ids.maintenance_mode;
       node.querySelector(".switch").addEventListener("click", event => {
         event.stopPropagation();
-        if (!entityId) return;
-        this._hass.callService("switch", "toggle", { entity_id: entityId })
-          .then(() => this._load());
+        /* No optimistic flip: the switch moving is a state change, which is
+           what brings the fresh data back a moment later. */
+        if (entityId) this._hass.callService("switch", "toggle", { entity_id: entityId });
       });
       node.addEventListener("click", () => this._openMoreInfo(entityId));
     });
