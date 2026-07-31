@@ -313,7 +313,7 @@
         },
         "equipment": {
           "name": "Attrezzatura",
-          "description": "Cosa deve fare ogni ruolo dell'attrezzatura durante la visita, per esempio {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. La copertura accetta open o closed. I ruoli che ometti non vengono toccati."
+          "description": "Cosa deve fare ogni ruolo dell'attrezzatura durante la visita — per esempio pool_system: off e heat_pump: on. La copertura accetta open o closed. I ruoli che ometti non vengono toccati."
         }
       }
     }

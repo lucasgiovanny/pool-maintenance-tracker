@@ -313,7 +313,7 @@
         },
         "equipment": {
           "name": "Equipment",
-          "description": "What each equipment role should do while the visit lasts, for example {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. Covers take open or closed. Roles you leave out are not touched."
+          "description": "What each equipment role should do while the visit lasts — for example pool_system: off and heat_pump: on. Covers take open or closed. Roles you leave out are not touched."
         }
       }
     }

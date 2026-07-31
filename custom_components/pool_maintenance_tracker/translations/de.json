@@ -313,7 +313,7 @@
         },
         "equipment": {
           "name": "Geräte",
-          "description": "Was jede Geräterolle während des Besuchs tun soll, zum Beispiel {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. Die Abdeckung nimmt open oder closed. Weggelassene Rollen werden nicht angefasst."
+          "description": "Was jede Geräterolle während des Besuchs tun soll — zum Beispiel pool_system: off und heat_pump: on. Die Abdeckung nimmt open oder closed. Weggelassene Rollen werden nicht angefasst."
         }
       }
     }

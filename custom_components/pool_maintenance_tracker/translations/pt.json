@@ -313,7 +313,7 @@
         },
         "equipment": {
           "name": "Equipamento",
-          "description": "O que cada papel de equipamento deve fazer enquanto a visita durar, por exemplo {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. A cobertura aceita open ou closed. Os papéis que deixares de fora não são tocados."
+          "description": "O que cada papel de equipamento deve fazer enquanto a visita durar — por exemplo pool_system: off e heat_pump: on. A cobertura aceita open ou closed. Os papéis que deixares de fora não são tocados."
         }
       }
     }

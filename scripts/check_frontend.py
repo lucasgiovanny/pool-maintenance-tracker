@@ -131,8 +131,17 @@ def check_ids(errors: list[str]) -> None:
                 errors.append(f'{name}: getElementById("{used}") has no such id')
 
 
-def check_translation_whitespace(errors: list[str]) -> None:
-    """Home Assistant rejects leading or trailing spaces in any translation."""
+PLACEHOLDER_RE = re.compile(r"\{([^{}]*)\}")
+IDENTIFIER_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*\Z")
+
+
+def check_translations(errors: list[str]) -> None:
+    """The two rules Home Assistant enforces on every translation string.
+
+    No leading or trailing space, and every {…} has to be a placeholder it
+    can substitute — which makes a braced example (a JSON snippet, say) a
+    validation failure rather than documentation.
+    """
     folder = FRONTEND.parent / "translations"
     for path in sorted(folder.glob("*.json")):
         stack = [(json.loads(path.read_text()), "")]
@@ -145,6 +154,12 @@ def check_translation_whitespace(errors: list[str]) -> None:
                 if isinstance(value, str):
                     if value != value.strip():
                         errors.append(f"{path.name}: padded string at {where}")
+                    for found in PLACEHOLDER_RE.findall(value):
+                        if not IDENTIFIER_RE.match(found):
+                            errors.append(
+                                f"{path.name}: {{{found}}} at {where} is not a placeholder "
+                                "Home Assistant can substitute"
+                            )
                 else:
                     stack.append((value, where))
 
@@ -155,7 +170,7 @@ def main() -> int:
     check_card_defines_its_element(errors)
     check_strings(errors)
     check_ids(errors)
-    check_translation_whitespace(errors)
+    check_translations(errors)
     if errors:
         for error in sorted(set(errors)):
             print(f"error: {error}", file=sys.stderr)
