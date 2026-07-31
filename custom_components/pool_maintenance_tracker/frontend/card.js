@@ -1,6 +1,7 @@
 /* Pool Maintenance Tracker — Lovelace card + visual editor
- * Pick exactly which items to show: equipment, readings, tasks, alerts
- * and a live countdown to the next schedule change.
+ * Equipment, readings, tasks, alerts and a live countdown to the next
+ * schedule change, composed by the card. A dashboard picks the pool and the
+ * layout, and may drop items it does not want — including the header.
  */
 
 const TOGGLE_DOMAINS = ["switch", "input_boolean", "light", "fan"];
@@ -38,7 +39,9 @@ const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
 
 const GROUPS = ["general", "equipment", "readings", "tasks"];
-const GENERAL_ITEMS = ["temperature", "alerts", "maintenance_mode", "countdown", "filtration"];
+const GENERAL_ITEMS = [
+  "header", "temperature", "alerts", "maintenance_mode", "countdown", "filtration",
+];
 
 const DEFAULTS = {
   entry: undefined,
@@ -48,6 +51,13 @@ const DEFAULTS = {
   /* "list" packs rows for a column of cards; "tiles" spreads everything
      into kiosk-style minis, for a dashboard made of this card alone. */
   layout: "list",
+  /* Item keys this dashboard does not want. Absent means everything, which
+     is why it is a list of what to *drop*: order and grouping stay the
+     card's business, and a dashboard only gets to say "not this one".
+     Deliberately not the old `items` key — those linger in configs from
+     when the card had ordering, and reviving the name would silently put
+     stale lists back in charge. */
+  hidden: [],
 };
 
 /* Editor labels — same six languages as the pages. */
@@ -60,7 +70,7 @@ const EDITOR_TEXT = {
     countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
     layout: "Layout", layout_list: "List", layout_tiles: "Tiles",
     show_icons: "Show icons",
-    items: "Items shown, in this order",
+    shown: "Items shown", header: "Header (name and icon)",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -71,7 +81,7 @@ const EDITOR_TEXT = {
     acid_tank: "Depósito de ácido",
     layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
     show_icons: "Mostrar ícones",
-    items: "Itens exibidos, nesta ordem",
+    shown: "Itens exibidos", header: "Cabeçalho (nome e ícone)",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -82,7 +92,7 @@ const EDITOR_TEXT = {
     acid_tank: "Depósito de ácido",
     layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas",
     show_icons: "Mostrar iconos",
-    items: "Elementos mostrados, en este orden",
+    shown: "Elementos mostrados", header: "Encabezado (nombre e icono)",
   },
   fr: {
     entry: "Piscine", entry_help: "Laissez vide pour utiliser votre seule piscine.",
@@ -93,7 +103,7 @@ const EDITOR_TEXT = {
     acid_tank: "Réservoir d'acide",
     layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes",
     show_icons: "Afficher les icônes",
-    items: "Éléments affichés, dans cet ordre",
+    shown: "Éléments affichés", header: "En-tête (nom et icône)",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -104,7 +114,7 @@ const EDITOR_TEXT = {
     acid_tank: "Säuretank",
     layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln",
     show_icons: "Symbole anzeigen",
-    items: "Angezeigte Elemente, in dieser Reihenfolge",
+    shown: "Angezeigte Elemente", header: "Kopfzeile (Name und Symbol)",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -116,7 +126,7 @@ const EDITOR_TEXT = {
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
     layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri",
     show_icons: "Mostra icone",
-    items: "Elementi mostrati, in questo ordine",
+    shown: "Elementi mostrati", header: "Intestazione (nome e icona)",
   },
 };
 
@@ -339,12 +349,13 @@ class PoolMaintenanceCard extends HTMLElement {
   }
 
   _selection(available) {
-    /* No picking, no ordering: the card shows everything the pool offers,
-       composed the way the card thinks a pool dashboard should read.
-       Choosing and dragging shipped, twice — and produced configuration
-       work and layout puzzles instead of dashboards. items/show_* keys in
-       old configs are deliberately ignored. */
-    return allItemValues(available);
+    /* The card still composes itself — where each thing goes, and next to
+       what, is not configuration. That part shipped three times in one day
+       and produced layout puzzles instead of dashboards. What a dashboard
+       does get to say is "not this one", which cannot grow into a layout
+       tool: everything shows unless it is named in `hidden`. */
+    const hidden = new Set(this._config.hidden || []);
+    return allItemValues(available).filter(value => !hidden.has(value));
   }
 
   _rangeStatus(key, value) {
@@ -432,6 +443,9 @@ class PoolMaintenanceCard extends HTMLElement {
     const shown = new Set(this._selection(available));
 
     /* header ------------------------------------------------------- */
+    /* A card that is one of several about the same pool does not need to
+       repeat its name and icon; hiding the header leaves just the content. */
+    const head = shown.has("header");
     const probe = (data.live || {}).temperature;
     const reading = (report.current || {}).water_temperature;
     const temp = reading ? reading.value : values.water_temperature;
@@ -784,8 +798,8 @@ class PoolMaintenanceCard extends HTMLElement {
         + (rows.length ? `<div class="rows">${rows.map(rowHtml).join("")}</div>` : "");
     }
     this.shadowRoot.innerHTML = `
-      <ha-card class="${tiles ? "tiles-layout" : ""}">
-        <div class="head">
+      <ha-card class="${tiles ? "tiles-layout" : ""} ${head ? "" : "no-head"}">
+        ${head ? `<div class="head">
           <div class="icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M9 6v7M15 6v7" />
@@ -801,7 +815,7 @@ class PoolMaintenanceCard extends HTMLElement {
           </div>
           ${showTemp && !hero ? `<div class="temp" data-entity="${
             ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
-        </div>
+        </div>` : ""}
 
         ${!tiles && modeHtml ? `<div class="toggles mode-row">${modeHtml}</div>` : ""}
 
@@ -878,6 +892,9 @@ class PoolMaintenanceCard extends HTMLElement {
       *{box-sizing:border-box}
       :host{display:block}
       ha-card{padding:16px;display:block}
+      /* With the header gone, whatever lands first should not keep the gap
+         that was there to separate it from the header. */
+      ha-card.no-head > :first-child{margin-top:0}
       .empty{color:var(--secondary-text-color,#8a8f94);padding:8px 0}
       .clickable{cursor:pointer}
 
@@ -1072,11 +1089,15 @@ class PoolMaintenanceCardEditor extends HTMLElement {
   constructor() {
     super();
     this._pools = [];
+    this._items = null;
+    this._itemsFor = null;
     this._form = null;
   }
 
   setConfig(config) {
+    const before = this._config && this._config.entry;
     this._config = Object.assign({}, DEFAULTS, config || {});
+    if (this._config.entry !== before) this._loadItems();
     this._update();
   }
 
@@ -1092,6 +1113,30 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       this._pools = await this._hass.callWS({ type: "pool_maintenance_tracker/pools" });
     } catch (error) {
       this._pools = [];
+    }
+    this._update();
+    this._loadItems();
+  }
+
+  /* What this pool actually offers, so the list is its items and not a
+     catalogue of everything the card could theoretically draw. */
+  async _loadItems() {
+    if (!this._hass || !this._config) return;
+    const entry = this._config.entry
+      || (this._pools.length === 1 ? this._pools[0].entry_id : this._config.entry);
+    if (!entry || entry === this._itemsFor) return;
+    try {
+      const data = await this._hass.callWS({
+        type: "pool_maintenance_tracker/status",
+        entry_id: entry,
+        language: this._hass.language || "en",
+      });
+      const available = availableItems(data, editorText(this._hass));
+      /* Same order the card renders them in, so the list reads like the card */
+      this._items = GROUPS.reduce((all, group) => all.concat(available[group]), []);
+      this._itemsFor = entry;
+    } catch (error) {
+      this._items = null;
     }
     this._update();
   }
@@ -1125,7 +1170,32 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     });
     schema.push({ name: "show_icons", selector: { boolean: {} } });
     schema.push({ name: "only_due_tasks", selector: { boolean: {} } });
+    /* Only once we know what this pool has: an empty list would read as
+       "this card can show nothing" and save an all-hidden config. */
+    if (this._items && this._items.length) {
+      schema.push({
+        name: "shown",
+        selector: {
+          select: {
+            multiple: true,
+            mode: "list",
+            options: this._items.map(item => ({
+              value: item.value,
+              label: item.label || item.value,
+            })),
+          },
+        },
+      });
+    }
     return schema;
+  }
+
+  /* The config stores what to hide; the editor asks what to show. Same
+     thing said the useful way round — a fresh card arrives with every box
+     ticked, and unticking one is what writes the config. */
+  _shown() {
+    const hidden = new Set(this._config.hidden || []);
+    return (this._items || []).map(item => item.value).filter(value => !hidden.has(value));
   }
 
   _formData() {
@@ -1136,6 +1206,7 @@ class PoolMaintenanceCardEditor extends HTMLElement {
       show_icons: !!this._config.show_icons,
       only_due_tasks: this._config.only_due_tasks,
     };
+    if (this._items && this._items.length) data.shown = this._shown();
     return data;
   }
 
@@ -1167,10 +1238,24 @@ class PoolMaintenanceCardEditor extends HTMLElement {
     if (value.layout && value.layout !== "list") config.layout = value.layout;
     if (value.show_icons) config.show_icons = true;
     if (value.only_due_tasks) config.only_due_tasks = true;
+    /* Store the complement, and only when there is one: a card showing
+       everything keeps a config with no item list in it at all. Items this
+       pool does not currently offer keep their entry, so unplugging a probe
+       for an afternoon does not silently un-hide its reading. */
+    if (this._items && value.shown) {
+      const shown = new Set(value.shown);
+      const offered = new Set(this._items.map(item => item.value));
+      const hidden = this._items.map(item => item.value).filter(v => !shown.has(v))
+        .concat((this._config.hidden || []).filter(v => !offered.has(v)));
+      if (hidden.length) config.hidden = hidden;
+    } else if (this._config.hidden && this._config.hidden.length) {
+      config.hidden = this._config.hidden;
+    }
     this._config = Object.assign({}, this._config, config);
     /* Back to the default: stale values must not shadow the emitted ones */
     if (!config.layout) delete this._config.layout;
     if (!config.show_icons) delete this._config.show_icons;
+    if (!config.hidden) delete this._config.hidden;
     fireEvent(this, "config-changed", { config: config });
   }
 }

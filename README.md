@@ -272,14 +272,31 @@ The card composes itself. It shows everything your pool is configured with,
 in a fixed order that reads top-down like a pool check: what needs attention,
 the water right now (temperature beside the readings), the equipment, the
 filtration plan (countdown and today's cycle bar), and the task history last.
-There is nothing to pick and nothing to sort — earlier versions shipped item
-selection and drag-ordering, and they produced configuration work instead of
-dashboards, so they were removed. `items`/`show_*` keys in old configs are
-ignored.
+There is nothing to sort: drag-ordering shipped in three shapes in one day and
+produced layout puzzles instead of dashboards, so where things go is the card's
+business. (`items`/`show_*` keys in old configs stay ignored.)
 
-The options that remain are display preferences: the pool, an optional title,
-the **layout** (list or tiles), **Show icons** (an icon set on the entity
-itself wins over the built-in choice), and **only overdue tasks**.
+What you *can* say is "not this one". **Items shown** in the editor lists
+everything this pool offers, every box ticked, and unticking one drops it —
+including the **header**, so a card that sits under another one about the same
+pool need not repeat its name and icon. The config stores only what you removed:
+
+```yaml
+type: custom:pool-maintenance-card
+hidden:
+  - header
+  - task:cleaning
+  - value:salt_level
+```
+
+Hiding is per item, not per section, and it does not silence anything: hide the
+filter-wash row and an overdue filter still shows up in the alerts, because the
+alerts are their own item. A card with nothing hidden has no `hidden` key at
+all, which is the default — everything shows.
+
+The other options are display preferences: the pool, an optional title, the
+**layout** (list or tiles), **Show icons** (an icon set on the entity itself
+wins over the built-in choice), and **only overdue tasks**.
 
 There is also a **layout** choice: *List* (the default, compact rows for a
 column of cards) or *Tiles*, which spreads every item into kiosk-style minis —
