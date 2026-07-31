@@ -64,7 +64,7 @@
           "maintenance_mode_enabled": "Interruttore modalità manutenzione"
         },
         "data_description": {
-          "maintenance_mode_enabled": "Aggiunge un interruttore che dice che qualcuno sta lavorando sulla piscina, da usare nelle tue automazioni (fermare la pompa, silenziare un allarme, saltare l'orario di oggi). Nulla in questa integrazione reagisce. Può essere attivato anche dalla pagina di manutenzione e dalla scheda, quindi chiunque abbia il link della pagina può attivarlo."
+          "maintenance_mode_enabled": "Aggiunge un interruttore che dice che qualcuno sta lavorando sulla piscina. Nella pagina di manutenzione arriva con un pannello: cosa deve fare ogni attrezzatura mentre il lavoro dura, e per quanto tempo. Alla fine del tempo la visita termina e l'attrezzatura torna come era. Vengono toccate solo le entità che hai assegnato in Attrezzatura — e chiunque abbia il link della pagina può iniziare una visita."
         }
       },
       "modules": {
@@ -296,6 +296,24 @@
         "record_id": {
           "name": "Id della registrazione",
           "description": "Id della registrazione da eliminare (vedi l'attributo recent_records del sensore ultima registrazione). Vuoto elimina la più recente."
+        }
+      }
+    },
+    "start_maintenance": {
+      "name": "Inizia la manutenzione",
+      "description": "Attiva la modalità manutenzione con una finestra di tempo e un piano per l'attrezzatura, come fa la pagina di manutenzione. Per terminare usa switch.turn_off, che rimette anche l'attrezzatura come era.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "La piscina dove inizia la manutenzione."
+        },
+        "minutes": {
+          "name": "Per",
+          "description": "Minuti prima che la visita termini da sola e l'attrezzatura torni come era. Lascia vuoto per non avere limite."
+        },
+        "equipment": {
+          "name": "Attrezzatura",
+          "description": "Cosa deve fare ogni ruolo dell'attrezzatura durante la visita, per esempio {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. La copertura accetta open o closed. I ruoli che ometti non vengono toccati."
         }
       }
     }

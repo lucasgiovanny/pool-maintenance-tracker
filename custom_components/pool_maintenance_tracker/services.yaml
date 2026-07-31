@@ -9,3 +9,23 @@ delete_record:
       required: false
       selector:
         text:
+start_maintenance:
+  fields:
+    config_entry:
+      required: true
+      selector:
+        config_entry:
+          integration: pool_maintenance_tracker
+    minutes:
+      required: false
+      selector:
+        number:
+          min: 5
+          max: 1440
+          step: 5
+          unit_of_measurement: min
+          mode: box
+    equipment:
+      required: false
+      selector:
+        object:

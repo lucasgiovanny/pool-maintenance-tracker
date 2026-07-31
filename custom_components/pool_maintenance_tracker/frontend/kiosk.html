@@ -485,6 +485,10 @@ function renderMode(){
   box.style.display = "";
   box.classList.toggle("on", !!mode.on);
   const bits = [S.maintenance.title, mode.on ? S.report.state_on : S.report.state_off];
+  if (mode.on && mode.until) {
+    bits.push(K.until.replace("{time}", new Date(mode.until)
+      .toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" })));
+  }
   if (mode.on && mode.by) bits.push(S.maintenance.by.replace("{who}", mode.by));
   setText("mode-label", bits.join(" · "));
 }

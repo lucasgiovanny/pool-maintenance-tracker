@@ -49,14 +49,26 @@ class PoolMaintenanceModeSwitch(PoolBaseEntity, SwitchEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Since when, and who said so — the page can name the technician."""
+        """Everything an automation might want to add behaviour to.
+
+        ``equipment`` is what the technician asked for on the page, and it
+        outlives the flag on purpose: an automation reacting to the mode
+        dropping can still see what the visit changed.
+        """
         return {
             "since": self.tracker.maintenance_mode_at,
             "set_by": self.tracker.maintenance_mode_by,
+            "until": self.tracker.maintenance_mode_until,
+            "equipment": self.tracker.maintenance_mode_plan,
         }
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        self.tracker.async_set_maintenance_mode(True)
+        """Plain on: no window, no plan, nothing to apply.
+
+        A window and a plan come from the page or from the start_maintenance
+        action, which is the only way to carry them.
+        """
+        self.tracker.async_set_maintenance_mode(True, plan={})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self.tracker.async_set_maintenance_mode(False)

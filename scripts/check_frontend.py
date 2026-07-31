@@ -26,10 +26,15 @@ PAGES = ("page.html", "kiosk.html", "manual.html")
 LANGUAGES = ("en", "pt", "es", "fr", "de", "it")
 
 SCRIPT_RE = re.compile(r"<script>(.*?)</script>", re.DOTALL)
-# S.a.b / K.c — the shapes the frontends use to reach into the string bundle
-KEY_RE = re.compile(
-    r"\bS\.(report|kiosk|roles|tiles|units|modes|maintenance)\.([a-z_0-9]+)|\bK\.([a-z_0-9]+)"
-)
+# S.a.b — the long way into the string bundle, used from anywhere
+SECTION_RE = re.compile(r"\bS\.(report|kiosk|roles|tiles|units|modes|maintenance)\.([a-z_0-9]+)")
+# Every page also takes a one-letter shorthand for the section it works in,
+# and the same letter means different things in different files.
+ALIASES = {
+    "kiosk.html": ("K", "kiosk"),
+    "manual.html": ("M", "manual"),
+    "page.html": ("M", "maintenance"),
+}
 
 
 def check_syntax(errors: list[str]) -> None:
@@ -95,15 +100,35 @@ def check_strings(errors: list[str]) -> None:
     for language in LANGUAGES:
         bundle = json.loads((FRONTEND / "strings" / f"{language}.json").read_text())
         for name, text in sources.items():
-            for section, key, kiosk_key in KEY_RE.findall(text):
-                path = ("kiosk", kiosk_key) if kiosk_key else (section, key)
-                if path[1] not in bundle.get(path[0], {}):
-                    errors.append(f"{language}.json: missing {path[0]}.{path[1]} (used in {name})")
+            used = list(SECTION_RE.findall(text))
+            if name in ALIASES:
+                letter, section = ALIASES[name]
+                shorthand = re.compile(rf"\b{letter}\.([a-z_0-9]+)")
+                used += [(section, key) for key in shorthand.findall(text)]
+            for section, key in used:
+                if key not in bundle.get(section, {}):
+                    errors.append(f"{language}.json: missing {section}.{key} (used in {name})")
             if "S.impact_salt" in text and "impact_salt" not in bundle:
                 errors.append(f"{language}.json: missing impact_salt (used in {name})")
         for status in ("low", "ideal", "high"):
             if status not in bundle["report"].get("status", {}):
                 errors.append(f"{language}.json: missing report.status.{status}")
+
+
+def check_ids(errors: list[str]) -> None:
+    """Every element a page reaches for by id must actually be there.
+
+    The pages are one file of markup and one of script, and nothing checks
+    that they agree: a renamed id shows up as a page that half works in front
+    of the pool. Ids the script creates itself count as declared.
+    """
+    for name in PAGES:
+        text = (FRONTEND / name).read_text()
+        declared = set(re.findall(r'\bid="([\w-]+)"', text))
+        declared.update(re.findall(r'\.id\s*=\s*"([\w-]+)"', text))
+        for used in sorted(set(re.findall(r'getElementById\("([\w-]+)"\)', text))):
+            if used not in declared:
+                errors.append(f'{name}: getElementById("{used}") has no such id')
 
 
 def check_translation_whitespace(errors: list[str]) -> None:
@@ -129,6 +154,7 @@ def main() -> int:
     check_syntax(errors)
     check_card_defines_its_element(errors)
     check_strings(errors)
+    check_ids(errors)
     check_translation_whitespace(errors)
     if errors:
         for error in sorted(set(errors)):

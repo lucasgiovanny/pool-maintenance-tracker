@@ -283,6 +283,38 @@
   .mode .toggle[aria-checked="true"]{background:var(--warn)}
   .mode .toggle[aria-checked="true"] i{transform:translateX(26px)}
   .mode .toggle:disabled{opacity:.55;cursor:default}
+  .mode .mode-text{cursor:default}
+  .mode.on .mode-text{cursor:pointer}
+  .countdown.inline{display:inline;padding:0;text-align:left;font-weight:700}
+  .mode.on .countdown.inline{color:#8A5200}
+
+  /* The sheet: what should happen while the technician works, and for how
+     long. Rises from the bottom on a phone, sits in the middle on a screen. */
+  .sheet{position:fixed;inset:0;z-index:60;display:none;background:rgba(16,34,43,.55)}
+  .sheet.open{display:flex;align-items:flex-end;justify-content:center}
+  .sheet-box{
+    background:var(--bg);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+    border-radius:20px 20px 0 0;padding:22px 18px calc(20px + env(safe-area-inset-bottom));
+  }
+  @media(min-width:560px){
+    .sheet.open{align-items:center}
+    .sheet-box{border-radius:20px;max-height:86vh}
+  }
+  .sheet-box h3{font-size:1.15rem;font-weight:800;line-height:1.25}
+  .sheet-box > .hint{margin:6px 0 20px}
+  .sheet-box .segments button{padding:12px 4px;font-size:.85rem}
+  .sheet-box .field{margin-bottom:14px}
+  .sheet-box .field label{margin-bottom:6px}
+  .sheet-box .field label .now{color:var(--aqua);font-weight:700;white-space:nowrap}
+  /* Two questions, not one list: what should happen, and for how long */
+  #sheet-duration{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  .sheet-box .send{margin-top:22px}
+  .sheet-box .stepper input{font-size:1.2rem;padding:11px 4px}
+  .sheet-box .stepper button{width:54px;font-size:1.4rem}
+  .sheet-cancel{
+    display:block;width:100%;margin-top:8px;background:none;border:none;color:var(--muted);
+    font-family:inherit;font-size:.95rem;font-weight:700;padding:12px;cursor:pointer;
+  }
 
   .kv.with-countdown{border-bottom:none;padding-bottom:0}
   .countdown{
@@ -445,6 +477,20 @@
     <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
     <span id="send-label"></span>
   </button>
+</div>
+
+<div class="sheet" id="mode-sheet">
+  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <h3 id="sheet-title"></h3>
+    <p class="hint" id="sheet-hint"></p>
+    <div id="sheet-equipment"></div>
+    <div class="field" id="sheet-duration"></div>
+    <button class="send" id="sheet-start">
+      <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <span id="sheet-start-label"></span>
+    </button>
+    <button type="button" class="sheet-cancel" id="sheet-cancel"></button>
+  </div>
 </div>
 
 <div class="result" id="result">
@@ -967,16 +1013,43 @@ function renderAlerts(){
 renderAlerts();
 
 /* ---------- maintenance mode ---------- */
-/* A flag for the home system's automations, raised by whoever is standing
-   at the pool. Nothing on this page reacts to it — it only says that
-   somebody is working, which is exactly what an automation wants to know. */
+/* A visit: what the technician wants the equipment to do while they work,
+   and for how long. The window does not switch anything off when it runs
+   out — it ends the visit, and ending the visit is what puts the equipment
+   back where it was. */
+const M = S.maintenance;
 const modeBox = document.getElementById("mode");
 const modeToggle = document.getElementById("mode-toggle");
+const modeText = modeBox.querySelector(".mode-text");
+const sheet = document.getElementById("mode-sheet");
+const PRESETS = [30, 60, 120, 240, 0];
+const DEFAULT_MINUTES = 60;
 let modeBusy = false;
 
 function selectedPerson(){
   const chip = document.querySelector("#who .chip.on");
   return chip ? chip.dataset.v : "";
+}
+
+/* "Turn on" is what you ask for; "On" is what you are told it is now */
+function askLabel(value){
+  return value === "on" ? M.turn_on : value === "off" ? M.turn_off
+    : value === "open" ? M.open : value === "closed" ? M.close : M.keep;
+}
+function stateLabel(state){
+  if (state === "on") return S.report.state_on;
+  if (state === "off") return S.report.state_off;
+  if (state === "open" || state === "opening") return M.is_open;
+  if (state === "closed" || state === "closing") return M.is_closed;
+  return state;
+}
+function clockTime(iso){
+  return new Date(iso).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+}
+function equipmentNames(){
+  const names = {};
+  (CFG.maintenance_equipment || []).forEach(item => { names[item.role] = item.name; });
+  return names;
 }
 
 function renderMode(){
@@ -987,37 +1060,220 @@ function renderMode(){
   modeBox.style.display = "";
   modeBox.classList.toggle("on", !!mode.on);
   modeToggle.setAttribute("aria-checked", mode.on ? "true" : "false");
-  setText("mode-title", S.maintenance.title);
-  if (!mode.on) { setText("mode-sub", S.maintenance.hint); return; }
+  setText("mode-title", M.title);
+  const sub = document.getElementById("mode-sub");
+  sub.textContent = "";
+  if (!mode.on) { sub.textContent = M.hint; return; }
+
+  const names = equipmentNames();
+  const asked = Object.entries(mode.equipment || {})
+    .map(([role, value]) => (names[role] || role) + " " + askLabel(value).toLowerCase());
   const bits = [S.report.state_on];
-  if (mode.since) bits.push(relTime(mode.since));
-  if (mode.by) bits.push(S.maintenance.by.replace("{who}", mode.by));
-  setText("mode-sub", bits.join(" · "));
+  if (mode.by) bits.push(M.by.replace("{who}", mode.by));
+  if (mode.until) bits.push(M.ends.replace("{time}", clockTime(mode.until)));
+  sub.appendChild(document.createTextNode(bits.join(" · ")));
+  if (mode.until) {
+    /* The same countdown element the status tab uses, so the one ticker
+       already running keeps it honest to the second. */
+    const countdown = el("span", "countdown inline");
+    countdown.dataset.target = mode.until;
+    sub.appendChild(document.createTextNode(" · "));
+    sub.appendChild(countdown);
+  }
+  if (asked.length) {
+    sub.appendChild(document.createElement("br"));
+    sub.appendChild(document.createTextNode(asked.join(" · ")));
+  }
 }
 
-async function setMode(on){
+/* ---------- the sheet ---------- */
+function buildSheet(){
+  const plan = (CFG.maintenance_mode || {}).equipment || {};
+  setText("sheet-title", M.sheet_title);
+  setText("sheet-hint", M.sheet_hint);
+  setText("sheet-start-label", M.start);
+  setText("sheet-cancel", M.cancel);
+
+  const box = document.getElementById("sheet-equipment");
+  box.innerHTML = "";
+  (CFG.maintenance_equipment || []).forEach(item => {
+    const field = el("div", "field");
+    const label = el("label", null, item.name);
+    label.appendChild(document.createTextNode(" · "));
+    label.appendChild(el("span", "now", M.now.replace("{state}", stateLabel(item.state))));
+    field.appendChild(label);
+    const segments = el("div", "segments");
+    segments.dataset.role = item.role;
+    [""].concat(item.values).forEach(value => {
+      const chosen = (plan[item.role] || "") === value;
+      const button = el("button", chosen ? "on" : "", askLabel(value));
+      button.type = "button";
+      button.dataset.v = value;
+      button.addEventListener("click", () => {
+        segments.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+        button.classList.add("on");
+      });
+      segments.appendChild(button);
+    });
+    field.appendChild(segments);
+    box.appendChild(field);
+  });
+
+  const duration = document.getElementById("sheet-duration");
+  duration.innerHTML = "";
+  duration.appendChild(el("label", null, M.duration));
+  const presets = el("div", "segments");
+  presets.id = "sheet-presets";
+  PRESETS.forEach(minutes => {
+    const button = el("button", minutes === DEFAULT_MINUTES ? "on" : "",
+      minutes === 0 ? M.no_limit
+        : minutes < 60 ? M.preset_minutes.replace("{n}", minutes)
+        : M.preset_hours.replace("{n}", minutes / 60));
+    button.type = "button";
+    button.dataset.v = String(minutes);
+    button.addEventListener("click", () => {
+      presets.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+      button.classList.add("on");
+      custom.value = "";
+    });
+    presets.appendChild(button);
+  });
+  duration.appendChild(presets);
+
+  /* An exact figure, for when none of the presets is the job */
+  const stepper = el("div", "stepper");
+  stepper.style.marginTop = "10px";
+  const minus = el("button", null, "−");
+  const plus = el("button", null, "+");
+  minus.type = plus.type = "button";
+  const custom = document.createElement("input");
+  custom.type = "number";
+  custom.id = "sheet-custom";
+  custom.inputMode = "numeric";
+  custom.step = "5";
+  custom.min = "5";
+  custom.max = "1440";
+  custom.placeholder = "—";
+  const bump = direction => {
+    const current = parseInt(custom.value, 10) || presetMinutes() || DEFAULT_MINUTES;
+    custom.value = String(Math.min(1440, Math.max(5, current + direction * 5)));
+    presets.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+  };
+  minus.addEventListener("click", () => bump(-1));
+  plus.addEventListener("click", () => bump(1));
+  custom.addEventListener("input", () => {
+    if (custom.value) presets.querySelectorAll("button").forEach(b => b.classList.remove("on"));
+  });
+  stepper.append(minus, custom, el("div", "unit", M.minutes), plus);
+  duration.appendChild(stepper);
+}
+
+function presetMinutes(){
+  const active = document.querySelector("#sheet-presets button.on");
+  return active ? Number(active.dataset.v) : 0;
+}
+function sheetMinutes(){
+  const custom = parseInt((document.getElementById("sheet-custom") || {}).value, 10);
+  return !isNaN(custom) && custom > 0 ? custom : presetMinutes();
+}
+function sheetPlan(){
+  const plan = {};
+  document.querySelectorAll("#sheet-equipment .segments").forEach(box => {
+    const active = box.querySelector("button.on");
+    if (active && active.dataset.v) plan[box.dataset.role] = active.dataset.v;
+  });
+  return plan;
+}
+function openSheet(){ buildSheet(); sheet.classList.add("open"); }
+function closeSheet(){ sheet.classList.remove("open"); }
+
+/* What actually moved, said back to the person who asked for it */
+function modeSummary(data){
+  const names = equipmentNames();
+  const lines = [];
+  Object.entries(data.applied || {}).forEach(([role, value]) =>
+    lines.push("✓ " + (names[role] || role) + " · " + askLabel(value)));
+  Object.entries(data.failed || {}).forEach(([role]) =>
+    lines.push("⚠ " + M.failed.replace("{name}", names[role] || role)));
+  if (data.until) lines.push(M.ends.replace("{time}", clockTime(data.until)));
+  const summary = document.createElement("div");
+  const header = document.createElement("strong");
+  header.textContent = M.title + " · " + S.report.state_on;
+  summary.appendChild(header);
+  lines.forEach(text => {
+    summary.appendChild(document.createElement("br"));
+    summary.appendChild(document.createTextNode(text));
+  });
+  return summary.innerHTML;
+}
+
+async function setMode(on, extra){
   if (modeBusy) return;
   modeBusy = true;
   modeToggle.disabled = true;
+  const start = document.getElementById("sheet-start");
+  start.disabled = true;
   try {
     const response = await fetch(CFG.mode_endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ on: on, person: selectedPerson() })
+      body: JSON.stringify(Object.assign({ on: on, person: selectedPerson() }, extra || {}))
     });
     if (!response.ok) throw new Error("HTTP " + response.status);
-    CFG.maintenance_mode = await response.json();
+    const data = await response.json();
+    CFG.maintenance_mode = data;
+    closeSheet();
+    if (on) {
+      setText("res-back", M.ok);
+      showResult(true, M.started, M.started_text, modeSummary(data));
+    }
   } catch (error) {
-    showResult(false, S.error_title, S.maintenance.error, "");
+    showResult(false, S.error_title, M.error, "");
   }
   modeBusy = false;
   modeToggle.disabled = false;
+  start.disabled = false;
   renderMode();
 }
 
-modeToggle.addEventListener("click", () =>
-  setMode(modeToggle.getAttribute("aria-checked") !== "true"));
+modeToggle.addEventListener("click", () => {
+  if (modeToggle.getAttribute("aria-checked") === "true") setMode(false);
+  else openSheet();
+});
+/* Already working and need longer, or changed your mind about the heat pump */
+modeText.addEventListener("click", () => {
+  if ((CFG.maintenance_mode || {}).on) openSheet();
+});
+document.getElementById("sheet-start").addEventListener("click", () =>
+  setMode(true, { minutes: sheetMinutes(), equipment: sheetPlan() }));
+document.getElementById("sheet-cancel").addEventListener("click", closeSheet);
+sheet.addEventListener("click", event => { if (event.target === sheet) closeSheet(); });
+
+let modePolling = false;
+async function refreshMode(){
+  const mode = CFG.maintenance_mode || {};
+  if (!mode.enabled || modeBusy || modePolling) return;
+  if (document.visibilityState !== "visible") return;
+  modePolling = true;
+  try {
+    const response = await fetch(CFG.mode_endpoint);
+    if (response.ok) {
+      CFG.maintenance_mode = await response.json();
+      renderMode();
+    }
+  } catch (error) { /* transient network issue — next poll retries */ }
+  modePolling = false;
+}
+
 renderMode();
+if ((CFG.maintenance_mode || {}).enabled) {
+  /* The status tab is optional and the state endpoint goes with it, so the
+     flag polls on its own: a window closing has to show up here too. */
+  setInterval(refreshMode, 30000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshMode();
+  });
+}
 
 /* ---------- reactivity: countdowns + periodic state refresh ---------- */
 function tickCountdowns(){
@@ -1026,7 +1282,13 @@ function tickCountdowns(){
     const total = Math.floor((target - Date.now()) / 1000);
     if (total <= 0) {
       node.textContent = "…";
-      if (!node.dataset.fired) { node.dataset.fired = "1"; refreshState(); }
+      if (!node.dataset.fired) {
+        node.dataset.fired = "1";
+        /* A maintenance window closing is the server's call, not ours: ask
+           rather than assume the flag has already dropped. */
+        refreshState();
+        refreshMode();
+      }
       return;
     }
     let seconds = total;
@@ -1061,13 +1323,16 @@ async function refreshState(){
   refreshing = false;
 }
 
+/* The ticker runs whatever the tabs are doing: the maintenance box has a
+   countdown of its own, and without the status tab nothing else would tick
+   it. With no .countdown on the page it costs a query per second. */
+setInterval(tickCountdowns, 1000);
+tickCountdowns();
 if (CFG.report) {
-  setInterval(tickCountdowns, 1000);
   setInterval(refreshState, 60000);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshState();
   });
-  tickCountdowns();
 }
 
 function noteElement(note){
@@ -1554,6 +1819,9 @@ function segmentValues(key){
 /* ---------- submit ---------- */
 const sendButton = document.getElementById("send");
 sendButton.addEventListener("click", async () => {
+  /* The result overlay is shared with the maintenance sheet, which renames
+     this button while it owns it. */
+  setText("res-back", S.again);
   const selected = Array.from(document.querySelectorAll(".tile.on")).map(
     tile => tile.dataset.tile
   );

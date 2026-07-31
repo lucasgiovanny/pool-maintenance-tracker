@@ -3,12 +3,16 @@
 Both views are unauthenticated by design — the page is opened from a QR
 code/NFC tag by people without HA accounts. Access control relies on the
 non-guessable 256-bit token in the path, constant-time token comparison,
-rate limiting, and the fact that the endpoints only accept declarative
-maintenance state (they can never command equipment).
+rate limiting, and the fact that what the endpoints accept is maintenance
+state, not commands: every value here is something somebody declares about
+the pool.
 
-The maintenance-mode flag is part of that declarative state and is off by
-default: raising it changes nothing here, and what it means for the pool is
-decided entirely by the automations its owner writes.
+The one exception is deliberate, and worth stating plainly. A maintenance
+visit can ask the equipment to move — the pool system off while the technician
+works, the heat pump on — and that request is carried out. It is contained by
+the role list: the page sends a role, never an entity id, so it only ever
+reaches the entities the owner assigned to this pool in the options. The
+acting itself lives in ``maintenance.py``.
 """
 
 from __future__ import annotations
@@ -29,14 +33,13 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
-from . import filter_pressure
+from . import filter_pressure, maintenance
 from .const import (
     ACID_ALERT_LEVELS,
     CONF_CELL_OUTPUT,
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
-    CONF_MAINTENANCE_MODE,
     CONF_PEOPLE,
     CONF_POOL_VOLUME,
     CONF_PUMP_FLOW,
@@ -53,7 +56,6 @@ from .const import (
     DATA_VIEWS_REGISTERED,
     DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
-    DEFAULT_MAINTENANCE_MODE,
     DEFAULT_REPORT_ENABLED,
     DEFAULT_SALT_TARGET_MAX,
     DEFAULT_SALT_TARGET_MIN,
@@ -73,6 +75,7 @@ from .const import (
     LINKED_MODE_ON_RECORD,
     LINKED_SOURCES,
     LINKED_VALUE_KEYS,
+    MAINTENANCE_ROLES,
     MAX_BODY_SIZE,
     MAX_NOTE_LENGTH,
     MAX_PERSON_LENGTH,
@@ -87,6 +90,7 @@ from .const import (
     URL_MODE,
     URL_PAGE,
     URL_STATE,
+    maintenance_values,
 )
 from .entity import page_url
 from .filtration import advise
@@ -185,10 +189,6 @@ def _kiosk_on(entry: ConfigEntry) -> bool:
     return bool(entry.options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED))
 
 
-def _maintenance_on(entry: ConfigEntry) -> bool:
-    return bool(entry.options.get(CONF_MAINTENANCE_MODE, DEFAULT_MAINTENANCE_MODE))
-
-
 @callback
 def _maintenance_mode(entry: ConfigEntry) -> dict[str, Any]:
     """The maintenance flag as every surface shows it.
@@ -199,11 +199,42 @@ def _maintenance_mode(entry: ConfigEntry) -> dict[str, Any]:
     """
     tracker = entry.runtime_data.tracker
     return {
-        "enabled": _maintenance_on(entry),
+        "enabled": maintenance.is_enabled(entry),
         "on": tracker.maintenance_mode,
         "since": tracker.maintenance_mode_at,
         "by": tracker.maintenance_mode_by,
+        "until": tracker.maintenance_mode_until,
+        "equipment": tracker.maintenance_mode_plan,
     }
+
+
+@callback
+def _maintenance_equipment(hass: HomeAssistant, entry: ConfigEntry) -> list[dict[str, Any]]:
+    """What the maintenance sheet can ask for, and where it stands now.
+
+    Deliberately not built from ``_role_entities``: that one costs a recorder
+    query per role to work out when each state really began, and a sheet only
+    needs to know what is on right now.
+    """
+    equipment: list[dict[str, Any]] = []
+    for role in MAINTENANCE_ROLES:
+        target = maintenance.role_target(hass, entry, role)
+        if target is None:
+            continue
+        entity_id, domain = target
+        state = hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            continue
+        equipment.append(
+            {
+                "role": role,
+                "entity_id": entity_id,
+                "name": state.attributes.get("friendly_name") or entity_id,
+                "state": state.state,
+                "values": list(maintenance_values(domain)),
+            }
+        )
+    return equipment
 
 
 def _clean_person(raw: Any) -> str:
@@ -939,9 +970,10 @@ async def _build_page_config(hass: HomeAssistant, entry: ConfigEntry, token: str
         "state_endpoint": URL_STATE.format(token=token),
         "manual_endpoint": URL_MANUAL.format(token=token),
         "mode_endpoint": URL_MODE.format(token=token),
-        # Top level, not inside the report: the flag is offered even when the
-        # status tab is switched off.
+        # Top level, not inside the report: the flag and the sheet are offered
+        # even when the status tab is switched off.
         "maintenance_mode": _maintenance_mode(entry),
+        "maintenance_equipment": _maintenance_equipment(hass, entry),
         "history_periods": list(HISTORY_PERIODS),
         "report": (
             await _build_report(hass, entry)
@@ -1159,18 +1191,35 @@ class PoolStateView(HomeAssistantView):
 
 
 class PoolModeView(HomeAssistantView):
-    """Raise or drop the maintenance flag from the page.
+    """Start and end a maintenance visit from the page.
 
-    The technician standing at the machine room has the page open and no
-    Home Assistant account, so this is the only way they can say "I am
-    working on it". Still declarative: it writes one flag of our own state,
-    shares the log endpoint's rate-limit buckets, and 404s while the
-    feature is switched off.
+    The technician standing at the machine room has the page open and no Home
+    Assistant account, so this is the only way they can say "I am working on
+    it, put the system there, and give me an hour". Starting carries out the
+    plan and reports back what moved; ending puts it back. Both are contained
+    by the role list — a payload names ``pool_system``, never an entity id.
     """
 
     url = URL_MODE
     name = "api:pool_maintenance_tracker:mode"
     requires_auth = False
+
+    async def get(self, request: web.Request, token: str) -> web.Response:
+        """The flag on its own, for the page to poll.
+
+        The status tab is optional and the state endpoint goes with it, so
+        without this the page would have no way to notice a window running
+        out or somebody else ending the visit.
+        """
+        hass = request.app[KEY_HASS]
+        entry = _check_token(hass, request, token)
+        if isinstance(entry, web.Response):
+            return entry
+        if not maintenance.is_enabled(entry):
+            return web.Response(status=404)
+        if not _limiter(hass).allow("mode", token, 60, 300):
+            return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
+        return self.json({"ok": True, **_maintenance_mode(entry)})
 
     async def post(self, request: web.Request, token: str) -> web.Response:
         hass = request.app[KEY_HASS]
@@ -1178,7 +1227,7 @@ class PoolModeView(HomeAssistantView):
         entry = _check_token(hass, request, token)
         if isinstance(entry, web.Response):
             return entry
-        if not _maintenance_on(entry):
+        if not maintenance.is_enabled(entry):
             return web.Response(status=404)
 
         limiter = _limiter(hass)
@@ -1199,18 +1248,32 @@ class PoolModeView(HomeAssistantView):
         if not isinstance(payload, dict) or not isinstance(payload.get("on"), bool):
             return self.json({"ok": False, "error": "invalid_payload"}, status_code=400)
 
-        tracker = entry.runtime_data.tracker
-        changed = tracker.async_set_maintenance_mode(
-            payload["on"], _clean_person(payload.get("person"))
-        )
-        if changed:
-            _LOGGER.debug(
-                "Maintenance mode %s for %s by %s",
-                "on" if payload["on"] else "off",
-                entry.title,
-                tracker.maintenance_mode_by,
+        on = payload["on"]
+        try:
+            until = maintenance.parse_minutes(payload.get("minutes")) if on else None
+            plan, ignored = (
+                maintenance.clean_plan(hass, entry, payload.get("equipment")) if on else ({}, [])
             )
-        return self.json({"ok": True, **_maintenance_mode(entry)})
+        except maintenance.PlanError:
+            return self.json({"ok": False, "error": "invalid_payload"}, status_code=400)
+
+        tracker = entry.runtime_data.tracker
+        person = _clean_person(payload.get("person"))
+        tracker.async_set_maintenance_mode(on, person, until=until, plan=plan)
+        _LOGGER.debug(
+            "Maintenance mode %s for %s by %s (until %s, plan %s)",
+            "on" if on else "off",
+            entry.title,
+            tracker.maintenance_mode_by,
+            until,
+            plan,
+        )
+        # Starting is carried out inside the request on purpose: it is the
+        # only way the page can tell the technician what actually moved.
+        # Ending is not — the session already restores on the flag dropping,
+        # from wherever it was dropped, and it gets there first.
+        result = await maintenance.async_apply(hass, entry, plan) if on else {}
+        return self.json({"ok": True, **_maintenance_mode(entry), **result, "ignored": ignored})
 
 
 class PoolKioskView(HomeAssistantView):

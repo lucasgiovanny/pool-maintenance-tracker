@@ -157,6 +157,8 @@ async def test_page_and_state_expose_the_mode(hass, salt_entry, hass_client_no_a
         "on": False,
         "since": None,
         "by": None,
+        "until": None,
+        "equipment": {},
     }
     # the card and the kiosk read it off the report
     assert config["report"]["maintenance_mode"]["enabled"] is True
@@ -186,6 +188,8 @@ async def test_kiosk_states_the_mode(hass, salt_entry, hass_client_no_auth):
         "on": False,
         "since": None,
         "by": None,
+        "until": None,
+        "equipment": {},
     }
     assert config["strings"]["maintenance"]["title"]
 

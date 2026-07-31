@@ -671,12 +671,28 @@ class PoolMaintenanceCard extends HTMLElement {
     /* Maintenance mode: a flag for the automations, not a piece of kit —
        so it gets the switch shape of a tile, but its own place. */
     const mode = report.maintenance_mode || {};
-    const modeSub = mode.on
-      ? [S.report.state_on,
-         mode.since ? this._relTime(mode.since) : null,
-         mode.by ? S.maintenance.by.replace("{who}", mode.by) : null]
-        .filter(Boolean).join(" · ")
-      : S.report.state_off;
+    const askedFor = value =>
+      value === "on" ? S.maintenance.turn_on
+      : value === "off" ? S.maintenance.turn_off
+      : value === "open" ? S.maintenance.open : S.maintenance.close;
+    let modeSub = S.report.state_off;
+    let modePlan = "";
+    if (mode.on) {
+      const bits = [S.report.state_on];
+      /* When the visit has an end, that beats saying when it started */
+      if (mode.until) {
+        bits.push(S.maintenance.ends.replace("{time}",
+          new Date(mode.until).toLocaleTimeString(this._locale(),
+            { hour: "2-digit", minute: "2-digit" })));
+      } else if (mode.since) {
+        bits.push(this._relTime(mode.since));
+      }
+      if (mode.by) bits.push(S.maintenance.by.replace("{who}", mode.by));
+      modeSub = bits.join(" · ");
+      modePlan = Object.entries(mode.equipment || {}).map(([role, value]) =>
+        ((roles[role] || {}).name || S.roles[role] || role)
+          + " " + askedFor(value).toLowerCase()).join(" · ");
+    }
     const modeHtml = (shown.has("maintenance_mode") && mode.enabled)
       ? `<div class="tile mode ${mode.on ? "on" : ""}" data-mode="1">
           <div class="tile-top">
@@ -685,6 +701,7 @@ class PoolMaintenanceCard extends HTMLElement {
             <span class="switch ${mode.on ? "on" : ""}"><i></i></span>
           </div>
           <div class="tile-sub">${this._escape(modeSub)}</div>
+          ${modePlan ? `<div class="tile-sub mode-plan">${this._escape(modePlan)}</div>` : ""}
         </div>`
       : "";
     const countdownHtml = countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
@@ -1014,6 +1031,9 @@ class PoolMaintenanceCard extends HTMLElement {
         background:rgba(233,185,79,.12);
       }
       .tile.mode.on .tile-sub{color:var(--warning-color,#E9B94F)}
+      .tile.mode .mode-plan{
+        font-size:.82rem;font-weight:600;opacity:.85;margin-top:1px;
+      }
       .tile.mode.on .switch.on{background:var(--warning-color,#E9B94F)}
       @supports (background:color-mix(in srgb,red 10%,transparent)){
         .tile.mode.on{background:color-mix(in srgb,var(--warning-color,#E9B94F) 12%,transparent)}

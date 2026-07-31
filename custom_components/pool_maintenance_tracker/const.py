@@ -68,6 +68,31 @@ EQUIPMENT_ROLES: Final[dict[str, str]] = {
     "cover": CONF_COVER_ENTITY,
 }
 
+# What a maintenance plan may ask for. Only equipment roles: the page sends a
+# role, never an entity id, so the reach of a plan is exactly what the owner
+# assigned to this pool. The filtration schedule is left out — a schedule
+# helper is configuration, not an appliance, and has no on/off service.
+MAINTENANCE_ROLES: Final[tuple[str, ...]] = tuple(
+    role for role in EQUIPMENT_ROLES if role != "filtration_schedule"
+)
+# Domains we know how to command. A role pointed at a binary_sensor is an
+# observation, not a control, so it is never offered.
+MAINTENANCE_DOMAINS: Final[tuple[str, ...]] = (
+    "switch",
+    "input_boolean",
+    "light",
+    "fan",
+    "climate",
+    "water_heater",
+    "cover",
+)
+# A pump runs or it does not; a cover opens or closes. Same idea, own words.
+MAINTENANCE_ONOFF: Final[tuple[str, ...]] = ("on", "off")
+MAINTENANCE_COVER: Final[tuple[str, ...]] = ("open", "closed")
+# A window shorter than this is a mistake; longer than a day is not a visit.
+MAINTENANCE_MIN_MINUTES: Final = 5
+MAINTENANCE_MAX_MINUTES: Final = 1440
+
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"
 LINKED_MODE_MANUAL: Final = "manual_only"
@@ -264,6 +289,11 @@ TECHNICIAN_PERSON: Final = "technician"
 
 # Re-notify damper for overdue reminders
 RENOTIFY_DAYS: Final = 3
+
+
+def maintenance_values(domain: str) -> tuple[str, ...]:
+    """The words a maintenance plan uses for a role in this domain."""
+    return MAINTENANCE_COVER if domain == "cover" else MAINTENANCE_ONOFF
 
 
 def signal_updated(entry_id: str) -> str:

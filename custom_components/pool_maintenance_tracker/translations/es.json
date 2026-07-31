@@ -64,7 +64,7 @@
           "maintenance_mode_enabled": "Interruptor de modo mantenimiento"
         },
         "data_description": {
-          "maintenance_mode_enabled": "Añade un interruptor que indica que alguien está trabajando en la piscina, para que lo usen tus automatizaciones (parar la bomba, silenciar una alarma, saltarse el horario de hoy). Nada en esta integración reacciona a él. También se puede activar desde la página de mantenimiento y la tarjeta, así que cualquiera con el enlace de la página puede activarlo."
+          "maintenance_mode_enabled": "Añade un interruptor que indica que alguien está trabajando en la piscina. En la página de mantenimiento viene con un panel: qué debe hacer cada equipo mientras dure el trabajo, y durante cuánto tiempo. Cuando se acaba el tiempo, la visita termina y el equipamiento vuelve a como estaba. Solo se tocan las entidades que asignaste en Equipamiento — y cualquiera con el enlace de la página puede empezar una visita."
         }
       },
       "modules": {
@@ -296,6 +296,24 @@
         "record_id": {
           "name": "Id del registro",
           "description": "Id del registro a eliminar (ver el atributo recent_records del sensor de último registro). Vacío elimina el más reciente."
+        }
+      }
+    },
+    "start_maintenance": {
+      "name": "Empezar mantenimiento",
+      "description": "Activa el modo mantenimiento con un plazo y un plan para el equipamiento, como hace la página de mantenimiento. Para terminar, usa switch.turn_off, que también devuelve el equipamiento a su estado anterior.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "La piscina donde empieza el mantenimiento."
+        },
+        "minutes": {
+          "name": "Durante",
+          "description": "Minutos hasta que la visita termine por sí sola y el equipamiento vuelva a su estado anterior. Déjalo vacío para no poner límite."
+        },
+        "equipment": {
+          "name": "Equipamiento",
+          "description": "Qué debe hacer cada rol de equipamiento mientras dure la visita, por ejemplo {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. La cubierta acepta open o closed. Los roles que no incluyas no se tocan."
         }
       }
     }

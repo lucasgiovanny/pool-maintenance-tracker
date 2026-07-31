@@ -71,26 +71,60 @@ self-contained page.
 
 ### Maintenance mode
 
-A single flag that says *somebody is working on this pool right now*. It is on
-by default and lives in four places — as `switch.<pool>_maintenance_mode` in
-Home Assistant, as a full-width toggle at the top of the maintenance page (so
-the technician can raise it from their phone, no HA account needed), on the
-dashboard card, and as a header pill on the wall dashboard, which states it
-either way: quiet when off, amber when on. Don't want any of it? Turn it off
-under **Configure → Pool → Maintenance mode switch** and the entity and every
-toggle go away with it.
+A maintenance visit: *somebody is working on this pool right now*, this is what
+the equipment should do while they are, and this is when it ends. It is on by
+default and lives in four places — as `switch.<pool>_maintenance_mode` in Home
+Assistant, as a toggle at the top of the maintenance page (so the technician
+can start a visit from their phone, no HA account needed), on the dashboard
+card, and as a header pill on the wall dashboard, which states it either way:
+quiet when off, amber when on. Don't want any of it? Turn it off under
+**Configure → Pool → Maintenance mode switch** and the entity and every toggle
+go away with it.
 
-Nothing in this integration reacts to it. That is the point: it is a flag for
-*your* automations — stop the pump, mute a water alarm, skip tonight's
-filtration schedule, or hold back reminders while a person is in the machine
-room. See [Automations](#automations).
+#### The visit: what should happen, and for how long
 
-It survives restarts on purpose (a technician who raised it and went home
-should not have it dropped by an HA update), and it carries two attributes:
-`since` and `set_by` — the name of whoever flipped it on the page, empty when
-it was flipped inside Home Assistant. The card and the page turn amber while
-it is on, because leaving it up by accident is the one mistake worth shouting
-about.
+Working on a pool usually means the equipment has to be somewhere in
+particular — the system off while the filter is open, the heat pump on for a
+while. So on the page the toggle opens a sheet instead of just flipping:
+
+- **one row per piece of equipment** you assigned under **Configure →
+  Equipment**, with its state right now and three choices: *no change*, *turn
+  on*, *turn off* (a cover gets *open* / *close*). Roles left on *no change*
+  are never touched, and roles that cannot be commanded — a schedule helper, a
+  role pointed at a `binary_sensor` — are not offered at all.
+- **for how long**: 30 min, 1 h, 2 h, 4 h, no limit, or an exact number of
+  minutes. One hour is pre-picked.
+
+Tap *Start maintenance* and it happens, there and then, and the page tells the
+technician what moved. **The window does not switch anything off when it runs
+out** — it ends the visit, and ending the visit is what puts the equipment back
+where it was found. Politely: only what the visit changed, and only while our
+change is still standing. If you moved something yourself in the meantime,
+yours is the newer word and it stays.
+
+Ending happens the same way from anywhere: the window running out, the toggle
+on the page, `switch.turn_off` in Home Assistant. Restarts are handled too — a
+window still open stays armed, and one that ran out while Home Assistant was
+down closes (and puts things back) at startup.
+
+Everything reaches the equipment through the normal service layer, so it shows
+up in each entity's logbook, and it only ever reaches the entities you named as
+roles: the page sends `pool_system`, never an entity id.
+
+#### For your automations
+
+Nothing here decides what a maintenance visit *means* beyond the equipment
+plan, so the flag is still yours to build on — mute a water alarm, hold back
+reminders, tell somebody the pool is being worked on. Four attributes:
+`since`, `set_by` (the name from the page, empty when flipped inside Home
+Assistant), `until`, and `equipment` — the plan, which outlives the flag on
+purpose so an automation reacting to the visit *ending* can still see what it
+changed. See [Automations](#automations).
+
+Starting a timed visit from inside Home Assistant needs the
+**`pool_maintenance_tracker.start_maintenance`** action, because
+`switch.turn_on` cannot carry a window or a plan. Handy for a dashboard button
+or an NFC tag by the gate.
 
 ### Notes
 
@@ -283,7 +317,7 @@ display-only dashboard** designed for a 7-inch landscape screen (and up).
   log a visit from their phone.
 - **Header** — the clock, the connection status, and the [maintenance
   mode](#maintenance-mode) pill, which states it either way: quiet when off,
-  amber with the technician's name when on.
+  amber when on, with the technician's name and when the visit ends.
 
 No touch targets, no navigation, no scrolling — just point a browser at it in
 kiosk mode. It refreshes itself every 30 seconds and keeps the last good data
@@ -449,8 +483,8 @@ Created per pool (depending on enabled modules):
   the right day
 - **Binary sensors**: filter wash due, cell cleaning due, probe calibration due
 - **`switch.<pool>_maintenance_mode`**: the [maintenance
-  mode](#maintenance-mode) flag, with `since` and `set_by` attributes (can be
-  switched off in the options)
+  mode](#maintenance-mode) flag, with `since`, `set_by`, `until` and
+  `equipment` attributes (can be switched off in the options)
 - **`sensor.<pool>_last_record`**: `who · date · what` summary, with the last
   20 records (including their ids) as attributes
 - **`event.<pool>_maintenance_logged`**: fires on every submission
@@ -481,42 +515,63 @@ action:
         {{ trigger.event.data.categories | join(', ') }}
 ```
 
-The [maintenance mode](#maintenance-mode) switch is the trigger for everything
-that should behave differently while a person is at the pool:
+The [maintenance mode](#maintenance-mode) switch handles the equipment itself,
+so automations on top of it are for everything *else* that should behave
+differently while a person is at the pool:
 
 ```yaml
-# Stop the pump while somebody is working, and say who raised the flag
+# Who is at the pool, what they asked for, and until when
 trigger:
   - platform: state
     entity_id: switch.piscina_maintenance_mode
     to: "on"
 action:
-  - service: switch.turn_off
-    target:
-      entity_id: switch.pool_pump
   - service: notify.mobile_app_me
     data:
       message: >
-        Maintenance mode on
-        {{ state_attr('switch.piscina_maintenance_mode', 'set_by') or '' }}
+        {{ state_attr('switch.piscina_maintenance_mode', 'set_by') or 'Somebody' }}
+        is working on the pool
+        {% set until = state_attr('switch.piscina_maintenance_mode', 'until') %}
+        {%- if until %} until {{ as_timestamp(until) | timestamp_custom('%H:%M') }}{% endif %}.
+        {{ state_attr('switch.piscina_maintenance_mode', 'equipment') }}
 ```
 
+Conditions work just as well — `state: "off"` on
+`switch.<pool>_maintenance_mode` in front of your filtration schedule
+automation keeps it from starting the pump under somebody's hands.
+
+The plan outlives the visit, so the *end* is a usable trigger too:
+
 ```yaml
-# And a nudge if it was left up overnight
+# The visit is over: say what it had changed
 trigger:
   - platform: state
     entity_id: switch.piscina_maintenance_mode
-    to: "on"
-    for: "08:00:00"
+    to: "off"
 action:
   - service: notify.mobile_app_me
     data:
-      message: The pool is still in maintenance mode.
+      message: >
+        Maintenance finished. It had asked for:
+        {{ state_attr('switch.piscina_maintenance_mode', 'equipment') }}
 ```
 
-Conditions work just as well — `state: "off"` on `switch.<pool>_maintenance_mode`
-in front of your filtration schedule automation keeps it from starting the pump
-under somebody's hands.
+And to start a timed visit from inside Home Assistant — a dashboard button, an
+NFC tag by the gate — use the action, because `switch.turn_on` cannot carry a
+window or a plan:
+
+```yaml
+action: pool_maintenance_tracker.start_maintenance
+data:
+  config_entry: <your pool>
+  minutes: 120
+  equipment:
+    pool_system: "off"
+    heat_pump: "on"
+```
+
+Roles you leave out are not touched; a cover takes `open` or `closed`. Ending
+early is `switch.turn_off`, which also puts the equipment back.
 
 ## Payload API
 
@@ -546,10 +601,25 @@ Valid `categories`: `water_test`, `chlorinator`, `salt`, `filter_wash`,
 enabled modules).
 
 The page also posts to `/api/pool_maintenance_tracker/<token>/mode` for
-[maintenance mode](#maintenance-mode), which takes `{"on": true|false,
-"person": "Technician"}` and answers with the flag's new state. `on` must be a
-boolean; the endpoint 404s if the feature was switched off and shares the log
-endpoint's rate limits.
+[maintenance mode](#maintenance-mode):
+
+```json
+{
+  "on": true,
+  "person": "Technician",
+  "minutes": 120,
+  "equipment": { "pool_system": "off", "heat_pump": "on", "cover": "open" }
+}
+```
+
+`on` must be a boolean; `minutes` must be 5–1440, and absent, `null` or `0` all
+mean no limit. `equipment` keys are equipment *roles*, never entity ids, and
+unknown roles or words come back in `ignored` rather than failing the request.
+The answer carries the flag's new state plus `applied` and `failed` per role, so
+the page can say what actually moved. `{"on": false}` ends the visit. A `GET` on
+the same URL returns the current state, which is how the page keeps up when the
+Status tab is switched off. Both 404 if the feature was switched off, and share
+the log endpoint's rate limits.
 
 Rules: every field is optional; `null`/absent fields change nothing;
 out-of-range values (pH 6–9, chlorine 0–10 ppm, salt 0–10 g/L, salt added
@@ -560,15 +630,18 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page, wall dashboard) and `POST` (log,
-  maintenance mode); nothing can command your equipment. With the Status tab
-  enabled, anyone holding the page URL can also *read* the declared pool state,
-  the entities you chose and recent records, and *add notes* — disable the tab
-  in the options if you don't want that.
-- [Maintenance mode](#maintenance-mode) is on by default, and anyone holding
-  the page URL can raise or drop that flag. It commands nothing by itself —
-  only the automations you write on top of it do. Switch the feature off under
-  **Configure → Pool** if you would rather it did not exist.
+- Endpoints accept only `GET` (page, wall dashboard, maintenance state) and
+  `POST` (log, maintenance mode). With the Status tab enabled, anyone holding
+  the page URL can also *read* the declared pool state, the entities you chose
+  and recent records, and *add notes* — disable the tab in the options if you
+  don't want that.
+- [Maintenance mode](#maintenance-mode) is on by default, and it is the one
+  thing here that commands equipment: anyone holding the page URL can start a
+  visit, which switches the equipment you assigned under **Configure →
+  Equipment** and puts it back when the visit ends. Nothing else is reachable —
+  a payload names a role, never an entity id, so the page can only touch that
+  short list. If you would rather it could not, switch the feature off under
+  **Configure → Pool** and the sheet goes with it.
 - Non-guessable 256-bit token in the path, compared in constant time.
 - Rate limits: 10 posts/min per IP, 30 posts/5 min per token, and repeated
   invalid-token attempts get an IP timeout.

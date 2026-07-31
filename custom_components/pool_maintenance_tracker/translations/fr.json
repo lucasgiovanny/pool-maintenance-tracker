@@ -64,7 +64,7 @@
           "maintenance_mode_enabled": "Interrupteur mode maintenance"
         },
         "data_description": {
-          "maintenance_mode_enabled": "Ajoute un interrupteur qui indique que quelqu'un travaille sur la piscine, à utiliser dans vos propres automatisations (arrêter la pompe, couper une alarme, ignorer l'horaire du jour). Rien dans cette intégration n'y réagit. Il peut aussi être basculé depuis la page de maintenance et la carte : toute personne ayant le lien de la page peut donc l'activer."
+          "maintenance_mode_enabled": "Ajoute un interrupteur qui indique que quelqu'un travaille sur la piscine. Sur la page de maintenance, il vient avec un panneau : ce que chaque équipement doit faire pendant les travaux, et pour combien de temps. À la fin du délai, la visite se termine et l'équipement revient dans l'état où il était. Seules les entités que vous avez désignées dans Équipement sont touchées — et toute personne ayant le lien de la page peut démarrer une visite."
         }
       },
       "modules": {
@@ -296,6 +296,24 @@
         "record_id": {
           "name": "Id de la saisie",
           "description": "Id de la saisie à supprimer (voir l'attribut recent_records du capteur de dernière saisie). Vide supprime la plus récente."
+        }
+      }
+    },
+    "start_maintenance": {
+      "name": "Démarrer la maintenance",
+      "description": "Active le mode maintenance avec un délai et un plan pour l'équipement, comme le fait la page de maintenance. Pour terminer, utilisez switch.turn_off, qui remet aussi l'équipement dans son état d'origine.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscine",
+          "description": "La piscine où commence la maintenance."
+        },
+        "minutes": {
+          "name": "Pendant",
+          "description": "Minutes avant que la visite se termine d'elle-même et que l'équipement revienne à son état d'origine. Laissez vide pour ne pas mettre de limite."
+        },
+        "equipment": {
+          "name": "Équipement",
+          "description": "Ce que chaque rôle d'équipement doit faire pendant la visite, par exemple {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. La couverture accepte open ou closed. Les rôles que vous omettez ne sont pas touchés."
         }
       }
     }

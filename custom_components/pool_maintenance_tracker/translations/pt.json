@@ -64,7 +64,7 @@
           "maintenance_mode_enabled": "Interruptor de modo manutenção"
         },
         "data_description": {
-          "maintenance_mode_enabled": "Adiciona um interruptor que diz que alguém está a trabalhar na piscina, para as tuas automações usarem (parar a bomba, silenciar um alarme, saltar o horário de hoje). Nada nesta integração reage a ele. Também pode ser ligado na página de manutenção e no cartão, por isso qualquer pessoa com o link da página o pode ativar."
+          "maintenance_mode_enabled": "Adiciona um interruptor que diz que alguém está a trabalhar na piscina. Na página de manutenção vem com um painel: o que cada equipamento deve fazer enquanto o trabalho durar, e por quanto tempo. Quando o tempo acaba, a visita termina e o equipamento volta a como estava. Só as entidades que atribuíste em Equipamento são tocadas — e qualquer pessoa com o link da página pode começar uma visita."
         }
       },
       "modules": {
@@ -296,6 +296,24 @@
         "record_id": {
           "name": "Id do registo",
           "description": "Id do registo a apagar (vê o atributo recent_records do sensor de último registo). Deixa vazio para apagar o mais recente."
+        }
+      }
+    },
+    "start_maintenance": {
+      "name": "Começar manutenção",
+      "description": "Liga o modo manutenção com uma janela de tempo e um plano para o equipamento, como faz a página de manutenção. Para terminar, usa switch.turn_off, que também devolve o equipamento ao que estava.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "A piscina onde começa a manutenção."
+        },
+        "minutes": {
+          "name": "Durante",
+          "description": "Minutos até a visita terminar sozinha e o equipamento voltar ao que estava. Deixa vazio para não ter limite."
+        },
+        "equipment": {
+          "name": "Equipamento",
+          "description": "O que cada papel de equipamento deve fazer enquanto a visita durar, por exemplo {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. A cobertura aceita open ou closed. Os papéis que deixares de fora não são tocados."
         }
       }
     }

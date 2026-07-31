@@ -64,7 +64,7 @@
           "maintenance_mode_enabled": "Maintenance mode switch"
         },
         "data_description": {
-          "maintenance_mode_enabled": "Adds a switch that says somebody is working on the pool, for your own automations to act on (stop the pump, mute an alarm, skip tonight's schedule). Nothing in this integration reacts to it. It can also be flipped from the maintenance page and the card, so anyone with the page link can raise it."
+          "maintenance_mode_enabled": "Adds a switch that says somebody is working on the pool. On the maintenance page it comes with a sheet: what each piece of equipment should do while the work lasts, and for how long. When the time is up the visit ends and the equipment goes back to how it was found. Only the entities you assigned under Equipment are ever touched — and anyone holding the page link can start a visit."
         }
       },
       "modules": {
@@ -296,6 +296,24 @@
         "record_id": {
           "name": "Record id",
           "description": "Id of the record to delete (see the recent_records attribute of the last-record sensor). Leave empty to delete the most recent record."
+        }
+      }
+    },
+    "start_maintenance": {
+      "name": "Start maintenance",
+      "description": "Raises the maintenance flag with a window and an equipment plan, the way the maintenance page does. Turn it off again with switch.turn_off, which also puts the equipment back.",
+      "fields": {
+        "config_entry": {
+          "name": "Pool",
+          "description": "The pool to start maintenance on."
+        },
+        "minutes": {
+          "name": "For how long",
+          "description": "Minutes until the visit ends by itself and the equipment goes back to how it was. Leave empty for no limit."
+        },
+        "equipment": {
+          "name": "Equipment",
+          "description": "What each equipment role should do while the visit lasts, for example {\"pool_system\": \"off\", \"heat_pump\": \"on\"}. Covers take open or closed. Roles you leave out are not touched."
         }
       }
     }

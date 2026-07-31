@@ -60,6 +60,12 @@ class PoolTracker:
         self.maintenance_mode: bool = False
         self.maintenance_mode_at: str | None = None
         self.maintenance_mode_by: str | None = None
+        # When the window closes (None = no limit), what the technician asked
+        # the equipment to do, and where that equipment stood before they did.
+        # The last one is what lets the window put things back.
+        self.maintenance_mode_until: str | None = None
+        self.maintenance_mode_plan: dict[str, str] = {}
+        self.maintenance_mode_restore: dict[str, str] = {}
         self.installed_at: str = dt_util.utcnow().isoformat()
 
     async def async_load(self) -> None:
@@ -79,6 +85,9 @@ class PoolTracker:
         self.maintenance_mode = bool(data.get("maintenance_mode", False))
         self.maintenance_mode_at = data.get("maintenance_mode_at")
         self.maintenance_mode_by = data.get("maintenance_mode_by")
+        self.maintenance_mode_until = data.get("maintenance_mode_until")
+        self.maintenance_mode_plan = data.get("maintenance_mode_plan", {})
+        self.maintenance_mode_restore = data.get("maintenance_mode_restore", {})
         self.installed_at = data.get("installed_at", self.installed_at)
 
     async def async_flush(self) -> None:
@@ -106,6 +115,9 @@ class PoolTracker:
             "maintenance_mode": self.maintenance_mode,
             "maintenance_mode_at": self.maintenance_mode_at,
             "maintenance_mode_by": self.maintenance_mode_by,
+            "maintenance_mode_until": self.maintenance_mode_until,
+            "maintenance_mode_plan": self.maintenance_mode_plan,
+            "maintenance_mode_restore": self.maintenance_mode_restore,
             "installed_at": self.installed_at,
         }
 
@@ -126,17 +138,52 @@ class PoolTracker:
         self.async_save()
 
     @callback
-    def async_set_maintenance_mode(self, on: bool, person: str | None = None) -> bool:
-        """Raise or drop the maintenance flag; True when it actually changed.
+    def async_set_maintenance_mode(
+        self,
+        on: bool,
+        person: str | None = None,
+        until: str | None = None,
+        plan: dict[str, str] | None = None,
+    ) -> bool:
+        """Raise or drop the maintenance flag; True when anything changed.
 
-        ``person`` is whoever flipped it on the page — left empty when it
-        came from Home Assistant itself, where the logbook already says who.
+        ``person`` is whoever flipped it on the page — left empty when it came
+        from Home Assistant itself, where the logbook already says who.
+
+        Turning it on while it is already on is a re-arm: the window and the
+        plan are replaced, but ``maintenance_mode_at`` stays put. "Since" has
+        to keep meaning since when somebody has been working, not since the
+        last time they changed their mind about the heat pump.
         """
-        if self.maintenance_mode == on:
+        before = (
+            self.maintenance_mode,
+            self.maintenance_mode_at,
+            self.maintenance_mode_by,
+            self.maintenance_mode_until,
+            self.maintenance_mode_plan,
+        )
+        if self.maintenance_mode != on:
+            self.maintenance_mode = on
+            self.maintenance_mode_at = dt_util.utcnow().isoformat()
+            self.maintenance_mode_by = person or None
+        elif on and person:
+            self.maintenance_mode_by = person
+        if on:
+            self.maintenance_mode_until = until
+            self.maintenance_mode_plan = dict(plan or {})
+        else:
+            # The window is over; what was asked for outlives it. Whoever
+            # reacts to the flag dropping may still need to know what was
+            # done, so the plan stays until the next visit replaces it.
+            self.maintenance_mode_until = None
+        if before == (
+            self.maintenance_mode,
+            self.maintenance_mode_at,
+            self.maintenance_mode_by,
+            self.maintenance_mode_until,
+            self.maintenance_mode_plan,
+        ):
             return False
-        self.maintenance_mode = on
-        self.maintenance_mode_at = dt_util.utcnow().isoformat()
-        self.maintenance_mode_by = person or None
         self.async_update_listeners()
         self.async_save()
         return True

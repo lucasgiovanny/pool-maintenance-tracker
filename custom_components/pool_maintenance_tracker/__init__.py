@@ -20,7 +20,7 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.helpers.typing import ConfigType
 
-from . import filter_pressure
+from . import filter_pressure, maintenance
 from .const import (
     CATEGORY_FILTER_WASH,
     CONF_LINKED_MODE,
@@ -37,6 +37,7 @@ from .const import (
     signal_record,
 )
 from .http import async_register_views
+from .maintenance import MaintenanceSession
 from .modules import active_entity_keys, enabled_value_keys
 from .reminders import ReminderEngine
 from .tracker import PoolTracker
@@ -64,6 +65,7 @@ class PoolRuntimeData:
 
     tracker: PoolTracker
     reminders: ReminderEngine
+    session: MaintenanceSession
     # Short-lived answers too expensive to recompute on every poll
     cache: dict[str, Any] = field(default_factory=dict)
 
@@ -92,7 +94,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
     tracker = PoolTracker(hass, entry.entry_id, entry.data[CONF_NAME])
     await tracker.async_load()
     reminders = ReminderEngine(hass, entry, tracker)
-    entry.runtime_data = PoolRuntimeData(tracker=tracker, reminders=reminders)
+    session = MaintenanceSession(hass, entry, tracker)
+    entry.runtime_data = PoolRuntimeData(tracker=tracker, reminders=reminders, session=session)
 
     domain_data[DATA_TOKENS][entry.data[CONF_TOKEN]] = entry.entry_id
     async_register_views(hass)
@@ -103,6 +106,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
     _async_prune_stale_entities(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     reminders.async_start()
+    session.async_start()
 
     if entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL) == LINKED_MODE_MIRROR:
         _async_setup_linked_mirror(hass, entry, tracker)
@@ -206,6 +210,24 @@ DELETE_RECORD_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_START_MAINTENANCE = "start_maintenance"
+START_MAINTENANCE_SCHEMA = vol.Schema(
+    {
+        vol.Required("config_entry"): str,
+        vol.Optional("minutes"): vol.Any(None, vol.Coerce(int)),
+        vol.Optional("equipment"): {cv.string: cv.string},
+    }
+)
+
+
+def _pool_entry(hass: HomeAssistant, entry_id: str) -> PoolConfigEntry:
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None or entry.domain != DOMAIN:
+        raise ServiceValidationError("Unknown Pool Maintenance Tracker entry")
+    if entry.state is not ConfigEntryState.LOADED:
+        raise ServiceValidationError("The pool is not loaded")
+    return entry
+
 
 @callback
 def _async_register_services(hass: HomeAssistant) -> None:
@@ -213,19 +235,41 @@ def _async_register_services(hass: HomeAssistant) -> None:
         return
 
     async def _handle_delete_record(call: ServiceCall) -> None:
-        entry = hass.config_entries.async_get_entry(call.data["config_entry"])
-        if entry is None or entry.domain != DOMAIN:
-            raise ServiceValidationError("Unknown Pool Maintenance Tracker entry")
-        if entry.state is not ConfigEntryState.LOADED:
-            raise ServiceValidationError("The pool is not loaded")
+        entry = _pool_entry(hass, call.data["config_entry"])
         if not entry.runtime_data.tracker.async_delete_record(call.data.get("record_id")):
             raise ServiceValidationError("No matching record to delete")
+
+    async def _handle_start_maintenance(call: ServiceCall) -> None:
+        """Raise the flag with a window and a plan, the way the page does.
+
+        switch.turn_on cannot carry either, so this is how a dashboard
+        button, an NFC tag or another automation starts a timed visit.
+        Dropping it early is still switch.turn_off.
+        """
+        entry = _pool_entry(hass, call.data["config_entry"])
+        if not maintenance.is_enabled(entry):
+            raise ServiceValidationError("Maintenance mode is switched off for this pool")
+        try:
+            until = maintenance.parse_minutes(call.data.get("minutes"))
+            plan, ignored = maintenance.clean_plan(hass, entry, call.data.get("equipment"))
+        except maintenance.PlanError as err:
+            raise ServiceValidationError(str(err)) from err
+        if ignored:
+            _LOGGER.warning("start_maintenance ignored %s for %s", ", ".join(ignored), entry.title)
+        entry.runtime_data.tracker.async_set_maintenance_mode(True, until=until, plan=plan)
+        await maintenance.async_apply(hass, entry, plan)
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_DELETE_RECORD,
         _handle_delete_record,
         schema=DELETE_RECORD_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_START_MAINTENANCE,
+        _handle_start_maintenance,
+        schema=START_MAINTENANCE_SCHEMA,
     )
 
 
@@ -312,6 +356,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> boo
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
     entry.runtime_data.reminders.async_stop()
+    entry.runtime_data.session.async_stop()
     tokens: dict[str, str] = hass.data[DOMAIN][DATA_TOKENS]
     for token, entry_id in list(tokens.items()):
         if entry_id == entry.entry_id:
