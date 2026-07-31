@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<!-- No maximum-scale: iOS has ignored it since iOS 10, and on Android it is
+     the thing that stops somebody pinching in to read a number. The zoom that
+     was in the way is the double-tap one, and that is handled in CSS. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Pool maintenance</title>
 <style>
@@ -19,6 +22,11 @@
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  /* Two quick taps on the stepper is somebody counting up, not somebody
+     asking to zoom. This drops the double-tap gesture on everything you can
+     tap — and only that gesture: pinch to zoom still works, which is why it
+     goes here instead of into the viewport meta. */
+  button,a,input,textarea{touch-action:manipulation}
   html{font-size:16px}
   body{
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
@@ -219,8 +227,11 @@
 
   textarea{
     width:100%;border:2px solid var(--line);border-radius:12px;padding:14px;
-    font-family:inherit;font-size:.95rem;resize:vertical;min-height:84px;background:var(--white);
+    font-family:inherit;resize:vertical;min-height:84px;background:var(--white);
     color:var(--ink);
+    /* Not .95rem: iOS zooms the page in on any field under 16px the moment
+       it takes focus, and then leaves it zoomed. */
+    font-size:1rem;
   }
   textarea:focus{outline:none;border-color:var(--aqua)}
 
