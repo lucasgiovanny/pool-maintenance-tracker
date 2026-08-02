@@ -309,9 +309,12 @@ takes the theme's own card surface on the dashboard's transparent background,
 so it reads as native HA cards, dark or light.
 
 You can also override the title and pick the pool when you have several.
-Tapping a row opens the usual more-info dialog, the toggles switch your
-equipment, and the card speaks the **Home Assistant UI language** of whoever is
-looking at it, independently of the language you chose for the public page.
+Tapping a row opens the usual more-info dialog — for a water reading, of
+whichever entity the number on screen came from, the linked probe or the manual
+one, so the history you get is the history you were looking at. The toggles
+switch your equipment, and the card speaks the **Home Assistant UI language** of
+whoever is looking at it, independently of the language you chose for the public
+page.
 
 ## Wall dashboard (kiosk)
 

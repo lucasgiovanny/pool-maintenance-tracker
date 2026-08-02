@@ -442,6 +442,11 @@ class PoolMaintenanceCard extends HTMLElement {
     const available = availableItems(data, text);
     const shown = new Set(this._selection(available));
 
+    /* The dialog has to be about the number on screen. A reading can come
+       from our manual entity or from a linked probe — whichever measured
+       last wins — so tapping opens whichever of the two that was. */
+    const sourceOf = key => ((report.current || {})[key] || {}).entity_id || ids[key] || "";
+
     /* header ------------------------------------------------------- */
     /* A card that is one of several about the same pool does not need to
        repeat its name and icon; hiding the header leaves just the content. */
@@ -536,7 +541,7 @@ class PoolMaintenanceCard extends HTMLElement {
         key: "value:" + key,
         name: name,
         value: showUnit ? value + " " + unit : String(value),
-        entity: ids[key],
+        entity: sourceOf(key),
         badge: status ? { text: S.report.status[status], status: status } : null,
         warn: status === "low" || status === "high",
       });
@@ -752,8 +757,8 @@ class PoolMaintenanceCard extends HTMLElement {
       if (modeHtml) put("mode", modeHtml);
       if (hero) {
         put("water",
-          `<div class="mini hero clickable" data-entity="${ids.water_temperature || ""}">
-            <div class="mini-name">${this._iconTag("temperature", ids.water_temperature)}<span class="nm">${
+          `<div class="mini hero clickable" data-entity="${sourceOf("water_temperature")}">
+            <div class="mini-name">${this._iconTag("temperature", sourceOf("water_temperature"))}<span class="nm">${
               this._escape(S.report.values.water_temperature)}</span></div>
             <div class="hero-value">${temp}<small>${tempUnit}</small></div>
           </div>`);
@@ -814,7 +819,7 @@ class PoolMaintenanceCard extends HTMLElement {
               this._escape(subtitleBits.join(" · "))}</div>
           </div>
           ${showTemp && !hero ? `<div class="temp" data-entity="${
-            ids.water_temperature || ""}">${temp}<small>${tempUnit}</small></div>` : ""}
+            sourceOf("water_temperature")}">${temp}<small>${tempUnit}</small></div>` : ""}
         </div>` : ""}
 
         ${!tiles && modeHtml ? `<div class="toggles mode-row">${modeHtml}</div>` : ""}

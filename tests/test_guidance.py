@@ -351,6 +351,7 @@ async def test_the_freshest_reading_wins(hass, salt_entry, hass_client_no_auth):
     # nothing logged yet: the probe is all there is
     current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
     assert current["water_temperature"] == {
+        "entity_id": "sensor.probe_temperature",
         "value": 27.4,
         "unit": "°C",
         "source": "probe",
@@ -371,6 +372,8 @@ async def test_the_freshest_reading_wins(hass, salt_entry, hass_client_no_auth):
     current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
     assert current["water_temperature"]["value"] == 25.0
     assert current["water_temperature"]["source"] == "manual"
+    # and the reading now points at the entity that holds it
+    assert current["water_temperature"]["entity_id"].startswith("number.")
     assert current["water_temperature"]["other"] == 27.4
 
     # ...until the probe speaks again

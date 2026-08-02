@@ -124,6 +124,36 @@ async def test_linked_sensors_live_values(hass, salt_entry, hass_client_no_auth)
     # unavailable source is skipped entirely
     assert "salt" not in config["live"]
     assert config["linked_mode"] == "manual_only"
+    assert config["live"]["ph"]["entity_id"] == "sensor.probe_ph"
+
+
+async def test_a_reading_names_the_entity_it_came_from(hass, salt_entry, hass_client_no_auth):
+    """Whoever measured last owns the number, and the dialog behind it."""
+    from homeassistant.helpers import entity_registry as er
+
+    hass.states.async_set("sensor.probe_ph", "7.13")
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry, options={**salt_entry.options, "ph_source": "sensor.probe_ph"}
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    reading = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]["ph"]
+    assert reading["source"] == "probe"
+    assert reading["entity_id"] == "sensor.probe_ph"
+
+    # somebody measures by hand afterwards: the newer reading takes over,
+    # and so does its entity
+    salt_entry.runtime_data.tracker.async_set_value("ph", 7.6)
+    await hass.async_block_till_done()
+
+    reading = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]["ph"]
+    assert reading["source"] == "manual"
+    assert reading["entity_id"] == er.async_get(hass).async_get_entity_id(
+        "number", "pool_maintenance_tracker", f"{salt_entry.entry_id}_ph"
+    )
 
 
 async def test_no_linked_sensors_means_empty_live(hass, salt_entry, hass_client_no_auth):

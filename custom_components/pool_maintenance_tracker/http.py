@@ -321,6 +321,7 @@ def _live_values(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str,
         except ValueError:
             continue
         live[key] = {
+            "entity_id": entity_id,
             "value": round(value, 2),
             "unit": state.attributes.get("unit_of_measurement") or "",
             "at": state.last_updated.isoformat(),
@@ -534,7 +535,10 @@ def _today_scheduled_hours(week: list[list[list[str]]] | None) -> float | None:
 
 @callback
 def _current_readings(
-    tracker: PoolTracker, values: dict[str, Any], live: dict[str, dict[str, Any]]
+    tracker: PoolTracker,
+    values: dict[str, Any],
+    live: dict[str, dict[str, Any]],
+    entity_ids: dict[str, str],
 ) -> dict[str, dict[str, Any]]:
     """The freshest reading for each key, whoever took it.
 
@@ -543,6 +547,10 @@ def _current_readings(
     standing at the pool means by "the current value". Without a timestamp
     on the manual side we trust the probe, which at least knows when it
     last spoke.
+
+    ``entity_id`` names the entity the winning value came from, so that a
+    surface showing the number can also point at the thing that measured
+    it, rather than at whichever of the two it happens to know about.
     """
     current: dict[str, dict[str, Any]] = {}
     for live_key, value_key in LINKED_VALUE_KEYS.items():
@@ -556,6 +564,7 @@ def _current_readings(
         )
         if use_probe:
             current[value_key] = {
+                "entity_id": probe.get("entity_id"),
                 "value": probe["value"],
                 "unit": probe["unit"],
                 "source": "probe",
@@ -564,6 +573,7 @@ def _current_readings(
             }
         else:
             current[value_key] = {
+                "entity_id": entity_ids.get(value_key),
                 "value": declared,
                 "unit": "",
                 "source": "manual",
@@ -731,7 +741,8 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
             extra.append(item)
 
     live = _live_values(hass, entry)
-    current = _current_readings(tracker, values, live)
+    entity_ids = _entity_ids(hass, entry)
+    current = _current_readings(tracker, values, live, entity_ids)
     temperature = (current.get(KEY_WATER_TEMPERATURE) or {}).get("value")
 
     return {
@@ -748,7 +759,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "notes": list(reversed(tracker.notes)),
         "extra": extra,
         "roles": roles,
-        "entity_ids": _entity_ids(hass, entry),
+        "entity_ids": entity_ids,
     }
 
 
