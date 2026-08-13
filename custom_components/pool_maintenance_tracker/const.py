@@ -115,6 +115,10 @@ ONOFF_DOMAINS: Final[frozenset[str]] = frozenset(
 # name the handful of ways of being off and treat the rest as running.
 OFF_STATES: Final[tuple[str, ...]] = ("off", "closed", "closing")
 UNAVAILABLE_STATES: Final[tuple[str, ...]] = ("unknown", "unavailable")
+# Equipment that aims for a temperature rather than merely running. These are
+# the ones a tap must hand over to Home Assistant's own dialog: picking a mode
+# and a target is not something a tile-sized switch can do.
+THERMOSTAT_DOMAINS: Final[tuple[str, ...]] = ("climate", "water_heater")
 
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"

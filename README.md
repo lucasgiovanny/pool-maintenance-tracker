@@ -312,9 +312,12 @@ You can also override the title and pick the pool when you have several.
 Tapping a row opens the usual more-info dialog — for a water reading, of
 whichever entity the number on screen came from, the linked probe or the manual
 one, so the history you get is the history you were looking at. The toggles
-switch your equipment, and the card speaks the **Home Assistant UI language** of
-whoever is looking at it, independently of the language you chose for the public
-page.
+switch your equipment — except where a switch would be a lie: a heat pump on a
+`climate` or `water_heater` entity takes a mode and a target, so its tile shows
+a lamp rather than a toggle, says whether it is heating or cooling and what it
+is aiming for, and hands a tap to Home Assistant's own dialog. The card speaks
+the **Home Assistant UI language** of whoever is looking at it, independently of
+the language you chose for the public page.
 
 ## Wall dashboard (kiosk)
 

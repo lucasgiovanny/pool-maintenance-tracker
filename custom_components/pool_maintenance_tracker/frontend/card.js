@@ -422,6 +422,20 @@ class PoolMaintenanceCard extends HTMLElement {
     this._hass.callService(item.domain, "toggle", { entity_id: item.entity_id });
   }
 
+  /* What a piece of equipment is doing, in as many words as it has. A switch
+     only knows that it is on; a heat pump knows whether it is working at this
+     moment, and the temperature it is working towards. */
+  _equipmentState(item) {
+    const S = this._data.strings;
+    if (!item.on) return S.report.state_off;
+    const doing = item.action === "heating" ? S.report.state_heating
+      : item.action === "cooling" ? S.report.state_cooling
+      : S.report.state_on;
+    if (item.target === null || item.target === undefined) return doing;
+    return doing + " · " + S.report.target_temp.replace("{temp}",
+      item.target + (item.target_unit ? " " + item.target_unit : ""));
+  }
+
   /* ---------------- render ---------------- */
   _render() {
     if (this._tick) { clearInterval(this._tick); this._tick = null; }
@@ -677,13 +691,20 @@ class PoolMaintenanceCard extends HTMLElement {
     const toggleHtml = (role, index) => {
       const item = roles[role];
       const on = !!item.on;
-      /* Just the state: the countdown strip already owns "until when" */
-      const sub = on ? S.report.state_on : S.report.state_off;
+      /* A switch is a promise that tapping it flips it. A thermostat takes a
+         mode and a target, which is Home Assistant's dialog to ask for, so it
+         gets a lamp that reports instead of a switch that lies. */
+      const switchable = TOGGLE_DOMAINS.includes(item.domain);
+      /* What it is doing, never when it will stop: the countdown strip
+         already owns "until when". */
+      const sub = this._equipmentState(item);
       return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
         <div class="tile-top">
           <span class="tile-name">${this._iconTag("role:" + role, item.entity_id)}<span class="nm">${
             this._escape(item.name || S.roles[role])}</span></span>
-          <span class="switch ${on ? "on" : ""}"><i></i></span>
+          ${switchable
+            ? `<span class="switch ${on ? "on" : ""}"><i></i></span>`
+            : `<span class="lamp ${on ? "on" : ""}"></span>`}
         </div>
         <div class="tile-sub">${this._escape(sub)}</div>
       </div>`;
@@ -838,8 +859,9 @@ class PoolMaintenanceCard extends HTMLElement {
     const root = this.shadowRoot;
     root.querySelectorAll("[data-toggle]").forEach(node => {
       const item = roles[toggles[Number(node.dataset.toggle)]];
-      node.querySelector(".switch").addEventListener("click",
-        event => this._toggle(item, event));
+      /* A lamp is not a control: the tile's own handler opens the dialog. */
+      const control = node.querySelector(".switch");
+      if (control) control.addEventListener("click", event => this._toggle(item, event));
       node.addEventListener("click", () => this._openMoreInfo(item.entity_id));
     });
     /* The mode switch drives our own switch entity; a tap anywhere else on
@@ -1044,6 +1066,17 @@ class PoolMaintenanceCard extends HTMLElement {
         background:#fff;transition:transform .15s;
       }
       .switch.on i{transform:translateX(16px)}
+      /* Reports, never promises: equipment whose dialog does the commanding.
+         Margins carry it to the switch's 22px height, so a row of tiles keeps
+         one baseline whether its equipment can be tapped on or not. */
+      .lamp{
+        width:10px;height:10px;border-radius:50%;flex:none;margin:6px 0;
+        background:var(--disabled-text-color,#8c8c8c);
+      }
+      .lamp.on{
+        background:var(--state-icon-color,#44739E);
+        box-shadow:0 0 0 4px rgba(68,115,158,.25);
+      }
 
       /* Maintenance mode takes the full width and, when on, the warning
          color: a flag left up by mistake has to be impossible to miss. */

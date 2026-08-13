@@ -364,10 +364,20 @@ function renderMinis(){
       on ? S.report.state_on : S.report.state_off, on ? "on" : "off", sub));
   }
   if (roles.heat_pump) {
-    const on = !!roles.heat_pump.on;
-    box.appendChild(miniCard(S.roles.heat_pump,
-      on ? S.report.state_on : S.report.state_off, on ? "on" : "off",
-      relShort(roles.heat_pump.last_changed)));
+    const pump = roles.heat_pump;
+    const on = !!pump.on;
+    /* Working, or merely on? A wall screen has room to say which, and what
+       the pump is aiming for beats when it last changed its mind. */
+    const doing = !on ? S.report.state_off
+      : pump.action === "heating" ? S.report.state_heating
+      : pump.action === "cooling" ? S.report.state_cooling
+      : S.report.state_on;
+    const target = on && pump.target !== null && pump.target !== undefined
+      ? S.report.target_temp.replace("{temp}",
+        pump.target + (pump.target_unit ? " " + pump.target_unit : ""))
+      : relShort(pump.last_changed);
+    box.appendChild(miniCard(
+      S.roles.heat_pump, doing, on ? "on" : "off", target));
   }
   /* Water readings, coloured against their ideal band */
   [["ph", "ph", S.report.values.ph, ""],

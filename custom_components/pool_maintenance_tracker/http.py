@@ -83,6 +83,7 @@ from .const import (
     ONOFF_DOMAINS,
     PUMP_SINGLE_SPEED,
     RECENT_RECORDS_ATTR_COUNT,
+    THERMOSTAT_DOMAINS,
     TS_ANY,
     URL_HISTORY,
     URL_KIOSK,
@@ -468,6 +469,20 @@ async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
             next_change = (
                 next_event.isoformat() if hasattr(next_event, "isoformat") else str(next_event)
             )
+    # A thermostat has more to say than on or off: whether it is working at
+    # this moment, and the temperature it is working towards. Both are worth
+    # more on a tile than the switch it does not get.
+    action = None
+    target = None
+    target_unit = ""
+    if domain in THERMOSTAT_DOMAINS:
+        action = state.attributes.get("hvac_action")
+        # In a heat/cool range there is no single target; the tile says
+        # nothing rather than picking one of the two ends.
+        raw_target = state.attributes.get("temperature")
+        if isinstance(raw_target, (int, float)):
+            target = raw_target
+            target_unit = hass.config.units.temperature_unit
     return {
         "entity_id": entity_id,
         "name": state.attributes.get("friendly_name") or entity_id,
@@ -475,6 +490,9 @@ async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
         # Settled here so every surface agrees on what "running" means, rather
         # than each one guessing from the raw word the entity happens to use.
         "on": equipment_on(domain, state.state),
+        "action": action,
+        "target": target,
+        "target_unit": target_unit,
         "unit": state.attributes.get("unit_of_measurement") or "",
         "domain": domain,
         "next_change": next_change,

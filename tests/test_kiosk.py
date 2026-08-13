@@ -178,3 +178,63 @@ async def test_running_equipment_never_says_on(hass, salt_entry, hass_client_no_
         await hass.async_block_till_done()
         report = extract_config(await (await client.get(KIOSK_URL)).text())["report"]
         assert report["roles"]["heat_pump"]["on"] is False
+
+
+async def test_a_thermostat_reports_what_it_is_doing(hass, salt_entry, hass_client_no_auth):
+    """On is the least a heat pump knows: it also aims at a temperature."""
+    hass.states.async_set(
+        "climate.heat_pump",
+        "heat",
+        {"friendly_name": "Eco Elyo", "hvac_action": "heating", "temperature": 28.5},
+    )
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={**salt_entry.options, "heat_pump_entity": "climate.heat_pump"},
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    pump = extract_config(await (await client.get(KIOSK_URL)).text())["report"]["roles"][
+        "heat_pump"
+    ]
+    assert pump["action"] == "heating"
+    assert pump["target"] == 28.5
+    assert pump["target_unit"] == "°C"
+
+    # At the target it is still on, but no longer working — the tile can say so
+    hass.states.async_set(
+        "climate.heat_pump",
+        "heat",
+        {"friendly_name": "Eco Elyo", "hvac_action": "idle", "temperature": 28.5},
+    )
+    await hass.async_block_till_done()
+    pump = extract_config(await (await client.get(KIOSK_URL)).text())["report"]["roles"][
+        "heat_pump"
+    ]
+    assert pump["on"] is True
+    assert pump["action"] == "idle"
+
+    # A heat/cool range has no single target: better silent than wrong
+    hass.states.async_set(
+        "climate.heat_pump",
+        "heat_cool",
+        {"friendly_name": "Eco Elyo", "target_temp_low": 26, "target_temp_high": 30},
+    )
+    await hass.async_block_till_done()
+    pump = extract_config(await (await client.get(KIOSK_URL)).text())["report"]["roles"][
+        "heat_pump"
+    ]
+    assert pump["on"] is True
+    assert pump["target"] is None
+
+    # A plain switch has nothing to add, and says nothing
+    hass.states.async_set("switch.pump", "on", {"friendly_name": "Pump"})
+    hass.config_entries.async_update_entry(
+        salt_entry, options={**salt_entry.options, "pump_entity": "switch.pump"}
+    )
+    await hass.async_block_till_done()
+    roles = extract_config(await (await client.get(KIOSK_URL)).text())["report"]["roles"]
+    assert roles["pump"]["action"] is None
+    assert roles["pump"]["target"] is None
