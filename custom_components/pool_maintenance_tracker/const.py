@@ -93,6 +93,29 @@ MAINTENANCE_COVER: Final[tuple[str, ...]] = ("open", "closed")
 MAINTENANCE_MIN_MINUTES: Final = 5
 MAINTENANCE_MAX_MINUTES: Final = 1440
 
+# Domains whose state is a way of saying on or off, rather than a measurement.
+# Everything here answers "is it running?"; a sensor reporting 22.5 does not.
+ONOFF_DOMAINS: Final[frozenset[str]] = frozenset(
+    {
+        "binary_sensor",
+        "switch",
+        "input_boolean",
+        "light",
+        "fan",
+        "climate",
+        "water_heater",
+        "cover",
+        "schedule",
+        "humidifier",
+    }
+)
+# Running equipment does not always say "on". A heat pump picked as a climate
+# entity says "heat"; a water heater says "eco" or "performance"; a cover says
+# "open". Chasing every mode Home Assistant may add is a losing game, so we
+# name the handful of ways of being off and treat the rest as running.
+OFF_STATES: Final[tuple[str, ...]] = ("off", "closed", "closing")
+UNAVAILABLE_STATES: Final[tuple[str, ...]] = ("unknown", "unavailable")
+
 # How linked sensors interact with the manual entities (per entry)
 CONF_LINKED_MODE: Final = "linked_mode"
 LINKED_MODE_MANUAL: Final = "manual_only"
@@ -294,6 +317,21 @@ RENOTIFY_DAYS: Final = 3
 def maintenance_values(domain: str) -> tuple[str, ...]:
     """The words a maintenance plan uses for a role in this domain."""
     return MAINTENANCE_COVER if domain == "cover" else MAINTENANCE_ONOFF
+
+
+def equipment_on(domain: str, state: str) -> bool | None:
+    """Whether this entity is running — ``None`` when that is not a question.
+
+    The dashboards ask this of everything they are pointed at, including
+    sensors that only ever report a number. ``None`` is the answer that says
+    "this one is not an on/off thing", so a reading of 22.5 is never mistaken
+    for equipment that happens not to be off.
+    """
+    if state in UNAVAILABLE_STATES:
+        return None
+    if domain not in ONOFF_DOMAINS and state not in ("on", "off", "open", "closed"):
+        return None
+    return state not in OFF_STATES
 
 
 def signal_updated(entry_id: str) -> str:

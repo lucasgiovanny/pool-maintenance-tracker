@@ -462,7 +462,7 @@ class PoolMaintenanceCard extends HTMLElement {
     const subtitleBits = [];
     if (roles.pool_system) {
       subtitleBits.push(S.roles.pool_system + " " +
-        (roles.pool_system.state === "on"
+        (roles.pool_system.on
           ? S.report.state_on.toLowerCase() : S.report.state_off.toLowerCase()));
     }
     if (due.length) subtitleBits.push(due.length + " " + S.kiosk.overdue_count);
@@ -548,12 +548,13 @@ class PoolMaintenanceCard extends HTMLElement {
     });
     (report.extra || []).forEach(item => {
       if (!shown.has("extra:" + item.entity_id)) return;
-      const onOff = item.state === "on" || item.state === "off";
+      /* null means "not an on/off thing" — that one shows its own value */
+      const onOff = item.on !== null && item.on !== undefined;
       rows.push({
         key: "extra:" + item.entity_id,
         name: item.name, entity: item.entity_id,
         value: onOff
-          ? (item.state === "on" ? S.report.state_on : S.report.state_off)
+          ? (item.on ? S.report.state_on : S.report.state_off)
             + " · " + this._relTime(item.last_changed)
           : item.state + (item.unit ? " " + item.unit : ""),
       });
@@ -675,7 +676,7 @@ class PoolMaintenanceCard extends HTMLElement {
     };
     const toggleHtml = (role, index) => {
       const item = roles[role];
-      const on = item.state === "on" || item.state === "open";
+      const on = !!item.on;
       /* Just the state: the countdown strip already owns "until when" */
       const sub = on ? S.report.state_on : S.report.state_off;
       return `<div class="tile ${on ? "on" : ""}" data-toggle="${index}">
@@ -724,7 +725,7 @@ class PoolMaintenanceCard extends HTMLElement {
         </div>`
       : "";
     const countdownHtml = countdown ? `<div class="countdown" data-entity="${countdown.entity_id}">
-          <span class="cd-label">${this._escape(countdown.state === "on"
+          <span class="cd-label">${this._escape(countdown.on
             ? S.card.turns_off : S.card.turns_on)}</span>
           <span class="cd-value" id="cd">—</span>
         </div>` : "";
@@ -815,7 +816,7 @@ class PoolMaintenanceCard extends HTMLElement {
           <div class="titles">
             <div class="name">${this._escape(config.title || data.title)}</div>
             <div class="sub">${roles.pool_system
-              ? `<span class="dot ${roles.pool_system.state === "on" ? "on" : "off"}"></span>` : ""}${
+              ? `<span class="dot ${roles.pool_system.on ? "on" : "off"}"></span>` : ""}${
               this._escape(subtitleBits.join(" · "))}</div>
           </div>
           ${showTemp && !hero ? `<div class="temp" data-entity="${

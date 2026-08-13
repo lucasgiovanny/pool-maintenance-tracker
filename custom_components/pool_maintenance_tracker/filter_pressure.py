@@ -33,6 +33,8 @@ from .const import (
     METRIC_CLEAN_PRESSURE_AT,
     METRIC_PRESSURE_DUE,
     MIN_MEANINGFUL_PRESSURE,
+    UNAVAILABLE_STATES,
+    equipment_on,
 )
 
 if TYPE_CHECKING:
@@ -70,9 +72,9 @@ def _pump_running(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if not entity_id:
             continue
         state = hass.states.get(entity_id)
-        if state is None or state.state in ("unknown", "unavailable"):
+        if state is None or state.state in UNAVAILABLE_STATES:
             continue
-        return state.state in ("on", "open", "heat", "cool", "auto")
+        return equipment_on(entity_id.split(".")[0], state.state) is True
     return True
 
 

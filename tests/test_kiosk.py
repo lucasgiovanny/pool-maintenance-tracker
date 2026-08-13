@@ -136,3 +136,45 @@ async def test_roles_replace_guessing(hass, salt_entry, hass_client_no_auth):
     assert roles["heat_pump"]["name"] == "Eco Elyo"
     extra_ids = [item["entity_id"] for item in config["report"]["extra"]]
     assert extra_ids == ["sensor.power"]
+
+
+async def test_running_equipment_never_says_on(hass, salt_entry, hass_client_no_auth):
+    """A heat pump that is heating is running, whatever word it uses for it.
+
+    A thermostat reports its mode — "heat", "eco" — and never the word "on",
+    so a dashboard comparing against "on" calls a working heat pump idle.
+    """
+    hass.states.async_set("climate.heat_pump", "heat", {"friendly_name": "Eco Elyo"})
+    hass.states.async_set("switch.pool_system", "on", {"friendly_name": "Pool System"})
+    hass.states.async_set("cover.pool", "open", {"friendly_name": "Cover"})
+    hass.states.async_set(
+        "sensor.power", "22.5", {"friendly_name": "Consumo", "unit_of_measurement": "kW"}
+    )
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={
+            **salt_entry.options,
+            "heat_pump_entity": "climate.heat_pump",
+            "pool_system_entity": "switch.pool_system",
+            "cover_entity": "cover.pool",
+            "report_sensors": ["sensor.power"],
+        },
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+    client = await hass_client_no_auth()
+
+    report = extract_config(await (await client.get(KIOSK_URL)).text())["report"]
+    assert report["roles"]["heat_pump"]["on"] is True
+    assert report["roles"]["pool_system"]["on"] is True
+    assert report["roles"]["cover"]["on"] is True
+    # A reading is not equipment: it is neither running nor stopped.
+    assert report["extra"][0]["on"] is None
+
+    # The same pump, off, is off — including the modes that mean standby.
+    for mode in ("off", "closed"):
+        hass.states.async_set("climate.heat_pump", mode, {"friendly_name": "Eco Elyo"})
+        await hass.async_block_till_done()
+        report = extract_config(await (await client.get(KIOSK_URL)).text())["report"]
+        assert report["roles"]["heat_pump"]["on"] is False

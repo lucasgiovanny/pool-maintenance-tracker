@@ -840,17 +840,17 @@ function renderReport(){
       const row = el("div", "kv");
       row.appendChild(el("span", "k", item.label || item.name));
       const holder = el("span", "v");
-      const onOff = ["binary_sensor", "switch", "input_boolean", "light"].includes(item.domain)
-        || item.state === "on" || item.state === "off";
+      /* null means the entity is a reading, not a thing that runs */
+      const onOff = item.on !== null && item.on !== undefined;
       if (onOff || item.domain === "schedule") {
         holder.appendChild(el("span",
-          "badge " + (item.state === "on" ? "ok" : "neutral"),
-          item.state === "on" ? S.report.state_on : S.report.state_off));
+          "badge " + (item.on ? "ok" : "neutral"),
+          item.on ? S.report.state_on : S.report.state_off));
         holder.appendChild(document.createTextNode(" "));
         let detail;
         if (item.next_change) {
           const when = new Date(item.next_change);
-          const template = item.state === "on"
+          const template = item.on
             ? S.report.schedule_off : S.report.schedule_on;
           detail = template
             .replace("{date}", when.toLocaleDateString(LOCALE))
@@ -1047,12 +1047,13 @@ function askLabel(value){
   return value === "on" ? M.turn_on : value === "off" ? M.turn_off
     : value === "open" ? M.open : value === "closed" ? M.close : M.keep;
 }
-function stateLabel(state){
-  if (state === "on") return S.report.state_on;
-  if (state === "off") return S.report.state_off;
-  if (state === "open" || state === "opening") return M.is_open;
-  if (state === "closed" || state === "closing") return M.is_closed;
-  return state;
+/* A cover says where it stands; everything else just runs or does not —
+   including the thermostat that calls it "heat" rather than "on". */
+function stateLabel(item){
+  if (item.state === "open" || item.state === "opening") return M.is_open;
+  if (item.state === "closed" || item.state === "closing") return M.is_closed;
+  if (item.on === null || item.on === undefined) return item.state;
+  return item.on ? S.report.state_on : S.report.state_off;
 }
 function clockTime(iso){
   return new Date(iso).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
@@ -1111,7 +1112,7 @@ function buildSheet(){
     const field = el("div", "field");
     const label = el("label", null, item.name);
     label.appendChild(document.createTextNode(" · "));
-    label.appendChild(el("span", "now", M.now.replace("{state}", stateLabel(item.state))));
+    label.appendChild(el("span", "now", M.now.replace("{state}", stateLabel(item))));
     field.appendChild(label);
     const segments = el("div", "segments");
     segments.dataset.role = item.role;

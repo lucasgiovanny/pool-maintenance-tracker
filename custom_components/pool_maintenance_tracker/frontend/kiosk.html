@@ -321,7 +321,7 @@ function renderTemperature(){
   const sub = document.getElementById("temp-sub");
   sub.textContent = parts.join(" · ");
   const heating = (report.roles || {}).heat_pump;
-  if (heating && heating.state === "on") {
+  if (heating && heating.on) {
     if (parts.length) sub.appendChild(document.createTextNode(" · "));
     sub.appendChild(el("b", null, K.heating_active));
   }
@@ -353,7 +353,7 @@ function renderMinis(){
         ? values.chlorinator_output + " " + S.units.chlorinator_output : ""));
   }
   if (roles.pool_system) {
-    const on = roles.pool_system.state === "on";
+    const on = !!roles.pool_system.on;
     const schedule = roles.filtration_schedule;
     let sub = relShort(roles.pool_system.last_changed);
     if (on && schedule && schedule.next_change) {
@@ -364,7 +364,7 @@ function renderMinis(){
       on ? S.report.state_on : S.report.state_off, on ? "on" : "off", sub));
   }
   if (roles.heat_pump) {
-    const on = roles.heat_pump.state === "on";
+    const on = !!roles.heat_pump.on;
     box.appendChild(miniCard(S.roles.heat_pump,
       on ? S.report.state_on : S.report.state_off, on ? "on" : "off",
       relShort(roles.heat_pump.last_changed)));
@@ -397,7 +397,7 @@ function renderMinis(){
 
   ["pump", "pool_light", "cover"].forEach(role => {
     if (!roles[role]) return;
-    const on = roles[role].state === "on" || roles[role].state === "open";
+    const on = !!roles[role].on;
     box.appendChild(miniCard(S.roles[role] || roles[role].name,
       on ? S.report.state_on : S.report.state_off, on ? "on" : "off",
       relShort(roles[role].last_changed)));

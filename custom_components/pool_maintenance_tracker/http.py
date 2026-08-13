@@ -80,6 +80,7 @@ from .const import (
     MAX_NOTE_LENGTH,
     MAX_PERSON_LENGTH,
     NUMBER_RANGES,
+    ONOFF_DOMAINS,
     PUMP_SINGLE_SPEED,
     RECENT_RECORDS_ATTR_COUNT,
     TS_ANY,
@@ -90,6 +91,7 @@ from .const import (
     URL_MODE,
     URL_PAGE,
     URL_STATE,
+    equipment_on,
     maintenance_values,
 )
 from .entity import page_url
@@ -231,6 +233,7 @@ def _maintenance_equipment(hass: HomeAssistant, entry: ConfigEntry) -> list[dict
                 "entity_id": entity_id,
                 "name": state.attributes.get("friendly_name") or entity_id,
                 "state": state.state,
+                "on": equipment_on(domain, state.state),
                 "values": list(maintenance_values(domain)),
             }
         )
@@ -469,6 +472,9 @@ async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
         "entity_id": entity_id,
         "name": state.attributes.get("friendly_name") or entity_id,
         "state": state.state,
+        # Settled here so every surface agrees on what "running" means, rather
+        # than each one guessing from the raw word the entity happens to use.
+        "on": equipment_on(domain, state.state),
         "unit": state.attributes.get("unit_of_measurement") or "",
         "domain": domain,
         "next_change": next_change,
@@ -763,9 +769,6 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
     }
 
 
-ONOFF_DOMAINS = {"binary_sensor", "switch", "input_boolean", "light"}
-
-
 def _recorder_ready(hass: HomeAssistant) -> bool:
     return "recorder" in hass.config.components
 
@@ -842,8 +845,8 @@ async def _temperature_trend(hass: HomeAssistant, entry: ConfigEntry) -> dict[st
     return trend
 
 
-def _ontime_buckets(changes, start, end) -> list[dict[str, Any]]:
-    """Hours 'on' per local day from a list of (moment, state) changes.
+def _ontime_buckets(domain: str, changes, start, end) -> list[dict[str, Any]]:
+    """Hours running per local day from a list of (moment, state) changes.
 
     ``changes`` must be sorted and include the state at ``start``.
     Returns one point per local day between start and end (zeros included).
@@ -859,7 +862,8 @@ def _ontime_buckets(changes, start, end) -> list[dict[str, Any]]:
     intervals = [*changes, (end, None)]
     for index in range(len(intervals) - 1):
         moment, state = intervals[index]
-        if state != "on":
+        # A thermostat spends its working day saying "heat", never "on".
+        if not equipment_on(domain, state or ""):
             continue
         block_start = max(moment, start)
         block_end = min(intervals[index + 1][0], end)
@@ -893,7 +897,7 @@ async def _ontime_daily(hass: HomeAssistant, entity_id: str, start, end) -> list
     changes = [(state.last_changed, state.state) for state in states.get(entity_id, [])]
     if not changes:
         return []
-    return _ontime_buckets(sorted(changes), start, end)
+    return _ontime_buckets(entity_id.split(".")[0], sorted(changes), start, end)
 
 
 async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> dict[str, Any]:
@@ -942,7 +946,8 @@ async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> 
             # were "on" is meaningless; the report tab shows the next change.
             continue
         if domain in ONOFF_DOMAINS or (state and state.state in ("on", "off")):
-            # On/off runtime is limited by the recorder retention window.
+            # Runtime, not readings: a heat pump charts the hours it spent
+            # heating. Limited by the recorder retention window.
             points = await _ontime_daily(hass, entity_id, max(start, end - timedelta(days=31)), end)
             if any(point["v"] for point in points):
                 extra.append({"type": "ontime", "name": name, "points": points})

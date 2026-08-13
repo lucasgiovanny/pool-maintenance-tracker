@@ -24,10 +24,33 @@ def test_ontime_buckets_splits_days():
         (start + timedelta(hours=22), "on"),
         (start + timedelta(hours=26), "off"),
     ]
-    points = _ontime_buckets(changes, start, end)
+    points = _ontime_buckets("switch", changes, start, end)
     assert len(points) >= 2
     assert points[0]["v"] == 2.0
     assert points[1]["v"] == 2.0
+
+
+def test_ontime_buckets_counts_thermostat_modes():
+    """A heat pump spends its working day saying "heat", never "on"."""
+    now = dt_util.utcnow()
+    start_local = dt_util.as_local(now).replace(hour=0, minute=0, second=0, microsecond=0)
+    start = dt_util.as_utc(start_local)
+    end = start + timedelta(days=1)
+
+    changes = [
+        (start, "off"),
+        (start + timedelta(hours=8), "heat"),
+        (start + timedelta(hours=11), "off"),
+    ]
+    assert _ontime_buckets("climate", changes, start, end)[0]["v"] == 3.0
+    # ...and a water heater says "eco" or "performance"
+    modes = [
+        (start, "off"),
+        (start + timedelta(hours=8), "eco"),
+        (start + timedelta(hours=9), "performance"),
+        (start + timedelta(hours=11), "off"),
+    ]
+    assert _ontime_buckets("water_heater", modes, start, end)[0]["v"] == 3.0
 
 
 def test_state_began_skips_unavailable_gaps():
@@ -54,7 +77,7 @@ def test_state_began_skips_unavailable_gaps():
 def test_ontime_buckets_all_off():
     now = dt_util.utcnow()
     start = now - timedelta(days=1)
-    points = _ontime_buckets([(start, "off")], start, now)
+    points = _ontime_buckets("switch", [(start, "off")], start, now)
     assert all(point["v"] == 0 for point in points)
 
 
