@@ -23,6 +23,10 @@
       "title": "Wasserwerte",
       "ph": "pH gemessen (Streifen oder Kit)",
       "free_chlorine": "Freies Chlor",
+      "total_chlorine": "Gesamtchlor",
+      "total_alkalinity": "Gesamtalkalität",
+      "cyanuric_acid": "Cyanursäure (Stabilisator)",
+      "calcium_hardness": "Calciumhärte",
       "salt": "Salz (manuelle Messung)",
       "temperature": "Wassertemperatur",
       "hint": "Trage nur ein, was du gemessen hast. Leere Felder ändern nichts."
@@ -78,6 +82,11 @@
   "units": {
     "ph": "pH",
     "free_chlorine": "ppm",
+    "total_chlorine": "ppm",
+    "total_alkalinity": "ppm",
+    "cyanuric_acid": "ppm",
+    "calcium_hardness": "ppm",
+    "combined_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
     "chlorinator_output": "g/h",
@@ -111,6 +120,12 @@
     "values": {
       "ph": "pH",
       "free_chlorine": "Freies Chlor",
+      "total_chlorine": "Gesamtchlor",
+      "combined_chlorine": "Gebundenes Chlor",
+      "total_alkalinity": "Gesamtalkalität",
+      "cyanuric_acid": "Cyanursäure",
+      "calcium_hardness": "Calciumhärte",
+      "chemistry_test": "Stabilisator- und Härtetest",
       "salt_level": "Salz",
       "water_temperature": "Wassertemperatur",
       "salt_added": "Salz nachgefüllt",
@@ -154,7 +169,8 @@
     "pressure_rise": "+{p}% seit der Wäsche",
     "wash_filter": "waschen",
     "alert_filtration_short": "Filtration auf {scheduled} h/Tag gestellt, empfohlen sind {recommended} h",
-    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert"
+    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert",
+    "alert_combined": "Gebundenes Chlor bei {value} ppm — Stoßchlorung fällig"
   },
   "notes": {
     "title": "Notizen",

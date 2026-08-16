@@ -5,20 +5,26 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
+from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import RECENT_RECORDS_ATTR_COUNT, TS_CLEANING
+from .const import (
+    KEY_COMBINED_CHLORINE,
+    RECENT_RECORDS_ATTR_COUNT,
+    TS_CLEANING,
+)
 from .entity import PoolBaseEntity
-from .modules import enabled_timestamp_keys, timestamp_sensor_key
+from .modules import active_entity_keys, enabled_timestamp_keys, timestamp_sensor_key
 
 if TYPE_CHECKING:
     from . import PoolConfigEntry
 
 ICONS = {
     "last_water_test": "mdi:test-tube",
+    "last_chemistry_test": "mdi:beaker-check",
     "last_salt_added": "mdi:shaker",
     "last_filter_wash": "mdi:air-filter",
     "last_cell_clean": "mdi:battery-heart-variant",
@@ -38,6 +44,8 @@ async def async_setup_entry(
         PoolTimestampSensor(entry, ts_key) for ts_key in enabled_timestamp_keys(entry.options)
     ]
     entities.append(PoolLastRecordSensor(entry))
+    if KEY_COMBINED_CHLORINE in active_entity_keys(entry.options):
+        entities.append(PoolCombinedChlorineSensor(entry))
     async_add_entities(entities)
 
 
@@ -62,6 +70,25 @@ class PoolTimestampSensor(PoolBaseEntity, SensorEntity):
         if types := self.tracker.values.get("cleaning_types"):
             return {"types": types}
         return None
+
+
+class PoolCombinedChlorineSensor(PoolBaseEntity, SensorEntity):
+    """Total minus free chlorine — the chloramine figure.
+
+    Unknown rather than stale: when the two readings did not come from the
+    same test session the subtraction is meaningless and the sensor says so.
+    """
+
+    _attr_icon = "mdi:flask-outline"
+    _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, entry: PoolConfigEntry) -> None:
+        super().__init__(entry, KEY_COMBINED_CHLORINE)
+
+    @property
+    def native_value(self) -> float | None:
+        return self.tracker.combined_chlorine
 
 
 class PoolLastRecordSensor(PoolBaseEntity, SensorEntity):

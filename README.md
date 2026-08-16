@@ -140,9 +140,19 @@ wall dashboard — none of them ever commands your equipment.
 
 **Ideal bands.** Every reading is judged against a target range, so a value
 reads as *pH 8.4 — high* instead of a number you have to remember the meaning
-of. pH (7.2–7.6) and free chlorine (1–3 ppm) are universal; the salt band
-depends on your chlorinator, so set it under **Configure → Pool** (default
-2.5–4.5 g/L). The bands also appear under each field while you type.
+of. pH (7.2–7.6), free chlorine (1–3 ppm), total alkalinity (80–120 ppm) and
+calcium hardness (200–400 ppm) are universal; cyanuric acid follows the pool
+type (30–50 ppm dosed chlorine, 60–80 ppm salt — a cell's chlorine is made in
+one spot and needs more stabilizer over it); the salt band depends on your
+chlorinator, so set it under **Configure → Pool** (default 2.5–4.5 g/L). The
+bands also appear under each field while you type.
+
+**Combined chlorine.** Log free and total chlorine from the same strip and the
+integration derives the chloramine figure (total − free) — the smell, the
+stinging eyes — as `sensor.<pool>_combined_chlorine`, and raises an alert above
+0.5 ppm: time to shock. The subtraction only happens when the two readings came
+from the same test session; total from today minus free from last week would be
+noise with a unit, so the sensor says *unknown* instead.
 
 **Salt dose impact.** Tell the integration your pool **volume** (m³) and the
 salt field turns kilos into what they will actually do: type 25 kg into a 48 m³
@@ -220,11 +230,13 @@ dashboard's *Needs attention* box and the card:
 | Filter wash overdue | Past its interval — or, with a pressure gauge linked, past its pressure rise |
 | Chlorinator cell cleaning overdue | Past its interval |
 | pH probe calibration overdue | Past its interval |
+| Stabilizer & hardness test overdue | Past its interval (the slow readings: cyanuric acid, calcium hardness) |
 | Acid tank low | At ¼ or empty |
 | No acid tank | The level is set to *no tank* — nothing to refill, but the pH is no longer being dosed |
+| Combined chlorine high | Above 0.5 ppm — chloramine, time to shock |
 | Filtration below the recommendation | Today's schedule runs less than the recommendation, by more than an hour and more than 20 % |
 
-The three overdue ones also have a `binary_sensor` each and, if you set a
+The overdue ones also have a `binary_sensor` each and, if you set a
 `notify.*` service, a daily notification (re-sent at most every three days).
 The acid tank notifies once, when a logged record changes the level — never
 repeatedly. The filtration one lives on the surfaces only: it is a standing
@@ -379,18 +391,19 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
 
    | Module | Adds |
    |---|---|
+   | Extended water chemistry | Total chlorine, cyanuric acid and calcium hardness readings, the derived combined-chlorine sensor, and a monthly test reminder — for pools tested with 6/7-way strips |
    | Salt chlorinator | Chlorinator output/mode, salt readings, salt refills, cell-cleaning tracking |
    | pH doser acid tank | Acid tank level + refill tracking, low-level alert (levels include *empty* and *no tank*, for a drum that ran dry or was taken away) |
    | Filter | Filter wash tracking + reminder |
    | pH probe | Probe calibration tracking + reminder |
    | Cleaning tasks | Vacuum / waterline / basket logging |
 
-   Water testing (pH, free chlorine, temperature) and the maintenance log are
-   always on.
+   Water testing (pH, free chlorine, total alkalinity, temperature) and the
+   maintenance log are always on.
 3. **Page and reminders** — page language (English, Portuguese, Spanish,
    French, German, Italian), an optional notification target, and reminder
    periods (defaults: filter 30 days, pH probe 60 days, chlorinator cell
-   90 days).
+   90 days, stabilizer & hardness test 30 days).
 
    The notification target is a dropdown of what your Home Assistant can
    actually reach: both the legacy `notify.*` **services** (which is how the

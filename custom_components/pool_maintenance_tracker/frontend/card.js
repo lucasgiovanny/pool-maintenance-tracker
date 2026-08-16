@@ -12,12 +12,17 @@ const ITEM_ICONS = {
   "value:water_temperature": "mdi:thermometer-water",
   "value:ph": "mdi:ph",
   "value:free_chlorine": "mdi:test-tube",
+  "value:total_chlorine": "mdi:flask",
+  "value:total_alkalinity": "mdi:water-percent",
+  "value:cyanuric_acid": "mdi:shield-sun-outline",
+  "value:calcium_hardness": "mdi:diamond-stone",
   "value:salt_level": "mdi:shaker-outline",
   chlorinator: "mdi:waves",
   acid_tank: "mdi:cup-water",
   filter_pressure: "mdi:gauge",
   filtration: "mdi:autorenew",
   "task:water_test": "mdi:test-tube",
+  "task:chemistry_test": "mdi:beaker-check",
   "task:salt_added": "mdi:shaker",
   "task:filter_wash": "mdi:air-filter",
   "task:cell_clean": "mdi:lightning-bolt",
@@ -35,7 +40,8 @@ const ITEM_ICONS = {
 /* An empty drum needs refilling; no drum at all is a decision, not a fault */
 const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
 
-const READING_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature"];
+const READING_KEYS = ["ph", "free_chlorine", "total_chlorine", "total_alkalinity",
+  "cyanuric_acid", "calcium_hardness", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
 
 const GROUPS = ["general", "equipment", "readings", "tasks"];

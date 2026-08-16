@@ -18,11 +18,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    KEY_CALCIUM_HARDNESS,
     KEY_CHLORINATOR_OUTPUT,
+    KEY_CYANURIC_ACID,
     KEY_FREE_CHLORINE,
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
+    KEY_TOTAL_ALKALINITY,
+    KEY_TOTAL_CHLORINE,
     KEY_WATER_TEMPERATURE,
     NUMBER_RANGES,
 )
@@ -35,6 +39,10 @@ if TYPE_CHECKING:
 UNITS = {
     KEY_PH: None,
     KEY_FREE_CHLORINE: CONCENTRATION_PARTS_PER_MILLION,
+    KEY_TOTAL_CHLORINE: CONCENTRATION_PARTS_PER_MILLION,
+    KEY_TOTAL_ALKALINITY: CONCENTRATION_PARTS_PER_MILLION,
+    KEY_CYANURIC_ACID: CONCENTRATION_PARTS_PER_MILLION,
+    KEY_CALCIUM_HARDNESS: CONCENTRATION_PARTS_PER_MILLION,
     KEY_WATER_TEMPERATURE: UnitOfTemperature.CELSIUS,
     KEY_SALT_LEVEL: "g/L",
     KEY_SALT_ADDED: UnitOfMass.KILOGRAMS,
@@ -44,6 +52,11 @@ UNITS = {
 ICONS = {
     KEY_PH: "mdi:ph",
     KEY_FREE_CHLORINE: "mdi:test-tube",
+    KEY_TOTAL_CHLORINE: "mdi:flask",
+    KEY_TOTAL_ALKALINITY: "mdi:water-percent",
+    # Stabilizer is sunscreen for chlorine
+    KEY_CYANURIC_ACID: "mdi:shield-sun-outline",
+    KEY_CALCIUM_HARDNESS: "mdi:diamond-stone",
     KEY_WATER_TEMPERATURE: "mdi:thermometer-water",
     KEY_SALT_LEVEL: "mdi:shaker-outline",
     KEY_SALT_ADDED: "mdi:shaker",

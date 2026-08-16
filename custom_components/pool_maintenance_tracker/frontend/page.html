@@ -531,7 +531,8 @@ const ICONS = {
 };
 
 const PLACEHOLDERS = {
-  ph: "7.2", free_chlorine: "1.5", salt_level: "3.0",
+  ph: "7.2", free_chlorine: "1.5", total_chlorine: "1.5", total_alkalinity: "100",
+  cyanuric_acid: "50", calcium_hardness: "250", salt_level: "3.0",
   salt_added: "25", chlorinator_output: "10", water_temperature: "27.0"
 };
 
@@ -646,16 +647,21 @@ function renderReport(){
     document.getElementById(id).innerHTML = "";
   });
 
-  /* Current status: water readings (declared, falling back to the probe) */
-  const WATER_KEYS = ["ph", "free_chlorine", "salt_level", "water_temperature", "cleaning_types"];
-  const LIVE_FOR = { ph: "ph", free_chlorine: "free_chlorine", salt_level: "salt", water_temperature: "temperature" };
+  /* Current status: water readings (declared, falling back to the probe).
+     combined_chlorine is derived by the server (total − free, same test
+     session only), so it reads from its own report field. */
+  const WATER_KEYS = ["ph", "free_chlorine", "total_chlorine", "combined_chlorine",
+    "total_alkalinity", "cyanuric_acid", "calcium_hardness",
+    "salt_level", "water_temperature", "cleaning_types"];
   const currentBody = document.getElementById("report-current-body");
   let currentAny = false;
   WATER_KEYS.forEach(key => {
     /* The server already decided which of the probe and the manual entry
        is the current one — whichever was measured last. */
     const reading = (report.current || {})[key];
-    const declared = report.values ? report.values[key] : undefined;
+    const declared = key === "combined_chlorine"
+      ? (report.combined_chlorine === null ? undefined : report.combined_chlorine)
+      : (report.values ? report.values[key] : undefined);
     if (!reading && declared === undefined) return;
     currentAny = true;
     const row = el("div", "kv");
@@ -1005,6 +1011,13 @@ function renderAlerts(){
   } else if (ACID_ALERT_LEVELS.includes(acid)) {
     messages.push(S.report.alert_acid.replace("{level}",
       (S.acid_levels[acid] || "").toLowerCase()));
+  }
+  /* Chloramine: the threshold travels with the ranges the server sent */
+  const combined = report.combined_chlorine;
+  const combinedBand = (report.ranges || {}).combined_chlorine;
+  if (combined !== null && combined !== undefined
+      && combinedBand && combined > combinedBand.max) {
+    messages.push(S.report.alert_combined.replace("{value}", combined));
   }
   const short = (report.filtration || {}).short_by;
   if (short) {
@@ -1772,10 +1785,16 @@ function buildPanel(tile){
   panel.appendChild(el("h3", null, p.title));
   const parts = [];
   if (tile === "water_test") {
+    /* Roughly the order of a 7-in-1 strip, the slow monthly readings last.
+       Each stepper only exists when its module is enabled (CFG.limits). */
     parts.push(stepperField(p.ph, "ph"));
     parts.push(stepperField(p.free_chlorine, "free_chlorine"));
+    parts.push(stepperField(p.total_chlorine, "total_chlorine"));
+    parts.push(stepperField(p.total_alkalinity, "total_alkalinity"));
     parts.push(stepperField(p.salt, "salt_level"));
     parts.push(stepperField(p.temperature, "water_temperature"));
+    parts.push(stepperField(p.cyanuric_acid, "cyanuric_acid"));
+    parts.push(stepperField(p.calcium_hardness, "calcium_hardness"));
     parts.push(hintOnly(p.hint));
   } else if (tile === "chlorinator") {
     parts.push(segmentsField(p.mode, "chlorinator_mode", ["smart", "manual", "boost"], S.modes, false));
@@ -1853,6 +1872,10 @@ sendButton.addEventListener("click", async () => {
     readings: {
       ph: stepperValue("ph"),
       free_chlorine: stepperValue("free_chlorine"),
+      total_chlorine: stepperValue("total_chlorine"),
+      total_alkalinity: stepperValue("total_alkalinity"),
+      cyanuric_acid: stepperValue("cyanuric_acid"),
+      calcium_hardness: stepperValue("calcium_hardness"),
       salt: stepperValue("salt_level"),
       temperature: stepperValue("water_temperature")
     },
@@ -1892,6 +1915,10 @@ function summaryFor(payload, selected){
   selected.forEach(tile => fragments.push("✓ " + (S.tiles[tile] || tile)));
   if (payload.readings.ph !== null) fragments.push(S.panels.water_test.ph + ": " + payload.readings.ph);
   if (payload.readings.free_chlorine !== null) fragments.push(S.panels.water_test.free_chlorine + ": " + payload.readings.free_chlorine + " " + S.units.free_chlorine);
+  if (payload.readings.total_chlorine !== null) fragments.push(S.panels.water_test.total_chlorine + ": " + payload.readings.total_chlorine + " " + S.units.total_chlorine);
+  if (payload.readings.total_alkalinity !== null) fragments.push(S.panels.water_test.total_alkalinity + ": " + payload.readings.total_alkalinity + " " + S.units.total_alkalinity);
+  if (payload.readings.cyanuric_acid !== null) fragments.push(S.panels.water_test.cyanuric_acid + ": " + payload.readings.cyanuric_acid + " " + S.units.cyanuric_acid);
+  if (payload.readings.calcium_hardness !== null) fragments.push(S.panels.water_test.calcium_hardness + ": " + payload.readings.calcium_hardness + " " + S.units.calcium_hardness);
   if (payload.readings.salt !== null) fragments.push(S.panels.water_test.salt + ": " + payload.readings.salt + " " + S.units.salt_level);
   if (payload.readings.temperature !== null) fragments.push(S.panels.water_test.temperature + ": " + payload.readings.temperature + " " + S.units.water_temperature);
   if (payload.salt.added_kg !== null) fragments.push(S.tiles.salt + ": " + payload.salt.added_kg + " " + S.units.salt_added);

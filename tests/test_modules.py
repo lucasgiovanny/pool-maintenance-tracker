@@ -40,6 +40,10 @@ def test_salt_pool_enables_everything():
     assert enabled_value_keys(SALT_OPTIONS) == {
         "ph",
         "free_chlorine",
+        "total_chlorine",
+        "total_alkalinity",
+        "cyanuric_acid",
+        "calcium_hardness",
         "water_temperature",
         "salt_level",
         "salt_added",
@@ -52,7 +56,7 @@ def test_salt_pool_enables_everything():
 
 def test_chlorine_pool_is_reduced():
     keys = enabled_value_keys(CHLORINE_OPTIONS)
-    assert keys == {"ph", "free_chlorine", "water_temperature"}
+    assert keys == {"ph", "free_chlorine", "total_alkalinity", "water_temperature"}
     tiles = enabled_tiles(CHLORINE_OPTIONS)
     assert "chlorinator" not in tiles
     assert "acid_refill" not in tiles

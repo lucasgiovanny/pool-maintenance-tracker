@@ -26,7 +26,8 @@
           "notify_service": "Destinazione delle notifiche",
           "filter_days": "Promemoria lavaggio filtro (giorni)",
           "probe_days": "Promemoria calibrazione sonda pH (giorni)",
-          "cell_days": "Promemoria pulizia cella (giorni)"
+          "cell_days": "Promemoria pulizia cella (giorni)",
+          "chemistry_days": "Promemoria test stabilizzante e durezza (giorni)"
         },
         "data_description": {
           "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni."
@@ -114,7 +115,8 @@
           "probe_days": "Promemoria calibrazione sonda pH (giorni)",
           "cell_days": "Promemoria pulizia cella (giorni)",
           "reminder_time": "Ora del controllo giornaliero (HH:MM)",
-          "filter_pressure_rise": "Lavare il filtro a questo aumento di pressione (%)"
+          "filter_pressure_rise": "Lavare il filtro a questo aumento di pressione (%)",
+          "chemistry_days": "Promemoria test stabilizzante e durezza (giorni)"
         }
       },
       "page": {
@@ -155,6 +157,7 @@
     "modules": {
       "options": {
         "salt_chlorinator": "Clorinatore a sale",
+        "water_chemistry": "Chimica dell'acqua completa (cianurico, durezza, cloro totale)",
         "acid_tank": "Serbatoio acido del dosatore pH",
         "filter": "Filtro",
         "ph_probe": "Sonda pH",
@@ -194,6 +197,18 @@
       "free_chlorine": {
         "name": "Cloro libero"
       },
+      "total_chlorine": {
+        "name": "Cloro totale"
+      },
+      "total_alkalinity": {
+        "name": "Alcalinità totale"
+      },
+      "cyanuric_acid": {
+        "name": "Acido cianurico"
+      },
+      "calcium_hardness": {
+        "name": "Durezza calcica"
+      },
       "water_temperature": {
         "name": "Temperatura dell'acqua (lettura manuale)"
       },
@@ -232,6 +247,9 @@
       "last_water_test": {
         "name": "Ultima analisi dell'acqua"
       },
+      "last_chemistry_test": {
+        "name": "Ultimo test stabilizzante e durezza"
+      },
       "last_salt_added": {
         "name": "Ultima aggiunta di sale"
       },
@@ -255,6 +273,9 @@
       },
       "last_record": {
         "name": "Ultima registrazione"
+      },
+      "combined_chlorine": {
+        "name": "Cloro combinato"
       }
     },
     "binary_sensor": {
@@ -266,6 +287,9 @@
       },
       "probe_calibration_due": {
         "name": "Calibrazione sonda in ritardo"
+      },
+      "chemistry_test_due": {
+        "name": "Test stabilizzante e durezza in ritardo"
       }
     },
     "switch": {

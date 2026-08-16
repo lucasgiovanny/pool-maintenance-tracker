@@ -19,6 +19,7 @@ from .const import (
     DEFAULT_REMINDER_TIME,
     RENOTIFY_DAYS,
     TS_CELL_CLEAN,
+    TS_CHEMISTRY_TEST,
     TS_FILTER_WASH,
     TS_PROBE_CALIBRATION,
 )
@@ -42,6 +43,7 @@ NOTIFY_STRINGS = {
         TS_FILTER_WASH: "Filter wash is overdue ({when}).",
         TS_CELL_CLEAN: "Chlorinator cell cleaning is overdue ({when}).",
         TS_PROBE_CALIBRATION: "pH probe calibration is overdue ({when}).",
+        TS_CHEMISTRY_TEST: "Stabilizer and hardness test is overdue ({when}).",
         "last_done": "last done {days} days ago",
         "never_done": "never recorded",
         "acid_alert": "Acid tank is low ({level}) — plan a refill.",
@@ -54,6 +56,7 @@ NOTIFY_STRINGS = {
         TS_FILTER_WASH: "A lavagem do filtro está atrasada ({when}).",
         TS_CELL_CLEAN: "A limpeza da célula do clorador está atrasada ({when}).",
         TS_PROBE_CALIBRATION: "A calibração da sonda de pH está atrasada ({when}).",
+        TS_CHEMISTRY_TEST: "O teste de estabilizante e dureza está atrasado ({when}).",
         "last_done": "última há {days} dias",
         "never_done": "nunca registada",
         "acid_alert": "O depósito de ácido está baixo ({level}) — planeia um atesto.",

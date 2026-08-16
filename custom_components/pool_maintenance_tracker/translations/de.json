@@ -26,7 +26,8 @@
           "notify_service": "Ziel für Benachrichtigungen",
           "filter_days": "Erinnerung Filterreinigung (Tage)",
           "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
-          "cell_days": "Erinnerung Zellenreinigung (Tage)"
+          "cell_days": "Erinnerung Zellenreinigung (Tage)",
+          "chemistry_days": "Erinnerung Stabilisator- und Härtetest (Tage)"
         },
         "data_description": {
           "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung."
@@ -114,7 +115,8 @@
           "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
           "cell_days": "Erinnerung Zellenreinigung (Tage)",
           "reminder_time": "Zeit der täglichen Prüfung (HH:MM)",
-          "filter_pressure_rise": "Filter bei diesem Druckanstieg waschen (%)"
+          "filter_pressure_rise": "Filter bei diesem Druckanstieg waschen (%)",
+          "chemistry_days": "Erinnerung Stabilisator- und Härtetest (Tage)"
         }
       },
       "page": {
@@ -155,6 +157,7 @@
     "modules": {
       "options": {
         "salt_chlorinator": "Salzelektrolyseur",
+        "water_chemistry": "Vollständige Wasserchemie (Cyanursäure, Härte, Gesamtchlor)",
         "acid_tank": "Säuretank des pH-Dosierers",
         "filter": "Filter",
         "ph_probe": "pH-Sonde",
@@ -194,6 +197,18 @@
       "free_chlorine": {
         "name": "Freies Chlor"
       },
+      "total_chlorine": {
+        "name": "Gesamtchlor"
+      },
+      "total_alkalinity": {
+        "name": "Gesamtalkalität"
+      },
+      "cyanuric_acid": {
+        "name": "Cyanursäure"
+      },
+      "calcium_hardness": {
+        "name": "Calciumhärte"
+      },
       "water_temperature": {
         "name": "Wassertemperatur (manuelle Messung)"
       },
@@ -232,6 +247,9 @@
       "last_water_test": {
         "name": "Letzte Wasseranalyse"
       },
+      "last_chemistry_test": {
+        "name": "Letzter Stabilisator- und Härtetest"
+      },
       "last_salt_added": {
         "name": "Letzte Salzzugabe"
       },
@@ -255,6 +273,9 @@
       },
       "last_record": {
         "name": "Letzter Eintrag"
+      },
+      "combined_chlorine": {
+        "name": "Gebundenes Chlor"
       }
     },
     "binary_sensor": {
@@ -266,6 +287,9 @@
       },
       "probe_calibration_due": {
         "name": "Sonden-Kalibrierung überfällig"
+      },
+      "chemistry_test_due": {
+        "name": "Stabilisator- und Härtetest überfällig"
       }
     },
     "switch": {

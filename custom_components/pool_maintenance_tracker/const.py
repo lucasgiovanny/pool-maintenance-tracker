@@ -130,6 +130,7 @@ CONF_NOTIFY_SERVICE: Final = "notify_service"
 CONF_FILTER_DAYS: Final = "filter_days"
 CONF_PROBE_DAYS: Final = "probe_days"
 CONF_CELL_DAYS: Final = "cell_days"
+CONF_CHEMISTRY_DAYS: Final = "chemistry_days"
 CONF_REMINDER_TIME: Final = "reminder_time"
 
 POOL_TYPE_SALT: Final = "salt"
@@ -142,6 +143,7 @@ DEFAULT_LANGUAGE: Final = "en"
 DEFAULT_FILTER_DAYS: Final = 30
 DEFAULT_PROBE_DAYS: Final = 60
 DEFAULT_CELL_DAYS: Final = 90
+DEFAULT_CHEMISTRY_DAYS: Final = 30
 DEFAULT_REMINDER_TIME: Final = "10:00"
 
 # Pool volume in m³ — enables the salt-dose hint and nothing else
@@ -155,6 +157,19 @@ DEFAULT_SALT_TARGET_MIN: Final = 2.5
 DEFAULT_SALT_TARGET_MAX: Final = 4.5
 IDEAL_PH: Final = (7.2, 7.6)
 IDEAL_FREE_CHLORINE: Final = (1.0, 3.0)
+IDEAL_TOTAL_ALKALINITY: Final = (80.0, 120.0)
+IDEAL_CALCIUM_HARDNESS: Final = (200.0, 400.0)
+# The right amount of stabilizer depends on how the chlorine gets there: a
+# cell needs more of it than a floater, because the cell's chlorine is made
+# in one spot and has the whole pool to survive.
+IDEAL_CYANURIC: Final = (30.0, 50.0)
+IDEAL_CYANURIC_SALT: Final = (60.0, 80.0)
+
+# Combined chlorine (total minus free) is chloramine: the smell, the stinging
+# eyes. Above this it is time to shock. The two readings only subtract into
+# something meaningful when they came from the same test session.
+COMBINED_CHLORINE_ALERT: Final = 0.5
+COMBINED_CHLORINE_WINDOW_HOURS: Final = 6
 
 # A schedule below the recommendation is only worth flagging once the gap
 # is big enough to act on — rounding and a spare half hour are not news.
@@ -224,15 +239,23 @@ METRIC_PRESSURE_DUE: Final = "filter_pressure_due"
 # Value keys (tracker "values" bucket)
 KEY_PH: Final = "ph"
 KEY_FREE_CHLORINE: Final = "free_chlorine"
+KEY_TOTAL_CHLORINE: Final = "total_chlorine"
+KEY_TOTAL_ALKALINITY: Final = "total_alkalinity"
+KEY_CYANURIC_ACID: Final = "cyanuric_acid"
+KEY_CALCIUM_HARDNESS: Final = "calcium_hardness"
 KEY_WATER_TEMPERATURE: Final = "water_temperature"
 KEY_SALT_LEVEL: Final = "salt_level"
 KEY_SALT_ADDED: Final = "salt_added"
 KEY_CHLORINATOR_OUTPUT: Final = "chlorinator_output"
 KEY_CHLORINATOR_MODE: Final = "chlorinator_mode"
 KEY_ACID_TANK_LEVEL: Final = "acid_tank_level"
+# Derived, never declared: total minus free chlorine
+KEY_COMBINED_CHLORINE: Final = "combined_chlorine"
 
 # Timestamp keys (tracker "timestamps" bucket)
 TS_WATER_TEST: Final = "water_test"
+# The slow readings (stabilizer, hardness) — monthly, not every visit
+TS_CHEMISTRY_TEST: Final = "chemistry_test"
 TS_SALT_ADDED: Final = "salt_added"
 TS_FILTER_WASH: Final = "filter_wash"
 TS_CELL_CLEAN: Final = "cell_clean"
@@ -268,6 +291,10 @@ CLEANING_TYPES: Final = ["vacuum", "waterline", "baskets"]
 NUMBER_RANGES: Final[dict[str, tuple[float, float, float]]] = {
     KEY_PH: (6.0, 9.0, 0.1),
     KEY_FREE_CHLORINE: (0.0, 10.0, 0.5),
+    KEY_TOTAL_CHLORINE: (0.0, 10.0, 0.5),
+    KEY_TOTAL_ALKALINITY: (0.0, 300.0, 10.0),
+    KEY_CYANURIC_ACID: (0.0, 300.0, 5.0),
+    KEY_CALCIUM_HARDNESS: (0.0, 1000.0, 10.0),
     KEY_WATER_TEMPERATURE: (0.0, 45.0, 0.1),
     KEY_SALT_LEVEL: (0.0, 10.0, 0.1),
     KEY_SALT_ADDED: (0.0, 500.0, 1.0),

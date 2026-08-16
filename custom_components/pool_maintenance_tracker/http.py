@@ -36,11 +36,13 @@ from homeassistant.util import dt as dt_util
 from . import filter_pressure, maintenance
 from .const import (
     ACID_ALERT_LEVELS,
+    COMBINED_CHLORINE_ALERT,
     CONF_CELL_OUTPUT,
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_PEOPLE,
+    CONF_POOL_TYPE,
     CONF_POOL_VOLUME,
     CONF_PUMP_FLOW,
     CONF_PUMP_TYPE,
@@ -64,12 +66,21 @@ from .const import (
     FILTRATION_SHORT_FRACTION,
     FILTRATION_SHORT_MIN_HOURS,
     HISTORY_PERIODS,
+    IDEAL_CALCIUM_HARDNESS,
+    IDEAL_CYANURIC,
+    IDEAL_CYANURIC_SALT,
     IDEAL_FREE_CHLORINE,
     IDEAL_PH,
+    IDEAL_TOTAL_ALKALINITY,
     KEY_ACID_TANK_LEVEL,
+    KEY_CALCIUM_HARDNESS,
+    KEY_COMBINED_CHLORINE,
+    KEY_CYANURIC_ACID,
     KEY_FREE_CHLORINE,
     KEY_PH,
     KEY_SALT_LEVEL,
+    KEY_TOTAL_ALKALINITY,
+    KEY_TOTAL_CHLORINE,
     KEY_WATER_TEMPERATURE,
     LINKED_MODE_MANUAL,
     LINKED_MODE_ON_RECORD,
@@ -81,6 +92,7 @@ from .const import (
     MAX_PERSON_LENGTH,
     NUMBER_RANGES,
     ONOFF_DOMAINS,
+    POOL_TYPE_SALT,
     PUMP_SINGLE_SPEED,
     RECENT_RECORDS_ATTR_COUNT,
     THERMOSTAT_DOMAINS,
@@ -528,12 +540,30 @@ async def _role_entities(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, A
 @callback
 def _ideal_ranges(entry: ConfigEntry) -> dict[str, dict[str, float]]:
     """Bands the readings are judged against on every surface."""
+    # A cell's chlorine wants more stabilizer over it than a floater's
+    cyanuric = (
+        IDEAL_CYANURIC_SALT
+        if entry.options.get(CONF_POOL_TYPE) == POOL_TYPE_SALT
+        else IDEAL_CYANURIC
+    )
     return {
         KEY_PH: {"min": IDEAL_PH[0], "max": IDEAL_PH[1]},
         KEY_FREE_CHLORINE: {
             "min": IDEAL_FREE_CHLORINE[0],
             "max": IDEAL_FREE_CHLORINE[1],
         },
+        KEY_TOTAL_ALKALINITY: {
+            "min": IDEAL_TOTAL_ALKALINITY[0],
+            "max": IDEAL_TOTAL_ALKALINITY[1],
+        },
+        KEY_CYANURIC_ACID: {"min": cyanuric[0], "max": cyanuric[1]},
+        KEY_CALCIUM_HARDNESS: {
+            "min": IDEAL_CALCIUM_HARDNESS[0],
+            "max": IDEAL_CALCIUM_HARDNESS[1],
+        },
+        # Not a target to aim for — anything up to the alert level is fine,
+        # above it the water needs a shock.
+        KEY_COMBINED_CHLORINE: {"min": 0.0, "max": COMBINED_CHLORINE_ALERT},
         KEY_SALT_LEVEL: {
             "min": float(entry.options.get(CONF_SALT_TARGET_MIN, DEFAULT_SALT_TARGET_MIN)),
             "max": float(entry.options.get(CONF_SALT_TARGET_MAX, DEFAULT_SALT_TARGET_MAX)),
@@ -700,6 +730,7 @@ ACTUAL_HOURS_TTL = 300  # seconds — the page polls every 60, the kiosk every 3
 # Task order on the report tab
 REPORT_TASK_ORDER = (
     "water_test",
+    "chemistry_test",
     "salt_added",
     "filter_wash",
     "cell_clean",
@@ -772,6 +803,9 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
     return {
         "values": values,
         "current": current,
+        # Derived, not declared — None when total and free chlorine were
+        # not measured in the same test session.
+        "combined_chlorine": tracker.combined_chlorine,
         "ranges": _ideal_ranges(entry),
         "volume": entry.options.get(CONF_POOL_VOLUME),
         "filtration": await _filtration_hint(hass, entry, temperature, roles),
@@ -924,9 +958,26 @@ async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> 
     end = dt_util.utcnow()
     start = end - timedelta(days=days)
 
+    # Probe-linkable readings first, then the strip-only chemistry ones,
+    # which chart the manual dots alone: (chart key, value key, conf key).
+    specs: list[tuple[str, str, str | None]] = [
+        (live_key, LINKED_VALUE_KEYS[live_key], conf_key)
+        for live_key, conf_key in LINKED_SOURCES.items()
+    ]
+    allowed = enabled_value_keys(entry.options)
+    specs += [
+        (key, key, None)
+        for key in (
+            KEY_TOTAL_CHLORINE,
+            KEY_TOTAL_ALKALINITY,
+            KEY_CYANURIC_ACID,
+            KEY_CALCIUM_HARDNESS,
+        )
+        if key in allowed
+    ]
+
     readings: dict[str, Any] = {}
-    for live_key, conf_key in LINKED_SOURCES.items():
-        value_key = LINKED_VALUE_KEYS[live_key]
+    for chart_key, value_key, conf_key in specs:
         manual = []
         for record in tracker.records:
             if value_key not in record.get("data", {}):
@@ -937,12 +988,15 @@ async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> 
         series: dict[str, Any] = {}
         if manual:
             series["manual"] = manual
-        entity_id = entry.options.get(conf_key)
+        entity_id = entry.options.get(conf_key) if conf_key else None
         if entity_id and (sensor_points := await _daily_means(hass, entity_id, start)):
             series["sensor"] = sensor_points
         if series:
-            series["unit"] = "" if live_key == "ph" else _unit_of(hass, entry, live_key)
-            readings[live_key] = series
+            if conf_key is None:
+                series["unit"] = "ppm"
+            else:
+                series["unit"] = "" if chart_key == "ph" else _unit_of(hass, entry, chart_key)
+            readings[chart_key] = series
 
     # Role entities are charted too, so picking a heat pump as a role does
     # not cost you its runtime history.

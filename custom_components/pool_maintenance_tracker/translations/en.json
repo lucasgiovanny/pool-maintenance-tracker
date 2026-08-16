@@ -26,7 +26,8 @@
           "notify_service": "Notification target",
           "filter_days": "Filter wash reminder (days)",
           "probe_days": "pH probe calibration reminder (days)",
-          "cell_days": "Cell cleaning reminder (days)"
+          "cell_days": "Cell cleaning reminder (days)",
+          "chemistry_days": "Stabilizer & hardness test reminder (days)"
         },
         "data_description": {
           "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations."
@@ -114,7 +115,8 @@
           "probe_days": "pH probe calibration reminder (days)",
           "cell_days": "Cell cleaning reminder (days)",
           "reminder_time": "Daily check time (HH:MM)",
-          "filter_pressure_rise": "Wash the filter at this pressure rise (%)"
+          "filter_pressure_rise": "Wash the filter at this pressure rise (%)",
+          "chemistry_days": "Stabilizer & hardness test reminder (days)"
         }
       },
       "page": {
@@ -155,6 +157,7 @@
     "modules": {
       "options": {
         "salt_chlorinator": "Salt chlorinator",
+        "water_chemistry": "Extended water chemistry (CYA, hardness, total chlorine)",
         "acid_tank": "pH doser acid tank",
         "filter": "Filter",
         "ph_probe": "pH probe",
@@ -194,6 +197,18 @@
       "free_chlorine": {
         "name": "Free chlorine"
       },
+      "total_chlorine": {
+        "name": "Total chlorine"
+      },
+      "total_alkalinity": {
+        "name": "Total alkalinity"
+      },
+      "cyanuric_acid": {
+        "name": "Cyanuric acid"
+      },
+      "calcium_hardness": {
+        "name": "Calcium hardness"
+      },
       "water_temperature": {
         "name": "Water temperature (manual reading)"
       },
@@ -232,6 +247,9 @@
       "last_water_test": {
         "name": "Last water test"
       },
+      "last_chemistry_test": {
+        "name": "Last stabilizer & hardness test"
+      },
       "last_salt_added": {
         "name": "Last salt added"
       },
@@ -255,6 +273,9 @@
       },
       "last_record": {
         "name": "Last record"
+      },
+      "combined_chlorine": {
+        "name": "Combined chlorine"
       }
     },
     "binary_sensor": {
@@ -266,6 +287,9 @@
       },
       "probe_calibration_due": {
         "name": "pH probe calibration due"
+      },
+      "chemistry_test_due": {
+        "name": "Stabilizer & hardness test due"
       }
     },
     "switch": {

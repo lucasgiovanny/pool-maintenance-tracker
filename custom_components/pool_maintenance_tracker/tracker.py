@@ -9,7 +9,7 @@ Nothing here ever commands equipment.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant, callback
@@ -19,8 +19,11 @@ from homeassistant.util import dt as dt_util
 from homeassistant.util import ulid as ulid_util
 
 from .const import (
+    COMBINED_CHLORINE_WINDOW_HOURS,
     DOMAIN,
     EVENT_RECORD,
+    KEY_FREE_CHLORINE,
+    KEY_TOTAL_CHLORINE,
     MAX_NOTES,
     MAX_RECORDS,
     STORAGE_VERSION,
@@ -128,6 +131,29 @@ class PoolTracker:
     @property
     def installed_at_dt(self) -> datetime:
         return dt_util.parse_datetime(self.installed_at) or dt_util.utcnow()
+
+    @property
+    def combined_chlorine(self) -> float | None:
+        """Chloramine, by subtraction — or None when the maths would lie.
+
+        Total minus free only means something when both figures describe the
+        same water: a total from today minus a free from last week is noise
+        with a unit. The two have to have been measured within the same test
+        session, give or take an afternoon.
+        """
+        total = self.values.get(KEY_TOTAL_CHLORINE)
+        free = self.values.get(KEY_FREE_CHLORINE)
+        if not isinstance(total, (int, float)) or not isinstance(free, (int, float)):
+            return None
+        total_at = dt_util.parse_datetime(self.values_at.get(KEY_TOTAL_CHLORINE) or "")
+        free_at = dt_util.parse_datetime(self.values_at.get(KEY_FREE_CHLORINE) or "")
+        if total_at is None or free_at is None:
+            return None
+        if abs(total_at - free_at) > timedelta(hours=COMBINED_CHLORINE_WINDOW_HOURS):
+            return None
+        # A strip reading total below free is measurement noise, not
+        # negative chloramine.
+        return round(max(0.0, float(total) - float(free)), 2)
 
     @callback
     def async_set_value(self, key: str, value: Any) -> None:

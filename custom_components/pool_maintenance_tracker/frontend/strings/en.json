@@ -23,6 +23,10 @@
       "title": "Water readings",
       "ph": "pH (strip or kit)",
       "free_chlorine": "Free chlorine",
+      "total_chlorine": "Total chlorine",
+      "total_alkalinity": "Total alkalinity",
+      "cyanuric_acid": "Cyanuric acid (stabilizer)",
+      "calcium_hardness": "Calcium hardness",
       "salt": "Salt (manual reading)",
       "temperature": "Water temperature",
       "hint": "Only fill in what you measured. Empty fields don't change anything."
@@ -78,6 +82,11 @@
   "units": {
     "ph": "pH",
     "free_chlorine": "ppm",
+    "total_chlorine": "ppm",
+    "total_alkalinity": "ppm",
+    "cyanuric_acid": "ppm",
+    "calcium_hardness": "ppm",
+    "combined_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
     "chlorinator_output": "g/h",
@@ -111,6 +120,12 @@
     "values": {
       "ph": "pH",
       "free_chlorine": "Free chlorine",
+      "total_chlorine": "Total chlorine",
+      "combined_chlorine": "Combined chlorine",
+      "total_alkalinity": "Total alkalinity",
+      "cyanuric_acid": "Cyanuric acid",
+      "calcium_hardness": "Calcium hardness",
+      "chemistry_test": "Stabilizer & hardness test",
       "salt_level": "Salt",
       "water_temperature": "Water temperature",
       "salt_added": "Salt added",
@@ -154,7 +169,8 @@
     "pressure_rise": "+{p}% since the wash",
     "wash_filter": "wash",
     "alert_filtration_short": "Filtration set to {scheduled} h/day, {recommended} h recommended",
-    "alert_acid_missing": "No acid tank — pH is not being dosed"
+    "alert_acid_missing": "No acid tank — pH is not being dosed",
+    "alert_combined": "Combined chlorine at {value} ppm — shock the water"
   },
   "notes": {
     "title": "Notes",

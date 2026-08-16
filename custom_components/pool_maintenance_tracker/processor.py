@@ -29,18 +29,23 @@ from .const import (
     CHLORINATOR_MODES,
     CLEANING_TYPES,
     KEY_ACID_TANK_LEVEL,
+    KEY_CALCIUM_HARDNESS,
     KEY_CHLORINATOR_MODE,
     KEY_CHLORINATOR_OUTPUT,
+    KEY_CYANURIC_ACID,
     KEY_FREE_CHLORINE,
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
+    KEY_TOTAL_ALKALINITY,
+    KEY_TOTAL_CHLORINE,
     KEY_WATER_TEMPERATURE,
     MAX_PERSON_LENGTH,
     NUMBER_RANGES,
     TS_ACID_REFILL,
     TS_ANY,
     TS_CELL_CLEAN,
+    TS_CHEMISTRY_TEST,
     TS_CLEANING,
     TS_FILTER_WASH,
     TS_PROBE_CALIBRATION,
@@ -82,9 +87,22 @@ def record_timestamps(
         if (ts_key := CATEGORY_TIMESTAMPS.get(category)) is not None:
             timestamps[ts_key] = logged_at_iso
     if any(
-        key in data for key in (KEY_PH, KEY_FREE_CHLORINE, KEY_SALT_LEVEL, KEY_WATER_TEMPERATURE)
+        key in data
+        for key in (
+            KEY_PH,
+            KEY_FREE_CHLORINE,
+            KEY_TOTAL_CHLORINE,
+            KEY_TOTAL_ALKALINITY,
+            KEY_CYANURIC_ACID,
+            KEY_CALCIUM_HARDNESS,
+            KEY_SALT_LEVEL,
+            KEY_WATER_TEMPERATURE,
+        )
     ):
         timestamps[TS_WATER_TEST] = logged_at_iso
+    # The slow readings keep their own clock, for the monthly reminder
+    if any(key in data for key in (KEY_CYANURIC_ACID, KEY_CALCIUM_HARDNESS)):
+        timestamps[TS_CHEMISTRY_TEST] = logged_at_iso
     if KEY_SALT_ADDED in data:
         timestamps[TS_SALT_ADDED] = logged_at_iso
     if KEY_ACID_TANK_LEVEL in data:
@@ -202,6 +220,14 @@ def process_payload(
     readings = section_dict("readings")
     take_number("readings", "ph", readings.get("ph"), KEY_PH)
     take_number("readings", "free_chlorine", readings.get("free_chlorine"), KEY_FREE_CHLORINE)
+    take_number("readings", "total_chlorine", readings.get("total_chlorine"), KEY_TOTAL_CHLORINE)
+    take_number(
+        "readings", "total_alkalinity", readings.get("total_alkalinity"), KEY_TOTAL_ALKALINITY
+    )
+    take_number("readings", "cyanuric_acid", readings.get("cyanuric_acid"), KEY_CYANURIC_ACID)
+    take_number(
+        "readings", "calcium_hardness", readings.get("calcium_hardness"), KEY_CALCIUM_HARDNESS
+    )
     take_number("readings", "salt", readings.get("salt"), KEY_SALT_LEVEL)
     take_number("readings", "temperature", readings.get("temperature"), KEY_WATER_TEMPERATURE)
 

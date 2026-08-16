@@ -54,6 +54,7 @@ async def test_overdue_task_notifies_with_damper(hass, salt_entry):
     # keep the other reminders quiet
     tracker.timestamps["cell_clean"] = now.isoformat()
     tracker.timestamps["probe_calibration"] = now.isoformat()
+    tracker.timestamps["chemistry_test"] = now.isoformat()
     tracker.installed_at = (now - timedelta(days=400)).isoformat()
 
     check1 = next_check(now)

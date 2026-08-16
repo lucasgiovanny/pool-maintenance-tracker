@@ -23,6 +23,10 @@
       "title": "Letture dell'acqua",
       "ph": "pH misurato (striscia o kit)",
       "free_chlorine": "Cloro libero",
+      "total_chlorine": "Cloro totale",
+      "total_alkalinity": "Alcalinità totale",
+      "cyanuric_acid": "Acido cianurico (stabilizzante)",
+      "calcium_hardness": "Durezza calcica",
       "salt": "Sale (misura manuale)",
       "temperature": "Temperatura dell'acqua",
       "hint": "Compila solo ciò che hai misurato. I campi vuoti non cambiano nulla."
@@ -78,6 +82,11 @@
   "units": {
     "ph": "pH",
     "free_chlorine": "ppm",
+    "total_chlorine": "ppm",
+    "total_alkalinity": "ppm",
+    "cyanuric_acid": "ppm",
+    "calcium_hardness": "ppm",
+    "combined_chlorine": "ppm",
     "salt_level": "g/L",
     "salt_added": "kg",
     "chlorinator_output": "g/h",
@@ -111,6 +120,12 @@
     "values": {
       "ph": "pH",
       "free_chlorine": "Cloro libero",
+      "total_chlorine": "Cloro totale",
+      "combined_chlorine": "Cloro combinato",
+      "total_alkalinity": "Alcalinità totale",
+      "cyanuric_acid": "Acido cianurico",
+      "calcium_hardness": "Durezza calcica",
+      "chemistry_test": "Test stabilizzante e durezza",
       "salt_level": "Sale",
       "water_temperature": "Temperatura dell'acqua",
       "salt_added": "Sale aggiunto",
@@ -154,7 +169,8 @@
     "pressure_rise": "+{p}% dal lavaggio",
     "wash_filter": "lavare",
     "alert_filtration_short": "Filtrazione impostata su {scheduled} h/giorno, consigliate {recommended} h",
-    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato"
+    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato",
+    "alert_combined": "Cloro combinato a {value} ppm — serve una superclorazione"
   },
   "notes": {
     "title": "Note",

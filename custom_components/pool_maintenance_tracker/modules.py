@@ -22,22 +22,29 @@ from .const import (
     CATEGORY_SALT,
     CATEGORY_WATER_TEST,
     CONF_CELL_DAYS,
+    CONF_CHEMISTRY_DAYS,
     CONF_FILTER_DAYS,
     CONF_MAINTENANCE_MODE,
     CONF_MODULES,
     CONF_PROBE_DAYS,
     DEFAULT_CELL_DAYS,
+    DEFAULT_CHEMISTRY_DAYS,
     DEFAULT_FILTER_DAYS,
     DEFAULT_MAINTENANCE_MODE,
     DEFAULT_PROBE_DAYS,
     KEY_ACID_TANK_LEVEL,
+    KEY_CALCIUM_HARDNESS,
     KEY_CHLORINATOR_MODE,
     KEY_CHLORINATOR_OUTPUT,
+    KEY_COMBINED_CHLORINE,
+    KEY_CYANURIC_ACID,
     KEY_FREE_CHLORINE,
     KEY_MAINTENANCE_MODE,
     KEY_PH,
     KEY_SALT_ADDED,
     KEY_SALT_LEVEL,
+    KEY_TOTAL_ALKALINITY,
+    KEY_TOTAL_CHLORINE,
     KEY_WATER_TEMPERATURE,
     POOL_TYPE_CHLORINE,
     POOL_TYPE_OTHER,
@@ -45,6 +52,7 @@ from .const import (
     TS_ACID_REFILL,
     TS_ANY,
     TS_CELL_CLEAN,
+    TS_CHEMISTRY_TEST,
     TS_CLEANING,
     TS_FILTER_WASH,
     TS_PROBE_CALIBRATION,
@@ -78,10 +86,24 @@ class PoolModule:
 MODULE_WATER_TESTING = PoolModule(
     key="water_testing",
     tiles=("water_test",),
-    value_keys=(KEY_PH, KEY_FREE_CHLORINE, KEY_WATER_TEMPERATURE),
+    # Alkalinity is on every strip a shop sells, even the three-way ones,
+    # and it is what explains a pH that will not sit still — so it belongs
+    # with pH rather than in the optional chemistry module.
+    value_keys=(KEY_PH, KEY_FREE_CHLORINE, KEY_TOTAL_ALKALINITY, KEY_WATER_TEMPERATURE),
     timestamp_keys=(TS_WATER_TEST,),
     categories=(CATEGORY_WATER_TEST,),
     always_on=True,
+)
+
+MODULE_WATER_CHEMISTRY = PoolModule(
+    key="water_chemistry",
+    # No tile of its own: the readings live on the water-test panel. The
+    # module exists so a pool tested with a three-way strip is not shown
+    # fields it can never fill.
+    tiles=(),
+    value_keys=(KEY_TOTAL_CHLORINE, KEY_CYANURIC_ACID, KEY_CALCIUM_HARDNESS),
+    timestamp_keys=(TS_CHEMISTRY_TEST,),
+    reminder=ReminderSpec(TS_CHEMISTRY_TEST, CONF_CHEMISTRY_DAYS, DEFAULT_CHEMISTRY_DAYS),
 )
 
 MODULE_SALT_CHLORINATOR = PoolModule(
@@ -140,6 +162,7 @@ MODULES: dict[str, PoolModule] = {
     module.key: module
     for module in (
         MODULE_WATER_TESTING,
+        MODULE_WATER_CHEMISTRY,
         MODULE_SALT_CHLORINATOR,
         MODULE_ACID_TANK,
         MODULE_FILTER,
@@ -153,15 +176,24 @@ OPTIONAL_MODULE_KEYS: tuple[str, ...] = tuple(
     key for key, module in MODULES.items() if not module.always_on
 )
 
+# Stabilizer and hardness matter to any chlorinated pool — a salt cell and a
+# trichlor floater both live or die by the CYA figure — so both presets get
+# the chemistry module. "Other" is a pool we know nothing about, and gets it
+# only by opting in.
 POOL_TYPE_PRESETS: dict[str, tuple[str, ...]] = {
     POOL_TYPE_SALT: (
+        MODULE_WATER_CHEMISTRY.key,
         MODULE_SALT_CHLORINATOR.key,
         MODULE_ACID_TANK.key,
         MODULE_FILTER.key,
         MODULE_PH_PROBE.key,
         MODULE_CLEANING.key,
     ),
-    POOL_TYPE_CHLORINE: (MODULE_FILTER.key, MODULE_CLEANING.key),
+    POOL_TYPE_CHLORINE: (
+        MODULE_WATER_CHEMISTRY.key,
+        MODULE_FILTER.key,
+        MODULE_CLEANING.key,
+    ),
     POOL_TYPE_OTHER: (MODULE_CLEANING.key,),
 }
 
@@ -219,6 +251,9 @@ def active_entity_keys(options: Mapping[str, Any]) -> set[str]:
     if options.get(CONF_MAINTENANCE_MODE, DEFAULT_MAINTENANCE_MODE):
         keys.add(KEY_MAINTENANCE_MODE)
     keys.update(enabled_value_keys(options))
+    # Derived from two declared readings, so it follows them
+    if KEY_TOTAL_CHLORINE in keys and KEY_FREE_CHLORINE in keys:
+        keys.add(KEY_COMBINED_CHLORINE)
     for ts_key in enabled_timestamp_keys(options):
         keys.add(timestamp_sensor_key(ts_key))
     for reminder in enabled_reminders(options):
