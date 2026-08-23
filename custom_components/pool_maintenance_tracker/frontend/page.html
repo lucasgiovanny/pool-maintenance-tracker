@@ -1002,13 +1002,6 @@ function renderAlerts(){
     messages.push(S.report.alert_acid.replace("{level}",
       (S.acid_levels[acid] || "").toLowerCase()));
   }
-  /* Chloramine: the threshold travels with the ranges the server sent */
-  const combined = report.combined_chlorine;
-  const combinedBand = (report.ranges || {}).combined_chlorine;
-  if (combined !== null && combined !== undefined
-      && combinedBand && combined > combinedBand.max) {
-    messages.push(S.report.alert_combined.replace("{value}", combined));
-  }
   if (!messages.length) { box.style.display = "none"; return; }
   messages.forEach(message => {
     const alert = el("div", "alert");

@@ -148,7 +148,7 @@
     "next_due": "próxima {date}",
     "schedule_off": "se apaga {date} a las {time}",
     "schedule_on": "se enciende {date} a las {time}",
-    "alert_acid": "Depósito de ácido {level} — planea un rellenado",
+    "alert_acid": "Depósito de ácido {level}",
     "in_time": "en {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtración",
@@ -163,8 +163,7 @@
     "filter_pressure": "Presión del filtro",
     "pressure_rise": "+{p}% desde el lavado",
     "wash_filter": "lavar",
-    "alert_acid_missing": "Sin depósito de ácido — el pH no se está dosificando",
-    "alert_combined": "Cloro combinado en {value} ppm — haz una supercloración"
+    "alert_acid_missing": "Sin depósito de ácido — el pH no se está dosificando"
   },
   "notes": {
     "title": "Notas",

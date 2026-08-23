@@ -148,7 +148,7 @@
     "next_due": "nächste {date}",
     "schedule_off": "schaltet aus am {date} um {time}",
     "schedule_on": "schaltet ein am {date} um {time}",
-    "alert_acid": "Säurebehälter {level} — Nachfüllen einplanen",
+    "alert_acid": "Säurebehälter {level}",
     "in_time": "in {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtration",
@@ -163,8 +163,7 @@
     "filter_pressure": "Filterdruck",
     "pressure_rise": "+{p}% seit der Wäsche",
     "wash_filter": "waschen",
-    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert",
-    "alert_combined": "Gebundenes Chlor bei {value} ppm — Stoßchlorung fällig"
+    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert"
   },
   "notes": {
     "title": "Notizen",

@@ -138,7 +138,8 @@ async def test_cyanuric_band_depends_on_pool_type(
     assert ranges[KEY_CYANURIC_ACID] == {"min": 60.0, "max": 80.0}
     assert ranges[KEY_TOTAL_ALKALINITY] == {"min": 80.0, "max": 120.0}
     assert ranges[KEY_CALCIUM_HARDNESS] == {"min": 200.0, "max": 400.0}
-    assert ranges[KEY_COMBINED_CHLORINE] == {"min": 0.0, "max": 0.5}
+    # Chloramine is reported, never judged: there is no band to sit in
+    assert KEY_COMBINED_CHLORINE not in ranges
 
     chlorine_url = URL_PAGE.format(token=chlorine_entry.data["token"])
     config = extract_config(await (await client.get(chlorine_url)).text())

@@ -148,7 +148,7 @@
     "next_due": "prossima {date}",
     "schedule_off": "si spegne il {date} alle {time}",
     "schedule_on": "si accende il {date} alle {time}",
-    "alert_acid": "Serbatoio dell'acido {level} — pianifica un rabbocco",
+    "alert_acid": "Serbatoio dell'acido {level}",
     "in_time": "tra {t}",
     "ideal_band": "ideale {min}–{max}",
     "filtration": "Filtrazione",
@@ -163,8 +163,7 @@
     "filter_pressure": "Pressione del filtro",
     "pressure_rise": "+{p}% dal lavaggio",
     "wash_filter": "lavare",
-    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato",
-    "alert_combined": "Cloro combinato a {value} ppm — serve una superclorazione"
+    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato"
   },
   "notes": {
     "title": "Note",

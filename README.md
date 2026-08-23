@@ -153,10 +153,11 @@ bands also appear under each field while you type.
 
 **Combined chlorine.** Log free and total chlorine from the same strip and the
 integration derives the chloramine figure (total − free) — the smell, the
-stinging eyes — as `sensor.<pool>_combined_chlorine`, and raises an alert above
-0.5 ppm: time to shock. The subtraction only happens when the two readings came
-from the same test session; total from today minus free from last week would be
-noise with a unit, so the sensor says *unknown* instead.
+stinging eyes — as `sensor.<pool>_combined_chlorine`. It is reported, not
+judged: no band, no threshold, no alert telling you to shock the water. The
+subtraction only happens when the two readings came from the same test session;
+total from today minus free from last week would be noise with a unit, so the
+sensor says *unknown* instead.
 
 **Salt dose impact.** Tell the integration your pool **volume** (m³) and the
 salt field turns kilos into what they will actually do: type 25 kg into a 48 m³
@@ -187,12 +188,15 @@ dashboard's *Needs attention* box and the card:
 | Stabilizer & hardness test overdue | Past its interval (the slow readings: cyanuric acid, calcium hardness) |
 | Acid tank low | At ¼ or empty |
 | No acid tank | The level is set to *no tank* — nothing to refill, but the pH is no longer being dosed |
-| Combined chlorine high | Above 0.5 ppm — chloramine, time to shock |
 
 The overdue ones also have a `binary_sensor` each and, if you set a
 `notify.*` service, a daily notification (re-sent at most every three days).
 The acid tank notifies once, when a logged record changes the level — never
 repeatedly.
+
+Each of these says what is happening, and stops there. An interval you set has
+run out; a tank you logged is empty; a filter's pressure is up on where it was
+when clean. What to do about it is yours to decide.
 
 ### Filter pressure
 

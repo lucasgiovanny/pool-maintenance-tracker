@@ -148,7 +148,7 @@
     "next_due": "prochaine {date}",
     "schedule_off": "s'éteint le {date} à {time}",
     "schedule_on": "s'allume le {date} à {time}",
-    "alert_acid": "Bidon d'acide {level} — prévoyez un remplissage",
+    "alert_acid": "Bidon d'acide {level}",
     "in_time": "dans {t}",
     "ideal_band": "idéal {min}–{max}",
     "filtration": "Filtration",
@@ -163,8 +163,7 @@
     "filter_pressure": "Pression du filtre",
     "pressure_rise": "+{p}% depuis le lavage",
     "wash_filter": "laver",
-    "alert_acid_missing": "Pas de bidon d'acide — le pH n'est pas dosé",
-    "alert_combined": "Chlore combiné à {value} ppm — faites une chloration choc"
+    "alert_acid_missing": "Pas de bidon d'acide — le pH n'est pas dosé"
   },
   "notes": {
     "title": "Notes",

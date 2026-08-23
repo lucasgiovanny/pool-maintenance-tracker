@@ -148,7 +148,7 @@
     "next_due": "next {date}",
     "schedule_off": "turns off {date} at {time}",
     "schedule_on": "turns on {date} at {time}",
-    "alert_acid": "Acid tank {level} — plan a refill",
+    "alert_acid": "Acid tank {level}",
     "in_time": "in {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtration",
@@ -163,8 +163,7 @@
     "filter_pressure": "Filter pressure",
     "pressure_rise": "+{p}% since the wash",
     "wash_filter": "wash",
-    "alert_acid_missing": "No acid tank — pH is not being dosed",
-    "alert_combined": "Combined chlorine at {value} ppm — shock the water"
+    "alert_acid_missing": "No acid tank — pH is not being dosed"
   },
   "notes": {
     "title": "Notes",

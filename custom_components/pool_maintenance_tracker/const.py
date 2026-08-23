@@ -199,9 +199,8 @@ IDEAL_CYANURIC: Final = (30.0, 50.0)
 IDEAL_CYANURIC_SALT: Final = (60.0, 80.0)
 
 # Combined chlorine (total minus free) is chloramine: the smell, the stinging
-# eyes. Above this it is time to shock. The two readings only subtract into
-# something meaningful when they came from the same test session.
-COMBINED_CHLORINE_ALERT: Final = 0.5
+# eyes. The two readings only subtract into something meaningful when they
+# came from the same test session.
 COMBINED_CHLORINE_WINDOW_HOURS: Final = 6
 
 # Filter pressure: a sensor beats a calendar. When one is linked and a clean

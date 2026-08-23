@@ -36,7 +36,6 @@ from homeassistant.util import dt as dt_util
 from . import filter_pressure, maintenance
 from .const import (
     ACID_ALERT_LEVELS,
-    COMBINED_CHLORINE_ALERT,
     CONF_FILTRATION_OFF_TIME_ENTITY,
     CONF_FILTRATION_ON_TIME_ENTITY,
     CONF_FILTRATION_SCHEDULE_ENTITY,
@@ -72,7 +71,6 @@ from .const import (
     IDEAL_TOTAL_ALKALINITY,
     KEY_ACID_TANK_LEVEL,
     KEY_CALCIUM_HARDNESS,
-    KEY_COMBINED_CHLORINE,
     KEY_CYANURIC_ACID,
     KEY_FREE_CHLORINE,
     KEY_PH,
@@ -691,9 +689,6 @@ def _ideal_ranges(entry: ConfigEntry) -> dict[str, dict[str, float]]:
             "min": IDEAL_CALCIUM_HARDNESS[0],
             "max": IDEAL_CALCIUM_HARDNESS[1],
         },
-        # Not a target to aim for — anything up to the alert level is fine,
-        # above it the water needs a shock.
-        KEY_COMBINED_CHLORINE: {"min": 0.0, "max": COMBINED_CHLORINE_ALERT},
         KEY_SALT_LEVEL: {
             "min": float(entry.options.get(CONF_SALT_TARGET_MIN, DEFAULT_SALT_TARGET_MIN)),
             "max": float(entry.options.get(CONF_SALT_TARGET_MAX, DEFAULT_SALT_TARGET_MAX)),
