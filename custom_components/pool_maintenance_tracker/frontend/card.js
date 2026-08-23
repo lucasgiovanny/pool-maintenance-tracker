@@ -43,6 +43,10 @@ const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
 const READING_KEYS = ["ph", "free_chlorine", "total_chlorine", "total_alkalinity",
   "cyanuric_acid", "calcium_hardness", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
+/* The maintenance sheet offers the same windows the page does, and 0 is
+   the visit that runs until somebody ends it. */
+const VISIT_PRESETS = [30, 60, 120, 240, 0];
+const VISIT_DEFAULT_MINUTES = 60;
 
 const GROUPS = ["general", "equipment", "readings", "tasks"];
 const GENERAL_ITEMS = [
@@ -73,7 +77,7 @@ const EDITOR_TEXT = {
     title: "Title (optional)", only_due_tasks: "Only show overdue tasks",
     general: "General", equipment: "Equipment", readings: "Water readings", tasks: "Tasks",
     temperature: "Water temperature (header)", alerts: "Alerts",
-    countdown: "Schedule countdown", filtration: "Filtration suggestion", chlorinator: "Chlorinator", acid_tank: "Acid tank",
+    countdown: "Schedule countdown", filtration: "Filtration hours", chlorinator: "Chlorinator", acid_tank: "Acid tank",
     layout: "Layout", layout_list: "List", layout_tiles: "Tiles",
     show_icons: "Show icons",
     shown: "Items shown", header: "Header (name and icon)",
@@ -83,7 +87,7 @@ const EDITOR_TEXT = {
     title: "Título (opcional)", only_due_tasks: "Mostrar só tarefas em atraso",
     general: "Geral", equipment: "Equipamento", readings: "Leituras da água", tasks: "Tarefas",
     temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
-    countdown: "Contagem decrescente do horário", filtration: "Sugestão de filtração", chlorinator: "Clorador",
+    countdown: "Contagem decrescente do horário", filtration: "Horas de filtração", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
     layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
     show_icons: "Mostrar ícones",
@@ -94,7 +98,7 @@ const EDITOR_TEXT = {
     title: "Título (opcional)", only_due_tasks: "Mostrar solo tareas atrasadas",
     general: "General", equipment: "Equipamiento", readings: "Lecturas del agua", tasks: "Tareas",
     temperature: "Temperatura del agua (encabezado)", alerts: "Alertas",
-    countdown: "Cuenta atrás del horario", filtration: "Sugerencia de filtración", chlorinator: "Clorador",
+    countdown: "Cuenta atrás del horario", filtration: "Horas de filtración", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
     layout: "Disposición", layout_list: "Lista", layout_tiles: "Tarjetas",
     show_icons: "Mostrar iconos",
@@ -105,7 +109,7 @@ const EDITOR_TEXT = {
     title: "Titre (facultatif)", only_due_tasks: "N'afficher que les tâches en retard",
     general: "Général", equipment: "Équipement", readings: "Mesures de l'eau", tasks: "Tâches",
     temperature: "Température de l'eau (en-tête)", alerts: "Alertes",
-    countdown: "Compte à rebours de l'horaire", filtration: "Suggestion de filtration", chlorinator: "Électrolyseur",
+    countdown: "Compte à rebours de l'horaire", filtration: "Heures de filtration", chlorinator: "Électrolyseur",
     acid_tank: "Réservoir d'acide",
     layout: "Disposition", layout_list: "Liste", layout_tiles: "Vignettes",
     show_icons: "Afficher les icônes",
@@ -116,7 +120,7 @@ const EDITOR_TEXT = {
     title: "Titel (optional)", only_due_tasks: "Nur überfällige Aufgaben zeigen",
     general: "Allgemein", equipment: "Geräte", readings: "Wasserwerte", tasks: "Aufgaben",
     temperature: "Wassertemperatur (Kopfzeile)", alerts: "Warnungen",
-    countdown: "Countdown des Zeitplans", filtration: "Filtrationsempfehlung", chlorinator: "Elektrolyseur",
+    countdown: "Countdown des Zeitplans", filtration: "Filterstunden", chlorinator: "Elektrolyseur",
     acid_tank: "Säuretank",
     layout: "Anordnung", layout_list: "Liste", layout_tiles: "Kacheln",
     show_icons: "Symbole anzeigen",
@@ -128,7 +132,7 @@ const EDITOR_TEXT = {
     general: "Generale", equipment: "Attrezzatura", readings: "Letture dell'acqua",
     tasks: "Attività", temperature: "Temperatura dell'acqua (intestazione)",
     alerts: "Avvisi", countdown: "Conto alla rovescia dell'orario",
-    filtration: "Suggerimento di filtrazione",
+    filtration: "Ore di filtrazione",
     chlorinator: "Clorinatore", acid_tank: "Serbatoio dell'acido",
     layout: "Disposizione", layout_list: "Elenco", layout_tiles: "Riquadri",
     show_icons: "Mostra icone",
@@ -447,6 +451,9 @@ class PoolMaintenanceCard extends HTMLElement {
 
   /* ---------------- render ---------------- */
   _render() {
+    /* A repaint would wipe the half-filled sheet under the user's finger,
+       so the card holds still until the visit is started or called off. */
+    if (this._sheet) return;
     if (this._tick) { clearInterval(this._tick); this._tick = null; }
     if (!this._data) {
       this.shadowRoot.innerHTML = `<ha-card><div class="empty">${
@@ -504,11 +511,6 @@ class PoolMaintenanceCard extends HTMLElement {
       } else if (ACID_ALERT_LEVELS.includes(values.acid_tank_level)) {
         alertLines.push(S.report.values.acid_tank_level + " — "
           + S.acid_levels[values.acid_tank_level]);
-      }
-      if ((report.filtration || {}).short_by) {
-        alertLines.push(S.report.alert_filtration_short
-          .replace("{scheduled}", report.filtration.scheduled_hours)
-          .replace("{recommended}", report.filtration.recommended_hours));
       }
     }
 
@@ -582,17 +584,20 @@ class PoolMaintenanceCard extends HTMLElement {
           : item.state + (item.unit ? " " + item.unit : ""),
       });
     });
-    /* Filtration rule of thumb — a suggestion, never a command */
+    /* Today's filtration: the hours planned, and the hours actually run */
     const filtration = report.filtration;
     if (shown.has("filtration") && filtration) {
       const scheduled = filtration.scheduled_hours;
+      const actual = filtration.actual_hours;
+      const hasActual = actual !== null && actual !== undefined;
       const hasSchedule = scheduled !== null && scheduled !== undefined;
       rows.push({
         key: "filtration",
-        name: hasSchedule ? S.report.filtration : S.report.filtration_recommended,
-        value: S.report.hours.replace("{h}", hasSchedule ? scheduled : filtration.recommended_hours)
-          + (hasSchedule
-            ? " · " + S.report.recommended.replace("{h}", filtration.recommended_hours) : ""),
+        name: S.report.filtration,
+        value: hasSchedule
+          ? S.report.hours.replace("{h}", scheduled)
+            + (hasActual ? " · " + S.report.actual_today.replace("{h}", actual) : "")
+          : S.report.actual_today.replace("{h}", actual),
         entity: (roles.filtration_schedule || {}).entity_id,
       });
     }
@@ -662,11 +667,9 @@ class PoolMaintenanceCard extends HTMLElement {
             : S.kiosk.blocks_total.replace("{n}", blocks.length).replace("{h}",
                 Math.round(blocks.reduce((total, [from, to]) =>
                   total + Math.max(0, minutesOf(to) - minutesOf(from)), 0) / 6) / 10),
-          sub: filtration ? [
-            S.report.recommended.replace("{h}", filtration.recommended_hours),
-            filtration.actual_hours !== null && filtration.actual_hours !== undefined
-              ? S.report.actual_today.replace("{h}", filtration.actual_hours) : null,
-          ].filter(Boolean).join(" · ") : "",
+          sub: filtration && filtration.actual_hours !== null
+              && filtration.actual_hours !== undefined
+            ? S.report.actual_today.replace("{h}", filtration.actual_hours) : "",
         };
       }
     }
@@ -879,11 +882,20 @@ class PoolMaintenanceCard extends HTMLElement {
       const entityId = ids.maintenance_mode;
       node.querySelector(".switch").addEventListener("click", event => {
         event.stopPropagation();
-        /* No optimistic flip: the switch moving is a state change, which is
-           what brings the fresh data back a moment later. */
-        if (entityId) this._hass.callService("switch", "toggle", { entity_id: entityId });
+        /* Ending a visit is one tap, the way it is on the page. Starting one
+           is a question first: what should happen, and for how long. */
+        if (mode.on) {
+          /* No optimistic flip: the switch moving is a state change, which
+             is what brings the fresh data back a moment later. */
+          if (entityId) this._hass.callService("switch", "turn_off", { entity_id: entityId });
+        } else {
+          this._openSheet();
+        }
       });
-      node.addEventListener("click", () => this._openMoreInfo(entityId));
+      /* Already working and need longer, or changed your mind about the
+         heat pump: the running visit reopens its own sheet. */
+      node.addEventListener("click", () =>
+        mode.on ? this._openSheet() : this._openMoreInfo(entityId));
     });
     root.querySelectorAll("[data-row]").forEach(node => {
       const row = rows[Number(node.dataset.row)];
@@ -922,6 +934,177 @@ class PoolMaintenanceCard extends HTMLElement {
   _escape(value) {
     return String(value === undefined || value === null ? "" : value)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  /* ---------------- the maintenance sheet ---------------- */
+  /* Whoever stands at the pool gets to say what should happen and for how
+     long; a dashboard should not be the poorer surface. Same question, same
+     answers — the page posts them to its own endpoint, the card hands them
+     to the start_maintenance action. */
+  _openSheet() {
+    if (this._sheet) return;
+    const S = this._data.strings;
+    const report = this._data.report || {};
+    const plan = (report.maintenance_mode || {}).equipment || {};
+    const make = (tag, className, text) => {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+    /* "Turn on" is what you ask for; "On" is what you are told it is now */
+    const asked = value =>
+      value === "on" ? S.maintenance.turn_on
+      : value === "off" ? S.maintenance.turn_off
+      : value === "open" ? S.maintenance.open
+      : value === "closed" ? S.maintenance.close : S.maintenance.keep;
+    /* A cover says where it stands; everything else runs or does not —
+       including the thermostat that calls it "heat" rather than "on". */
+    const standing = item => {
+      if (item.state === "open" || item.state === "opening") return S.maintenance.is_open;
+      if (item.state === "closed" || item.state === "closing") return S.maintenance.is_closed;
+      if (item.on === null || item.on === undefined) return item.state;
+      return item.on ? S.report.state_on : S.report.state_off;
+    };
+    const segmented = (values, chosen, onPick) => {
+      const box = make("div", "seg");
+      values.forEach(value => {
+        const button = make("button", chosen === value ? "on" : "", asked(value));
+        button.type = "button";
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          box.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+          button.classList.add("on");
+          onPick(value);
+        });
+        box.appendChild(button);
+      });
+      return box;
+    };
+
+    const wanted = {};
+    const sheet = make("div", "sheet");
+    const panel = make("div", "panel");
+    panel.addEventListener("click", event => event.stopPropagation());
+    panel.appendChild(make("h3", null, S.maintenance.sheet_title));
+    panel.appendChild(make("p", "hint", S.maintenance.sheet_hint));
+
+    (report.maintenance_equipment || []).forEach(item => {
+      const field = make("div", "field");
+      const label = make("label", null, item.name);
+      label.appendChild(make("span", "now",
+        " · " + S.maintenance.now.replace("{state}", standing(item))));
+      field.appendChild(label);
+      const chosen = plan[item.role] || "";
+      if (chosen) wanted[item.role] = chosen;
+      field.appendChild(segmented([""].concat(item.values), chosen, value => {
+        if (value) wanted[item.role] = value;
+        else delete wanted[item.role];
+      }));
+      panel.appendChild(field);
+    });
+
+    /* How long. The presets answer it in one tap; the box is for the job
+       that is neither half an hour nor the whole afternoon. */
+    let minutes = VISIT_DEFAULT_MINUTES;
+    const duration = make("div", "field");
+    duration.appendChild(make("label", null, S.maintenance.duration));
+    const presets = make("div", "seg");
+    const custom = document.createElement("input");
+    VISIT_PRESETS.forEach(preset => {
+      const button = make("button", preset === minutes ? "on" : "",
+        preset === 0 ? S.maintenance.no_limit
+          : preset < 60 ? S.maintenance.preset_minutes.replace("{n}", preset)
+          : S.maintenance.preset_hours.replace("{n}", preset / 60));
+      button.type = "button";
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        presets.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+        button.classList.add("on");
+        custom.value = "";
+        minutes = preset;
+      });
+      presets.appendChild(button);
+    });
+    duration.appendChild(presets);
+
+    const stepper = make("div", "stepper");
+    const minus = make("button", null, "−");
+    const plus = make("button", null, "+");
+    minus.type = plus.type = "button";
+    custom.type = "number";
+    custom.inputMode = "numeric";
+    custom.step = "5";
+    custom.min = "5";
+    custom.max = "1440";
+    custom.placeholder = "—";
+    const bump = direction => {
+      const current = parseInt(custom.value, 10) || minutes || VISIT_DEFAULT_MINUTES;
+      custom.value = String(Math.min(1440, Math.max(5, current + direction * 5)));
+      minutes = Number(custom.value);
+      presets.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+    };
+    minus.addEventListener("click", event => { event.stopPropagation(); bump(-1); });
+    plus.addEventListener("click", event => { event.stopPropagation(); bump(1); });
+    custom.addEventListener("input", () => {
+      const typed = parseInt(custom.value, 10);
+      if (!custom.value) return;
+      presets.querySelectorAll("button").forEach(other => other.classList.remove("on"));
+      if (!isNaN(typed) && typed > 0) minutes = typed;
+    });
+    stepper.append(minus, custom, make("div", "unit", S.maintenance.minutes), plus);
+    duration.appendChild(stepper);
+    panel.appendChild(duration);
+
+    const failed = make("div", "sheet-error");
+    panel.appendChild(failed);
+    const actions = make("div", "actions");
+    const cancel = make("button", "ghost", S.maintenance.cancel);
+    const start = make("button", "primary", S.maintenance.start);
+    cancel.type = start.type = "button";
+    cancel.addEventListener("click", event => { event.stopPropagation(); this._closeSheet(); });
+    start.addEventListener("click", async event => {
+      event.stopPropagation();
+      start.disabled = true;
+      failed.textContent = "";
+      if (await this._startVisit(minutes, wanted)) return;
+      /* Nothing started: say so, and leave the answers where they are */
+      failed.textContent = S.maintenance.error;
+      start.disabled = false;
+    });
+    actions.append(cancel, start);
+    panel.appendChild(actions);
+
+    sheet.appendChild(panel);
+    sheet.addEventListener("click", () => this._closeSheet());
+    this._sheet = sheet;
+    this.shadowRoot.appendChild(sheet);
+  }
+
+  _closeSheet() {
+    if (!this._sheet) return;
+    this._sheet.remove();
+    this._sheet = null;
+    this._render();
+  }
+
+  async _startVisit(minutes, equipment) {
+    try {
+      await this._hass.callService("pool_maintenance_tracker", "start_maintenance", {
+        config_entry: this._data.entry_id,
+        /* No limit is a visit without a window, which the action spells null */
+        minutes: minutes > 0 ? minutes : null,
+        equipment: equipment,
+      });
+    } catch (error) {
+      return false;
+    }
+    this._sheet.remove();
+    this._sheet = null;
+    /* The equipment moving is a state change, and the fresh flag comes back
+       with the reload rather than from an optimistic guess here. */
+    await this._load();
+    return true;
   }
 
   _styles() {
@@ -1125,6 +1308,65 @@ class PoolMaintenanceCard extends HTMLElement {
         }
       }
       .badge.ideal{background:rgba(47,204,139,.18);color:var(--success-color,#2FCC8B)}
+
+      /* The maintenance sheet: the page's questions, inside the card */
+      .sheet{
+        position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;
+        background:rgba(0,0,0,.45);padding:16px;
+      }
+      .sheet .panel{
+        width:100%;max-width:420px;max-height:86vh;overflow:auto;
+        background:var(--card-background-color,#fff);color:var(--primary-text-color,#212121);
+        border-radius:16px;padding:18px;
+        box-shadow:0 12px 40px rgba(0,0,0,.4);
+      }
+      .sheet h3{margin:0;font-size:1.15rem;font-weight:600}
+      .sheet .hint{
+        margin:6px 0 14px;font-size:.88rem;line-height:1.35;
+        color:var(--secondary-text-color,#8a8f94);
+      }
+      .sheet .field{margin-bottom:14px}
+      .sheet label{display:block;font-size:.9rem;font-weight:500;margin-bottom:6px}
+      .sheet .now{color:var(--secondary-text-color,#8a8f94);font-weight:400}
+      .sheet .seg{display:flex;flex-wrap:wrap;gap:6px}
+      .sheet .seg button{
+        flex:1 1 auto;min-width:64px;padding:8px 10px;font:inherit;font-size:.86rem;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:10px;
+        background:transparent;color:inherit;cursor:pointer;
+      }
+      .sheet .seg button.on{
+        border-color:var(--state-icon-color,#44739E);
+        background:rgba(68,115,158,.18);font-weight:600;
+      }
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .sheet .seg button.on{
+          background:color-mix(in srgb,var(--state-icon-color,#44739E) 16%,transparent);
+        }
+      }
+      .sheet .stepper{display:flex;align-items:center;gap:8px;margin-top:10px}
+      .sheet .stepper button{
+        width:40px;height:40px;font-size:1.2rem;line-height:1;cursor:pointer;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:10px;
+        background:transparent;color:inherit;
+      }
+      .sheet .stepper input{
+        flex:1;min-width:0;padding:9px 10px;font:inherit;text-align:center;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:10px;
+        background:transparent;color:inherit;
+      }
+      .sheet .unit{color:var(--secondary-text-color,#8a8f94);font-size:.86rem}
+      .sheet .sheet-error{color:var(--error-color,#f44336);font-size:.88rem}
+      .sheet .sheet-error:empty{display:none}
+      .sheet .actions{display:flex;gap:8px;margin-top:18px}
+      .sheet .actions button{
+        flex:1;padding:12px;font:inherit;font-weight:600;border-radius:12px;cursor:pointer;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));
+        background:transparent;color:inherit;
+      }
+      .sheet .actions .primary{
+        border-color:transparent;background:var(--state-icon-color,#44739E);color:#fff;
+      }
+      .sheet .actions button[disabled]{opacity:.6;cursor:default}
     </style>`;
   }
 }

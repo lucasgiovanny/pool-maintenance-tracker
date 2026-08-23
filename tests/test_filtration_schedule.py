@@ -19,7 +19,6 @@ from custom_components.pool_maintenance_tracker.const import (
     CONF_FILTRATION_SCHEDULE_ENTITY,
     CONF_FILTRATION_SCHEDULE_MODE,
     CONF_FILTRATION_STATE_ENTITY,
-    CONF_TEMPERATURE_SOURCE,
     SCHEDULE_MODE_HELPER,
     SCHEDULE_MODE_NONE,
     SCHEDULE_MODE_TIMES,
@@ -79,36 +78,21 @@ async def test_two_times_build_the_weekly_grid(hass, salt_entry, hass_client_no_
     assert item["next_change"].startswith("2026-07-27T20:00:00")
 
 
-async def test_the_hours_reach_the_filtration_advice(
-    hass, salt_entry, hass_client_no_auth, freezer
-):
-    """Today's hours are compared with the recommendation, helper or not."""
+async def test_the_hours_reach_todays_filtration(hass, salt_entry, hass_client_no_auth, freezer):
+    """Today's hours are read off the two times, helper or not."""
     freezer.move_to("2026-07-27 16:00:00+00:00")  # 09:00 on a Monday
     set_times(hass, "09:30:00", "16:00:00")
-    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **TIME_OPTIONS,
-        **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"},
-    )
+    await setup_with_options(hass, salt_entry, **TIME_OPTIONS)
     client = await hass_client_no_auth()
 
-    hint = (await report_of(hass, client))["filtration"]
-    assert hint["recommended_hours"] == 12.0
-    assert hint["scheduled_hours"] == 6.5
-    # 6.5 against 12 is short enough to be worth saying out loud
-    assert hint["short_by"] == 5.5
+    assert (await report_of(hass, client))["filtration"]["scheduled_hours"] == 6.5
 
 
 async def test_a_cycle_through_midnight_is_one_run(hass, salt_entry, hass_client_no_auth, freezer):
     """Stopping before it starts means the night, not a zero-length day."""
     freezer.move_to("2026-07-28 06:00:00+00:00")  # 23:00 on a Monday
     set_times(hass, "22:00:00", "06:00:00")
-    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass, salt_entry, **TIME_OPTIONS, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
-    )
+    await setup_with_options(hass, salt_entry, **TIME_OPTIONS)
     client = await hass_client_no_auth()
 
     item = (await report_of(hass, client))["roles"]["filtration_schedule"]
@@ -195,15 +179,13 @@ async def test_times_that_say_nothing_leave_the_role_out(hass, salt_entry, hass_
     """An unavailable controller is not a schedule of zero hours."""
     hass.states.async_set("time.filtration_start", "unavailable")
     hass.states.async_set("time.filtration_stop", "20:00:00")
-    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass, salt_entry, **TIME_OPTIONS, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
-    )
+    await setup_with_options(hass, salt_entry, **TIME_OPTIONS)
     client = await hass_client_no_auth()
 
     report = await report_of(hass, client)
     assert "filtration_schedule" not in report["roles"]
-    assert report["filtration"]["scheduled_hours"] is None
+    # Nothing scheduled and no pump to have run: no hours block at all
+    assert report["filtration"] is None
 
 
 async def test_a_helper_pool_is_untouched(hass, salt_entry, hass_client_no_auth, hass_storage):

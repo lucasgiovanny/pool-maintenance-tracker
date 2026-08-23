@@ -54,14 +54,11 @@
       },
       "pool": {
         "title": "Piscina",
-        "description": "El volumen activa la sugerencia de dosis de sal. Con el caudal de la bomba podemos dimensionar la filtración por renovaciones en vez de adivinar por la temperatura; la producción de la célula indica si el clorador tiene tiempo de generar el cloro del día. La banda de sal es la referencia de las lecturas — comprueba lo que pide tu clorador. El caudal solo puede subir la sugerencia, nunca bajarla: el valor de la placa se mide en un punto generoso de la curva de la bomba, así que usa el real si lo conoces — o descuenta un 30 % al de la caja.",
+        "description": "El volumen activa la sugerencia de dosis de sal. La banda de sal es la referencia de las lecturas — comprueba lo que pide tu clorador.",
         "data": {
           "pool_volume": "Volumen (m³)",
           "salt_target_min": "Sal objetivo — mínimo (g/L)",
           "salt_target_max": "Sal objetivo — máximo (g/L)",
-          "pump_flow": "Caudal de la bomba (m³/h, en el punto de trabajo)",
-          "pump_type": "Tipo de bomba",
-          "cell_output": "Producción de la célula (g/h)",
           "maintenance_mode_enabled": "Interruptor de modo mantenimiento"
         },
         "data_description": {
@@ -84,7 +81,7 @@
       },
       "sensors": {
         "title": "Sensores vinculados",
-        "description": "Vincula sensores existentes (por ejemplo de una sonda inteligente u otra integración de piscina). Sus valores actuales se muestran en la página junto a las lecturas manuales y se guarda un snapshot con cada registro. Deja un campo vacío para desvincularlo. Con un sensor de presión enlazado, el aviso de lavado del filtro sigue la subida de presión sobre el filtro limpio en lugar del intervalo fijo. La referencia se captura automáticamente en el próximo lavado registrado. Una fuente de UV afina cuánto cloro consume el día — la temperatura del agua ya lleva el resto del clima.",
+        "description": "Vincula sensores existentes (por ejemplo de una sonda inteligente u otra integración de piscina). Sus valores actuales se muestran en la página junto a las lecturas manuales y se guarda un snapshot con cada registro. Deja un campo vacío para desvincularlo. Con un sensor de presión enlazado, el aviso de lavado del filtro sigue la subida de presión sobre el filtro limpio en lugar del intervalo fijo. La referencia se captura automáticamente en el próximo lavado registrado.",
         "data": {
           "ph_source": "Sensor de pH",
           "chlorine_source": "Sensor de cloro libre",
@@ -92,8 +89,7 @@
           "temperature_source": "Sensor de temperatura del agua",
           "linked_mode": "Comportamiento de los sensores vinculados",
           "report_sensors": "Entidades extra en la pestaña Estado",
-          "filter_pressure_source": "Manómetro del filtro",
-          "uv_source": "Índice UV (sensor o entidad meteorológica)"
+          "filter_pressure_source": "Manómetro del filtro"
         }
       },
       "equipment": {
@@ -113,7 +109,7 @@
       },
       "schedule_helper": {
         "title": "Horario de filtración",
-        "description": "El horario que decide cuándo funciona la filtración. Sus bloques semanales aparecen en todos los paneles, junto a las horas recomendadas.",
+        "description": "El horario que decide cuándo funciona la filtración. Sus bloques semanales aparecen en todos los paneles, y las horas de hoy con ellos.",
         "data": {
           "filtration_schedule_entity": "Horario"
         }
@@ -201,13 +197,6 @@
         "manual_only": "Solo mostrar en la página (entidades manuales)",
         "fill_on_record": "Rellenar entidades desde la sonda al guardar un registro",
         "mirror": "Reflejar continuamente (sobrescribe valores manuales)"
-      }
-    },
-    "pump_type": {
-      "options": {
-        "single_speed": "Velocidad única",
-        "two_speed": "Dos velocidades",
-        "variable_speed": "Velocidad variable"
       }
     },
     "filtration_schedule_mode": {

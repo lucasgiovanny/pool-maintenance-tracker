@@ -10,17 +10,12 @@ import re
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.pool_maintenance_tracker.const import (
-    CONF_CELL_OUTPUT,
-    CONF_COVER_ENTITY,
     CONF_FILTRATION_SCHEDULE_ENTITY,
     CONF_POOL_VOLUME,
     CONF_PUMP_ENTITY,
-    CONF_PUMP_FLOW,
-    CONF_PUMP_TYPE,
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TEMPERATURE_SOURCE,
-    CONF_UV_SOURCE,
     KEY_FREE_CHLORINE,
     KEY_PH,
     KEY_SALT_LEVEL,
@@ -80,48 +75,10 @@ async def test_configured_salt_band_and_volume(hass, salt_entry, hass_client_no_
     assert state["report"]["volume"] == 48
 
 
-async def test_no_filtration_hint_without_temperature(hass, salt_entry, hass_client_no_auth):
-    await setup_entry(hass, salt_entry)
-    client = await hass_client_no_auth()
-
-    config = extract_config(await (await client.get(PAGE_URL)).text())
-    assert config["report"]["filtration"] is None
-
-
-async def test_filtration_hint_from_linked_probe(hass, salt_entry, hass_client_no_auth):
-    """Half the water temperature, rounded to the half hour."""
-    hass.states.async_set(
-        "sensor.probe_temperature",
-        "27.4",
-        {"friendly_name": "Água", "unit_of_measurement": "°C"},
-    )
-    await setup_with_options(
-        hass, salt_entry, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
-    )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["temperature"] == 27.4
-    assert hint["recommended_hours"] == 13.5
-    assert hint["scheduled_hours"] is None  # no schedule configured
-
-
-async def test_filtration_hint_floor_and_ceiling(hass, salt_entry, hass_client_no_auth):
-    """Cold water still needs a couple of hours a day."""
-    hass.states.async_set("sensor.probe_temperature", "3", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass, salt_entry, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
-    )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["recommended_hours"] == 2.0
-
-
-async def test_filtration_hint_compares_with_schedule(
+async def test_todays_filtration_hours_come_from_the_schedule(
     hass, salt_entry, hass_client_no_auth, hass_storage, freezer
 ):
-    """The suggestion sits next to what the schedule actually runs today."""
+    """The hours on every surface are the ones the schedule really runs."""
     freezer.move_to("2026-07-27 09:00:00+00:00")  # a Monday
     hass_storage["schedule"] = {
         "version": 1,
@@ -148,169 +105,57 @@ async def test_filtration_hint_compares_with_schedule(
     hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
 
     await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_FILTRATION_SCHEDULE_ENTITY: reg_entry.entity_id,
-        },
+        hass, salt_entry, **{CONF_FILTRATION_SCHEDULE_ENTITY: reg_entry.entity_id}
     )
     client = await hass_client_no_auth()
 
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["recommended_hours"] == 12.0
-    assert hint["scheduled_hours"] == 6.5
-
-
-async def test_filtration_hint_falls_back_to_logged_temperature(
-    hass, salt_entry, hass_client_no_auth
-):
-    """Without a probe, the last manually logged reading is enough."""
-    await setup_entry(hass, salt_entry)
-    client = await hass_client_no_auth()
-    await client.post(
-        f"/api/pool_maintenance_tracker/{TEST_TOKEN}/log",
-        json={
-            "person": "technician",
-            "categories": ["water_test"],
-            "readings": {"ph": 7.4, "temperature": 26.0},
-        },
-    )
-    await hass.async_block_till_done()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["temperature"] == 26.0
-    assert hint["recommended_hours"] == 13.0
-
-
-async def test_sizing_reaches_every_surface(hass, salt_entry, hass_client_no_auth):
-    """A big pool on a weak pump gets more hours, everywhere at once."""
-    hass.states.async_set("sensor.probe_temperature", "28", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_POOL_VOLUME: 80,
-            CONF_PUMP_FLOW: 8,
-            CONF_PUMP_TYPE: "variable_speed",
-        },
-    )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["basis"] == "turnover"
-    assert hint["recommended_hours"] == 20.0  # the rule of thumb would say 14 h
-    assert hint["turnovers"] == 2.0
-    assert hint["low_speed_hours"] == 24.0
+    hours = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hours["scheduled_hours"] == 6.5
 
     state = await (await client.get(STATE_URL)).json()
-    assert state["report"]["filtration"]["recommended_hours"] == 20.0
+    assert state["report"]["filtration"]["scheduled_hours"] == 6.5
 
 
-async def test_a_flow_rate_can_never_under_filter(hass, salt_entry, hass_client_no_auth):
-    """The nameplate figure is unverifiable, so it only ever raises hours."""
-    hass.states.async_set("sensor.probe_temperature", "25", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_POOL_VOLUME: 26,
-            CONF_PUMP_FLOW: 10,
-        },
-    )
+async def test_no_filtration_block_with_nothing_to_say(hass, salt_entry, hass_client_no_auth):
+    """No schedule and no pump to have run: the row does not appear."""
+    await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()
 
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["turnover_hours"] == 4.5
-    assert hint["recommended_hours"] == 12.5  # the baseline wins
-    assert hint["basis"] == "rule_of_thumb"
+    config = extract_config(await (await client.get(PAGE_URL)).text())
+    assert config["report"]["filtration"] is None
 
 
-async def test_uv_reaches_the_advice(hass, salt_entry, hass_client_no_auth):
-    """Read from a plain sensor or from a weather entity's attribute."""
-    hass.states.async_set("sensor.probe_temperature", "30", {"unit_of_measurement": "°C"})
-    hass.states.async_set("weather.home", "sunny", {"uv_index": 10})
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_POOL_VOLUME: 60,
-            CONF_PUMP_FLOW: 20,
-            CONF_CELL_OUTPUT: 6,
-            CONF_UV_SOURCE: "weather.home",
-        },
+async def test_actual_hours_absent_without_a_recorder(
+    hass, salt_entry, hass_client_no_auth, hass_storage
+):
+    """What the pump did degrades to nothing rather than to a wrong number."""
+    from homeassistant.helpers import entity_registry as er
+
+    hass_storage["schedule"] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "schedule",
+        "data": {"items": [{"id": "abc123", "name": "Filtração"}]},
+    }
+    registry = er.async_get(hass)
+    reg_entry = registry.async_get_or_create(
+        "schedule", "schedule", "abc123", suggested_object_id="filtracao"
     )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["uv"] == 10.0
-    assert hint["basis"] == "chlorination"
-    assert hint["chlorine_hours"] == 26.0  # capped to 24 h once recommended
-
-
-async def test_a_small_cell_takes_over_from_turnover(hass, salt_entry, hass_client_no_auth):
-    hass.states.async_set("sensor.probe_temperature", "30", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_POOL_VOLUME: 60,
-            CONF_PUMP_FLOW: 20,
-            CONF_CELL_OUTPUT: 6,
-        },
-    )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["basis"] == "chlorination"
-    assert hint["recommended_hours"] == 20.0
-
-
-async def test_a_closed_cover_is_read_from_the_entity(hass, salt_entry, hass_client_no_auth):
-    hass.states.async_set("sensor.probe_temperature", "28", {"unit_of_measurement": "°C"})
-    hass.states.async_set("cover.pool_cover", "closed", {"friendly_name": "Cobertura"})
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_POOL_VOLUME: 48,
-            CONF_PUMP_FLOW: 9,
-            CONF_COVER_ENTITY: "cover.pool_cover",
-        },
-    )
-    client = await hass_client_no_auth()
-
-    covered = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert covered["covered"] is True
-
-    hass.states.async_set("cover.pool_cover", "open")
-    await hass.async_block_till_done()
-    opened = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert opened["covered"] is False
-    assert opened["recommended_hours"] > covered["recommended_hours"]
-
-
-async def test_actual_hours_absent_without_a_recorder(hass, salt_entry, hass_client_no_auth):
-    """The comparison degrades to nothing rather than to a wrong number."""
-    hass.states.async_set("sensor.probe_temperature", "24", {"unit_of_measurement": "°C"})
+    hass.states.async_set(reg_entry.entity_id, "off", {"friendly_name": "Filtração"})
     hass.states.async_set("switch.pump", "on", {"friendly_name": "Bomba"})
     await setup_with_options(
         hass,
         salt_entry,
         **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
             CONF_PUMP_ENTITY: "switch.pump",
+            CONF_FILTRATION_SCHEDULE_ENTITY: reg_entry.entity_id,
         },
     )
     client = await hass_client_no_auth()
 
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["actual_hours"] is None
+    hours = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
+    assert hours["actual_hours"] is None
+    assert hours["scheduled_hours"] == 0.0
 
 
 async def test_acid_tank_covers_empty_and_missing(hass, salt_entry, hass_client_no_auth):
@@ -410,138 +255,6 @@ async def test_a_back_dated_reading_does_not_beat_the_probe(hass, salt_entry, ha
     current = extract_config(await (await client.get(PAGE_URL)).text())["report"]["current"]
     assert current["water_temperature"]["value"] == 27.4
     assert current["water_temperature"]["source"] == "probe"
-
-
-async def test_the_filtration_advice_uses_the_same_temperature(
-    hass, salt_entry, hass_client_no_auth
-):
-    """One resolved reading feeds the display and the maths alike."""
-    hass.states.async_set("sensor.probe_temperature", "27.4", {"unit_of_measurement": "°C"})
-    await setup_with_options(
-        hass, salt_entry, **{CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature"}
-    )
-    client = await hass_client_no_auth()
-    await client.post(
-        f"/api/pool_maintenance_tracker/{TEST_TOKEN}/log",
-        json={
-            "person": "technician",
-            "categories": ["water_test"],
-            "readings": {"temperature": 20.0},
-        },
-    )
-    await hass.async_block_till_done()
-
-    report = extract_config(await (await client.get(PAGE_URL)).text())["report"]
-    assert report["current"]["water_temperature"]["value"] == 20.0
-    assert report["filtration"]["temperature"] == 20.0
-
-
-async def test_a_short_schedule_raises_an_alert(
-    hass, salt_entry, hass_client_no_auth, hass_storage
-):
-    """Scheduled well below the recommendation is worth saying out loud."""
-    from homeassistant.helpers import entity_registry as er
-
-    hass_storage["schedule"] = {
-        "version": 1,
-        "minor_version": 1,
-        "key": "schedule",
-        "data": {
-            "items": [
-                {
-                    "id": "abc123",
-                    "name": "Filtração",
-                    **{
-                        day: [{"from": "09:00:00", "to": "13:00:00"}]
-                        for day in (
-                            "monday",
-                            "tuesday",
-                            "wednesday",
-                            "thursday",
-                            "friday",
-                            "saturday",
-                            "sunday",
-                        )
-                    },
-                }
-            ]
-        },
-    }
-    registry = er.async_get(hass)
-    sched = registry.async_get_or_create(
-        "schedule", "schedule", "abc123", suggested_object_id="filtracao"
-    )
-    hass.states.async_set(sched.entity_id, "on", {"friendly_name": "Filtração"})
-    hass.states.async_set("sensor.probe_temperature", "26", {"unit_of_measurement": "°C"})
-
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_FILTRATION_SCHEDULE_ENTITY: sched.entity_id,
-        },
-    )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["scheduled_hours"] == 4.0
-    assert hint["recommended_hours"] == 13.0
-    assert hint["short_by"] == 9.0
-
-
-async def test_a_schedule_within_tolerance_is_not_flagged(
-    hass, salt_entry, hass_client_no_auth, hass_storage
-):
-    """Half an hour short is not news; it would just train people to ignore it."""
-    from homeassistant.helpers import entity_registry as er
-
-    hass_storage["schedule"] = {
-        "version": 1,
-        "minor_version": 1,
-        "key": "schedule",
-        "data": {
-            "items": [
-                {
-                    "id": "abc123",
-                    "name": "Filtração",
-                    **{
-                        day: [{"from": "08:00:00", "to": "20:30:00"}]
-                        for day in (
-                            "monday",
-                            "tuesday",
-                            "wednesday",
-                            "thursday",
-                            "friday",
-                            "saturday",
-                            "sunday",
-                        )
-                    },
-                }
-            ]
-        },
-    }
-    registry = er.async_get(hass)
-    sched = registry.async_get_or_create(
-        "schedule", "schedule", "abc123", suggested_object_id="filtracao"
-    )
-    hass.states.async_set(sched.entity_id, "on", {"friendly_name": "Filtração"})
-    hass.states.async_set("sensor.probe_temperature", "26", {"unit_of_measurement": "°C"})
-
-    await setup_with_options(
-        hass,
-        salt_entry,
-        **{
-            CONF_TEMPERATURE_SOURCE: "sensor.probe_temperature",
-            CONF_FILTRATION_SCHEDULE_ENTITY: sched.entity_id,
-        },
-    )
-    client = await hass_client_no_auth()
-
-    hint = extract_config(await (await client.get(PAGE_URL)).text())["report"]["filtration"]
-    assert hint["scheduled_hours"] == 12.5
-    assert hint["recommended_hours"] == 13.0
-    assert hint["short_by"] is None
 
 
 async def test_a_missing_acid_tank_is_its_own_alert(hass, salt_entry, hass_client_no_auth):

@@ -54,14 +54,11 @@
       },
       "pool": {
         "title": "Pool",
-        "description": "Das Volumen schaltet den Salzdosis-Hinweis frei. Mit der Förderleistung lässt sich die Filtration über Umwälzungen auslegen, statt sie aus der Temperatur zu raten; die Zellenleistung zeigt, ob der Elektrolyseur genug Zeit für das Chlor des Tages hat. Das Salzband ist die Referenz für die Messwerte — prüfe, was dein Elektrolyseur verlangt. Die Förderleistung kann den Vorschlag nur erhöhen, nie senken: der Typenschildwert wird an einem günstigen Punkt der Pumpenkennlinie gemessen — nimm also den realen Wert, oder ziehe rund 30 % vom Kartonwert ab.",
+        "description": "Das Volumen schaltet den Salzdosis-Hinweis frei. Das Salzband ist die Referenz für die Messwerte — prüfe, was dein Elektrolyseur verlangt.",
         "data": {
           "pool_volume": "Volumen (m³)",
           "salt_target_min": "Salz-Sollwert — Minimum (g/L)",
           "salt_target_max": "Salz-Sollwert — Maximum (g/L)",
-          "pump_flow": "Pumpenförderleistung (m³/h, im Betriebspunkt)",
-          "pump_type": "Pumpentyp",
-          "cell_output": "Zellenleistung (g/h)",
           "maintenance_mode_enabled": "Schalter für den Wartungsmodus"
         },
         "data_description": {
@@ -84,7 +81,7 @@
       },
       "sensors": {
         "title": "Verknüpfte Sensoren",
-        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen. Mit einem verknüpften Drucksensor folgt der Filterwäsche-Alarm dem Druckanstieg gegenüber dem sauberen Filter statt dem festen Intervall. Der Referenzwert wird bei der nächsten protokollierten Wäsche automatisch erfasst. Eine UV-Quelle verfeinert den Chlorverbrauch des Tages — die Wassertemperatur trägt den Rest des Wetters bereits.",
+        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen. Mit einem verknüpften Drucksensor folgt der Filterwäsche-Alarm dem Druckanstieg gegenüber dem sauberen Filter statt dem festen Intervall. Der Referenzwert wird bei der nächsten protokollierten Wäsche automatisch erfasst.",
         "data": {
           "ph_source": "pH-Sensor",
           "chlorine_source": "Sensor für freies Chlor",
@@ -92,8 +89,7 @@
           "temperature_source": "Wassertemperatursensor",
           "linked_mode": "Verhalten der verknüpften Sensoren",
           "report_sensors": "Zusätzliche Entitäten im Status-Tab",
-          "filter_pressure_source": "Filtermanometer",
-          "uv_source": "UV-Index (Sensor oder Wetter-Entität)"
+          "filter_pressure_source": "Filtermanometer"
         }
       },
       "equipment": {
@@ -113,7 +109,7 @@
       },
       "schedule_helper": {
         "title": "Filterzeitplan",
-        "description": "Der Zeitplan, der entscheidet, wann die Filterung läuft. Seine Wochenblöcke erscheinen auf jedem Dashboard, neben den empfohlenen Stunden.",
+        "description": "Der Zeitplan, der entscheidet, wann die Filterung läuft. Seine Wochenblöcke erscheinen auf jedem Dashboard, zusammen mit den heutigen Stunden.",
         "data": {
           "filtration_schedule_entity": "Zeitplan"
         }
@@ -201,13 +197,6 @@
         "manual_only": "Nur auf der Seite anzeigen (Entitäten bleiben manuell)",
         "fill_on_record": "Entitäten beim Speichern eines Eintrags von der Sonde füllen",
         "mirror": "Fortlaufend spiegeln (überschreibt manuelle Werte)"
-      }
-    },
-    "pump_type": {
-      "options": {
-        "single_speed": "Eine Drehzahl",
-        "two_speed": "Zwei Drehzahlen",
-        "variable_speed": "Drehzahlgeregelt"
       }
     },
     "filtration_schedule_mode": {

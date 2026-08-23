@@ -159,16 +159,10 @@
       "high": "haut",
       "ideal": "idéal"
     },
-    "filtration_recommended": "Filtration recommandée",
-    "recommended": "recommandé {h} h",
-    "turnovers_basis": "{n} renouvellements à {flow} m³/h",
-    "chlorination_basis": "cellule de {cell} g/h",
-    "low_speed": "ou {h} h à mi-vitesse",
     "actual_today": "a tourné {h} h aujourd'hui",
     "filter_pressure": "Pression du filtre",
     "pressure_rise": "+{p}% depuis le lavage",
     "wash_filter": "laver",
-    "alert_filtration_short": "Filtration réglée sur {scheduled} h/jour, {recommended} h recommandées",
     "alert_acid_missing": "Pas de bidon d'acide — le pH n'est pas dosé",
     "alert_combined": "Chlore combiné à {value} ppm — faites une chloration choc"
   },
@@ -227,8 +221,6 @@
     "never_recorded": "aucun enregistrement",
     "no_visits": "Aucune intervention pour l'instant.",
     "overdue_count": "en retard",
-    "recommended": "Recommandé",
-    "at_temperature": "à {t} °C",
     "blocks_total": "{n} plages · {h} h"
   },
   "roles": {

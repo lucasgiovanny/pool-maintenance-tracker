@@ -85,7 +85,8 @@ go away with it.
 
 Working on a pool usually means the equipment has to be somewhere in
 particular — the system off while the filter is open, the heat pump on for a
-while. So on the page the toggle opens a sheet instead of just flipping:
+while. So the toggle opens a sheet instead of just flipping — the same sheet
+on the maintenance page and on the dashboard card:
 
 - **one row per piece of equipment** you assigned under **Configure →
   Equipment**, with its state right now and three choices: *no change*, *turn
@@ -96,7 +97,9 @@ while. So on the page the toggle opens a sheet instead of just flipping:
   minutes. One hour is pre-picked.
 
 Tap *Start maintenance* and it happens, there and then, and the page tells the
-technician what moved. **The window does not switch anything off when it runs
+technician what moved. On the card the switch does the same: it asks before
+starting a visit, ends one in a single tap, and tapping a running visit reopens
+the sheet to give it longer or change its mind about the heat pump. **The window does not switch anything off when it runs
 out** — it ends the visit, and ending the visit is what puts the equipment back
 where it was found. Politely: only what the visit changed, and only while our
 change is still standing. If you moved something yourself in the meantime,
@@ -121,10 +124,11 @@ Assistant), `until`, and `equipment` — the plan, which outlives the flag on
 purpose so an automation reacting to the visit *ending* can still see what it
 changed. See [Automations](#automations).
 
-Starting a timed visit from inside Home Assistant needs the
+Starting a timed visit from anywhere else in Home Assistant needs the
 **`pool_maintenance_tracker.start_maintenance`** action, because
-`switch.turn_on` cannot carry a window or a plan. Handy for a dashboard button
-or an NFC tag by the gate.
+`switch.turn_on` cannot carry a window or a plan. It is what the card's own
+sheet calls, and it is what a dashboard button or an NFC tag by the gate
+should call too.
 
 ### Notes
 
@@ -159,68 +163,16 @@ salt field turns kilos into what they will actually do: type 25 kg into a 48 m³
 pool and it shows *≈ +0.52 g/L in 48 m³*. Leave the volume empty and the hint
 simply doesn't appear.
 
-**Filtration suggestion.** How long the filtration should run today, shown
-under the hours your schedule actually runs — *4 h/day*, and below it
-*recommended 8.5 h*. Those hours come from a Home Assistant schedule helper or
-from your pool controller's own on/off time entities, whichever this pool has
-([both are supported](#the-filtration-schedule)). Without a schedule the row
-becomes *Recommended filtration* and shows the suggestion on its own. It is a
-suggestion for you to act on: the integration never touches the pump. How that
-number is worked out depends on how much you have told it — see below.
-
-### Sizing the filtration
-
-The baseline is the usual rule of thumb, *water temperature ÷ 2* hours a day,
-and it always applies. Everything below is optional and can only ask for
-**more** hours, never fewer. The surfaces show the recommendation itself, not
-the arithmetic behind it — the reasoning is in this README, where you can
-argue with it once, rather than on a row you read every day.
-
-That ordering is deliberate. A pump's nameplate flow is measured at a generous
-point on its curve, and a real installation with a filter and pipework delivers
-noticeably less, so it is a number the owner cannot really verify. Letting it
-lower the recommendation would hand an unverifiable input the power to
-under-filter the pool; letting it only raise the recommendation makes
-overstating it harmless.
-
-**Pump flow rate (m³/h)** — with the pool volume it adds turnover maths:
-`hours = volume × turnovers ÷ flow`, where turnovers per day ramp with the
-water temperature (1 below 18 °C, 2 above 28 °C). It matters for the case the
-rule of thumb gets dangerously wrong: an 80 m³ pool on an 8 m³/h pump at 28 °C
-needs **20 h/day**, where the rule of thumb would have said 14. Use the flow at
-the working point if you know it, or knock about 30 % off the box figure.
-
-**Pump type** — single speed, two speed or variable speed. A variable-speed
-pump moves roughly half the water at half the speed for about a quarter of the
-power, so the same turnover costs far less if it runs longer. Tell the
-integration you have one and it offers the alternative: *or 17 h at half
-speed*.
-
-**Chlorinator cell output (g/h)**, on salt pools — from the cell's label. The
-chlorinator only makes chlorine while the pump runs, so there is a second
-constraint: enough hours to produce what the day burns (which rises with the
-water temperature). The suggestion is whichever constraint asks for most.
-
-**UV index** — an optional sensor or weather entity, under *Configure → Linked
-sensors*. The water temperature already carries most of the weather (a pool at
-28 °C has been getting sun), so there is no point feeding in the air
-temperature as well. UV is the part it does not carry: two pools at the same
-temperature under different skies burn chlorine at different rates, so it
-scales the chlorination constraint only.
-
-**A cover, if you have one as an entity** — configure it under *Equipment →
-Cover* and, while it reports closed, the suggestion drops: less debris, and
-much less chlorine burnt off by UV. Without a cover entity the pool is assumed
-uncovered, which errs towards filtering more rather than less. A manual cover
-can be modelled with an `input_boolean` you toggle by hand or from an
-automation.
+**Filtration hours.** How long the filtration is set to run today, taken from
+your schedule — a Home Assistant schedule helper or your pool controller's own
+on/off time entities, whichever this pool has
+([both are supported](#the-filtration-schedule)).
 
 **What it actually ran** — with a pump or pool-system entity configured, the
 surfaces also show how long the filtration really ran today, taken from the
-recorder. Schedules get overridden; this is the honest comparison. On the page
-it is a progress bar against the recommendation, which turns green once the
-target is met and keeps a tick where the target was when the pump runs past
-it.
+recorder. Schedules get overridden by hand; this is what happened. On the page
+it is a progress bar against the scheduled hours, which turns green once they
+are met and keeps a tick where the plan was when the pump runs past it.
 
 ### Alerts
 
@@ -236,17 +188,11 @@ dashboard's *Needs attention* box and the card:
 | Acid tank low | At ¼ or empty |
 | No acid tank | The level is set to *no tank* — nothing to refill, but the pH is no longer being dosed |
 | Combined chlorine high | Above 0.5 ppm — chloramine, time to shock |
-| Filtration below the recommendation | Today's schedule runs less than the recommendation, by more than an hour and more than 20 % |
 
 The overdue ones also have a `binary_sensor` each and, if you set a
 `notify.*` service, a daily notification (re-sent at most every three days).
 The acid tank notifies once, when a logged record changes the level — never
-repeatedly. The filtration one lives on the surfaces only: it is a standing
-condition that drifts with the water temperature rather than an event, and a
-push every morning saying the same thing trains people to ignore alerts.
-
-The filtration alert needs a tolerance for the same reason. Half an hour short
-is not news; it would just make the bar permanent.
+repeatedly.
 
 ### Filter pressure
 
@@ -345,7 +291,7 @@ display-only dashboard** designed for a 7-inch landscape screen (and up).
 - **Left** — the water temperature with its 24-hour change and a *heating
   active* flag, mini cards for the chlorinator, system, heat pump and salt, and
   **today's filtration cycle** as a 24-hour bar with a live "now" marker and
-  the recommended hours for the current water temperature. Readings out of
+  the hours the pump has actually run today. Readings out of
   their ideal band are coloured.
 - **Middle** — a **Needs attention** box, the periodic tasks in two columns
   with status dots, and a **7-day temperature chart** with markers on the days
@@ -425,8 +371,7 @@ Multiple pools? Just add the integration again.
 ### Pool
 
 **Configure → Pool** holds everything about the pool itself: the volume (used
-for the salt-dose hint and the turnover maths), the pump's flow rate and type,
-the chlorinator cell output on salt pools, and the salt band the readings are
+for the salt-dose hint), and the salt band the readings are
 judged against — check what your chlorinator asks for before changing it. The
 optional [maintenance mode](#maintenance-mode) switch is turned on here too.
 
@@ -471,7 +416,7 @@ asks which one this pool has, and the next screen collects it:
 
 Either way you get the same thing everywhere: the weekly grid on the Status
 tab, today's cycle bar on the card and the wall dashboard, the countdown to
-the next change, and today's hours next to the recommended ones. A cycle that
+the next change, and today's hours next to the hours actually run. A cycle that
 runs through midnight — 22:00 to 06:00 — is one run of eight hours, not two
 broken halves.
 

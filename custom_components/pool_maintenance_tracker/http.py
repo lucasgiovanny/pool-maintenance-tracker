@@ -37,7 +37,6 @@ from . import filter_pressure, maintenance
 from .const import (
     ACID_ALERT_LEVELS,
     COMBINED_CHLORINE_ALERT,
-    CONF_CELL_OUTPUT,
     CONF_FILTRATION_OFF_TIME_ENTITY,
     CONF_FILTRATION_ON_TIME_ENTITY,
     CONF_FILTRATION_SCHEDULE_ENTITY,
@@ -48,14 +47,11 @@ from .const import (
     CONF_PEOPLE,
     CONF_POOL_TYPE,
     CONF_POOL_VOLUME,
-    CONF_PUMP_FLOW,
-    CONF_PUMP_TYPE,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TEMPERATURE_SOURCE,
-    CONF_UV_SOURCE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
     DATA_TOKENS,
@@ -67,8 +63,6 @@ from .const import (
     DEFAULT_SALT_TARGET_MIN,
     DOMAIN,
     EQUIPMENT_ROLES,
-    FILTRATION_SHORT_FRACTION,
-    FILTRATION_SHORT_MIN_HOURS,
     HISTORY_PERIODS,
     IDEAL_CALCIUM_HARDNESS,
     IDEAL_CYANURIC,
@@ -85,7 +79,6 @@ from .const import (
     KEY_SALT_LEVEL,
     KEY_TOTAL_ALKALINITY,
     KEY_TOTAL_CHLORINE,
-    KEY_WATER_TEMPERATURE,
     LINKED_MODE_MANUAL,
     LINKED_MODE_ON_RECORD,
     LINKED_SOURCES,
@@ -97,7 +90,6 @@ from .const import (
     NUMBER_RANGES,
     ONOFF_DOMAINS,
     POOL_TYPE_SALT,
-    PUMP_SINGLE_SPEED,
     RECENT_RECORDS_ATTR_COUNT,
     ROLE_FILTRATION_SCHEDULE,
     SCHEDULE_MODE_HELPER,
@@ -117,7 +109,6 @@ from .const import (
     schedule_mode,
 )
 from .entity import page_url
-from .filtration import advise
 from .modules import (
     enabled_reminders,
     enabled_tiles,
@@ -776,41 +767,14 @@ def _current_readings(
     return current
 
 
-@callback
-def _uv_index(hass: HomeAssistant, entry: ConfigEntry) -> float | None:
-    """Today's UV index, from a sensor or a weather entity's attribute."""
-    entity_id = entry.options.get(CONF_UV_SOURCE)
-    if not entity_id or (state := hass.states.get(entity_id)) is None:
-        return None
-    raw = state.attributes.get("uv_index") if state.domain == "weather" else state.state
-    try:
-        return max(0.0, float(raw))
-    except (TypeError, ValueError):
-        return None
-
-
-@callback
-def _cover_closed(roles: dict[str, Any]) -> bool:
-    """Whether the pool is covered right now.
-
-    Only ever true from a real entity: without one we assume uncovered,
-    which errs towards filtering more rather than less.
-    """
-    cover = roles.get("cover")
-    if not cover:
-        return False
-    return cover.get("state") in ("closed", "on", "true")
-
-
 async def _actual_hours_today(
     hass: HomeAssistant, entry: ConfigEntry, roles: dict[str, Any]
 ) -> float | None:
     """How long the filtration actually ran today, from the recorder.
 
-    Schedules get overridden by hand, so comparing the advice against what
-    the pump really did is more honest than comparing it against the plan.
-    The answer is cached: the page and the kiosk both poll, and this costs a
-    recorder query.
+    Schedules get overridden by hand, so what the pump really did is worth
+    saying next to what it was asked to do. The answer is cached: the page
+    and the kiosk both poll, and this costs a recorder query.
     """
     role = roles.get("pump") or roles.get("pool_system")
     if not role or not _recorder_ready(hass):
@@ -828,38 +792,20 @@ async def _actual_hours_today(
     return hours
 
 
-async def _filtration_hint(
-    hass: HomeAssistant, entry: ConfigEntry, temperature: float | None, roles: dict[str, Any]
+async def _filtration_hours(
+    hass: HomeAssistant, entry: ConfigEntry, roles: dict[str, Any]
 ) -> dict[str, Any] | None:
-    """What the filtration should run today, next to what it does run.
+    """Today's filtration in hours: the plan, and what really happened.
 
-    Only ever a suggestion — the integration never drives the pump.
+    Both are facts about this pool — one read off its schedule, the other
+    off the recorder. Nothing here judges them.
     """
-    if temperature is None:
-        return None
-    advice = advise(
-        temperature,
-        volume=entry.options.get(CONF_POOL_VOLUME),
-        flow=entry.options.get(CONF_PUMP_FLOW),
-        cell_output=entry.options.get(CONF_CELL_OUTPUT),
-        covered=_cover_closed(roles),
-        uv=_uv_index(hass, entry),
-        pump_type=entry.options.get(CONF_PUMP_TYPE, PUMP_SINGLE_SPEED),
-    ).as_dict()
-    schedule = roles.get("filtration_schedule")
-    scheduled = _today_scheduled_hours(schedule.get("week") if schedule else None)
-    advice["scheduled_hours"] = scheduled
-    advice["actual_hours"] = await _actual_hours_today(hass, entry, roles)
-    # A schedule that cannot reach the recommendation is worth flagging, but
-    # only once the gap is big enough that changing it is worth the trouble.
-    advice["short_by"] = None
-    if scheduled is not None:
-        recommended = advice["recommended_hours"]
-        gap = recommended - scheduled
-        tolerance = max(FILTRATION_SHORT_MIN_HOURS, recommended * FILTRATION_SHORT_FRACTION)
-        if gap >= tolerance:
-            advice["short_by"] = round(gap, 1)
-    return advice
+    schedule = roles.get(ROLE_FILTRATION_SCHEDULE)
+    hours = {
+        "scheduled_hours": _today_scheduled_hours(schedule.get("week") if schedule else None),
+        "actual_hours": await _actual_hours_today(hass, entry, roles),
+    }
+    return hours if any(value is not None for value in hours.values()) else None
 
 
 ACTUAL_HOURS_CACHE = "actual_filtration_hours"
@@ -937,7 +883,6 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
     live = _live_values(hass, entry)
     entity_ids = _entity_ids(hass, entry)
     current = _current_readings(tracker, values, live, entity_ids)
-    temperature = (current.get(KEY_WATER_TEMPERATURE) or {}).get("value")
 
     return {
         "values": values,
@@ -947,9 +892,12 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "combined_chlorine": tracker.combined_chlorine,
         "ranges": _ideal_ranges(entry),
         "volume": entry.options.get(CONF_POOL_VOLUME),
-        "filtration": await _filtration_hint(hass, entry, temperature, roles),
+        "filtration": await _filtration_hours(hass, entry, roles),
         "filter_pressure": filter_pressure.snapshot(hass, entry, tracker),
         "maintenance_mode": _maintenance_mode(entry),
+        # What a visit can ask for, so the card can offer the same sheet the
+        # page does instead of only flipping the flag.
+        "maintenance_equipment": _maintenance_equipment(hass, entry),
         "tasks": tasks,
         "last_maintenance": tracker.timestamps.get(TS_ANY),
         "records": records,

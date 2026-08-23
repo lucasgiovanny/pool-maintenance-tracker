@@ -204,59 +204,6 @@ IDEAL_CYANURIC_SALT: Final = (60.0, 80.0)
 COMBINED_CHLORINE_ALERT: Final = 0.5
 COMBINED_CHLORINE_WINDOW_HOURS: Final = 6
 
-# A schedule below the recommendation is only worth flagging once the gap
-# is big enough to act on — rounding and a spare half hour are not news.
-FILTRATION_SHORT_MIN_HOURS: Final = 1.0
-FILTRATION_SHORT_FRACTION: Final = 0.2
-
-# Filtration rule of thumb: hours per day ≈ water temperature / 2.
-# Used only when the pool was not sized (see below).
-FILTRATION_MIN_HOURS: Final = 2.0
-
-# Sizing the filtration properly. All optional: with the flow rate and the
-# volume we can do turnover maths instead of guessing, and with the cell
-# output we can also check the chlorinator has time to make the day's
-# chlorine. Missing any of it just falls back to the rule of thumb.
-CONF_PUMP_FLOW: Final = "pump_flow"  # m³/h at full speed
-CONF_PUMP_TYPE: Final = "pump_type"
-CONF_CELL_OUTPUT: Final = "cell_output"  # g of chlorine per hour
-
-PUMP_SINGLE_SPEED: Final = "single_speed"
-PUMP_TWO_SPEED: Final = "two_speed"
-PUMP_VARIABLE_SPEED: Final = "variable_speed"
-PUMP_TYPES: Final = [PUMP_SINGLE_SPEED, PUMP_TWO_SPEED, PUMP_VARIABLE_SPEED]
-LOW_SPEED_PUMPS: Final = (PUMP_TWO_SPEED, PUMP_VARIABLE_SPEED)
-# Halving the speed roughly halves the flow, so the same turnover needs
-# twice the hours — for roughly a quarter of the energy (power ~ rpm³).
-LOW_SPEED_HOURS_FACTOR: Final = 2.0
-
-# Turnovers per day, ramped between these water temperatures
-TURNOVER_COOL_C: Final = 18.0
-TURNOVER_WARM_C: Final = 28.0
-TURNOVER_MIN: Final = 1.0
-TURNOVER_MAX: Final = 2.0
-
-# UV burns chlorine off, and it is the one thing about the weather the
-# water temperature does not already carry. Applied to the chlorine demand
-# only — it has nothing to say about how much water needs filtering.
-CONF_UV_SOURCE: Final = "uv_source"
-UV_REFERENCE: Final = 5.0  # the index the demand figures below assume
-UV_PER_INDEX: Final = 0.06
-UV_FACTOR_MIN: Final = 0.7
-UV_FACTOR_MAX: Final = 1.4
-
-# Chlorine demand in grams per m³ per day, ramped by water temperature
-# (roughly 1 g/m³ = 1 ppm of free chlorine).
-DEMAND_PER_DEGREE: Final = 0.1
-DEMAND_OFFSET: Final = 1.0
-DEMAND_MIN: Final = 0.5
-DEMAND_MAX: Final = 3.0
-
-# A closed cover means less debris and much less UV burn-off. Applied only
-# while the cover entity actually reports closed.
-COVER_HOURS_FACTOR: Final = 0.85
-COVER_CHLORINE_FACTOR: Final = 0.6
-
 # Filter pressure: a sensor beats a calendar. When one is linked and a clean
 # baseline was captured, the filter wash alert follows the pressure rise
 # instead of the fixed interval.

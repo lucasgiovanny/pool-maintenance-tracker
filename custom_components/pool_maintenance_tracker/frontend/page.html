@@ -691,15 +691,14 @@ function renderReport(){
     currentBody.appendChild(row);
   });
 
-  /* Why the recommendation says what it says. Nothing for the rule of
-     thumb: "temperature / 2" explains itself and the row is small. */
-  /* How much of today's recommendation the pump has actually delivered.
-     Reading a bar is quicker than comparing two numbers, and going past
-     the target should look finished rather than merely larger. */
+  /* How much of today's schedule the pump has actually delivered. Reading
+     a bar is quicker than comparing two numbers, and going past the plan
+     should look finished rather than merely larger. */
   function runBar(f){
     const actual = f.actual_hours;
-    if (actual === null || actual === undefined) return null;
-    const target = f.recommended_hours;
+    const target = f.scheduled_hours;
+    if (actual === null || actual === undefined
+        || target === null || target === undefined) return null;
     const scale = Math.max(target, actual) || 1;
     const done = actual >= target;
     const wrap = el("div", "runbar" + (done ? " done" : ""));
@@ -719,25 +718,16 @@ function renderReport(){
     return wrap;
   }
 
-  /* Filtration suggestion — never a command, just the rule of thumb */
+  /* Today's filtration: what the schedule asks for, what the pump did */
   const filtration = report.filtration;
   if (filtration) {
     const scheduled = filtration.scheduled_hours;
     const hasSchedule = scheduled !== null && scheduled !== undefined;
     const row = el("div", "kv");
-    row.appendChild(el("span", "k",
-      hasSchedule ? S.report.filtration : S.report.filtration_recommended));
-    const holder = el("span", "v", S.report.hours.replace("{h}",
-      hasSchedule ? scheduled : filtration.recommended_hours));
-    if (hasSchedule) {
-      /* The alternative for a pump with a low speed is still advice, not
-         an explanation of where the number came from. */
-      const advice = [S.report.recommended.replace("{h}", filtration.recommended_hours)];
-      if (filtration.low_speed_hours) {
-        advice.push(S.report.low_speed.replace("{h}", filtration.low_speed_hours));
-      }
-      holder.appendChild(el("span", "probe", advice.join(" · ")));
-    }
+    row.appendChild(el("span", "k", S.report.filtration));
+    const holder = el("span", "v", hasSchedule
+      ? S.report.hours.replace("{h}", scheduled)
+      : S.report.actual_today.replace("{h}", filtration.actual_hours));
     row.appendChild(holder);
     currentBody.appendChild(row);
     const bar = runBar(filtration);
@@ -1018,12 +1008,6 @@ function renderAlerts(){
   if (combined !== null && combined !== undefined
       && combinedBand && combined > combinedBand.max) {
     messages.push(S.report.alert_combined.replace("{value}", combined));
-  }
-  const short = (report.filtration || {}).short_by;
-  if (short) {
-    messages.push(S.report.alert_filtration_short
-      .replace("{scheduled}", report.filtration.scheduled_hours)
-      .replace("{recommended}", report.filtration.recommended_hours));
   }
   if (!messages.length) { box.style.display = "none"; return; }
   messages.forEach(message => {

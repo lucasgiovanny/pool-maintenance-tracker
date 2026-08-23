@@ -41,6 +41,28 @@ async def test_pools_and_status(hass, salt_entry, hass_ws_client, hass_client_no
     assert data["strings"]["tabs"]["log"]
 
 
+async def test_status_carries_the_maintenance_sheet(hass, salt_entry, hass_ws_client):
+    """The card asks the same question the page does, so it needs the answers."""
+    hass.states.async_set("switch.pool_system", "on", {"friendly_name": "Sistema"})
+    salt_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        salt_entry,
+        options={**salt_entry.options, "pool_system_entity": "switch.pool_system"},
+    )
+    assert await hass.config_entries.async_setup(salt_entry.entry_id)
+    await hass.async_block_till_done()
+
+    client = await hass_ws_client(hass)
+    await client.send_json({"id": 1, "type": f"{DOMAIN}/status", "entry_id": salt_entry.entry_id})
+    result = await client.receive_json()
+
+    report = result["result"]["report"]
+    assert report["maintenance_mode"]["enabled"] is True
+    equipment = report["maintenance_equipment"]
+    assert [item["role"] for item in equipment] == ["pool_system"]
+    assert equipment[0]["values"] == ["on", "off"]
+
+
 async def test_status_unknown_entry(hass, salt_entry, hass_ws_client):
     await setup_entry(hass, salt_entry)
     client = await hass_ws_client(hass)

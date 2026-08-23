@@ -159,16 +159,10 @@
       "high": "high",
       "ideal": "ideal"
     },
-    "filtration_recommended": "Recommended filtration",
-    "recommended": "recommended {h} h",
-    "turnovers_basis": "{n} turnovers at {flow} m³/h",
-    "chlorination_basis": "{cell} g/h cell",
-    "low_speed": "or {h} h at half speed",
     "actual_today": "ran {h} h today",
     "filter_pressure": "Filter pressure",
     "pressure_rise": "+{p}% since the wash",
     "wash_filter": "wash",
-    "alert_filtration_short": "Filtration set to {scheduled} h/day, {recommended} h recommended",
     "alert_acid_missing": "No acid tank — pH is not being dosed",
     "alert_combined": "Combined chlorine at {value} ppm — shock the water"
   },
@@ -227,8 +221,6 @@
     "never_recorded": "never recorded",
     "no_visits": "No visits logged yet.",
     "overdue_count": "overdue",
-    "recommended": "Recommended",
-    "at_temperature": "at {t} °C",
     "blocks_total": "{n} blocks · {h} h"
   },
   "roles": {
