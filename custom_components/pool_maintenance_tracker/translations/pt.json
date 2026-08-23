@@ -102,10 +102,32 @@
         "data": {
           "pool_system_entity": "Interruptor do sistema",
           "heat_pump_entity": "Bomba de calor",
-          "filtration_schedule_entity": "Horário de filtragem",
+          "filtration_schedule_mode": "Horário de filtragem",
           "pump_entity": "Bomba do filtro",
           "pool_light_entity": "Luz da piscina",
           "cover_entity": "Cobertura"
+        },
+        "data_description": {
+          "filtration_schedule_mode": "Como esta piscina guarda as horas de filtragem. O agendamento é o helper do próprio Home Assistant; escolhe as entidades quando é o controlador da piscina que já publica as horas de ligar e desligar."
+        }
+      },
+      "schedule_helper": {
+        "title": "Horário de filtragem",
+        "description": "O agendamento que decide quando a filtragem corre. Os blocos semanais aparecem em todos os painéis, ao lado das horas recomendadas.",
+        "data": {
+          "filtration_schedule_entity": "Agendamento"
+        }
+      },
+      "schedule_times": {
+        "title": "Horário de filtragem",
+        "description": "As entidades que o controlador da piscina usa para o ciclo. As duas horas constroem a mesma vista semanal de um agendamento, e o sensor diz se a filtragem está a funcionar agora.",
+        "data": {
+          "filtration_on_time_entity": "Hora de ligar",
+          "filtration_off_time_entity": "Hora de desligar",
+          "filtration_state_entity": "Sensor de funcionamento (opcional)"
+        },
+        "data_description": {
+          "filtration_state_entity": "Deixa vazio para o estado ser lido a partir das próprias horas."
         }
       },
       "reminders": {
@@ -186,6 +208,13 @@
         "single_speed": "Velocidade única",
         "two_speed": "Duas velocidades",
         "variable_speed": "Velocidade variável"
+      }
+    },
+    "filtration_schedule_mode": {
+      "options": {
+        "none": "Nenhum",
+        "helper": "Um agendamento (schedule) do Home Assistant",
+        "times": "Hora de ligar, hora de desligar e sensor de funcionamento"
       }
     }
   },

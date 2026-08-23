@@ -102,10 +102,32 @@
         "data": {
           "pool_system_entity": "Interruptor del sistema",
           "heat_pump_entity": "Bomba de calor",
-          "filtration_schedule_entity": "Horario de filtración",
+          "filtration_schedule_mode": "Horario de filtración",
           "pump_entity": "Bomba del filtro",
           "pool_light_entity": "Luz de la piscina",
           "cover_entity": "Cubierta"
+        },
+        "data_description": {
+          "filtration_schedule_mode": "Cómo guarda esta piscina sus horas de filtración. El horario es el helper del propio Home Assistant; elige las entidades cuando es el controlador de la piscina el que ya publica las horas de encendido y apagado."
+        }
+      },
+      "schedule_helper": {
+        "title": "Horario de filtración",
+        "description": "El horario que decide cuándo funciona la filtración. Sus bloques semanales aparecen en todos los paneles, junto a las horas recomendadas.",
+        "data": {
+          "filtration_schedule_entity": "Horario"
+        }
+      },
+      "schedule_times": {
+        "title": "Horario de filtración",
+        "description": "Las entidades que usa el controlador de la piscina para su ciclo. Las dos horas construyen la misma vista semanal de un horario, y el sensor dice si la filtración está funcionando ahora.",
+        "data": {
+          "filtration_on_time_entity": "Hora de encendido",
+          "filtration_off_time_entity": "Hora de apagado",
+          "filtration_state_entity": "Sensor de funcionamiento (opcional)"
+        },
+        "data_description": {
+          "filtration_state_entity": "Déjalo vacío para leer el estado a partir de las propias horas."
         }
       },
       "reminders": {
@@ -186,6 +208,13 @@
         "single_speed": "Velocidad única",
         "two_speed": "Dos velocidades",
         "variable_speed": "Velocidad variable"
+      }
+    },
+    "filtration_schedule_mode": {
+      "options": {
+        "none": "Ninguno",
+        "helper": "Un horario (schedule) de Home Assistant",
+        "times": "Hora de encendido, hora de apagado y sensor de funcionamiento"
       }
     }
   },

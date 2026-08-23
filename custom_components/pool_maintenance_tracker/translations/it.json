@@ -102,10 +102,32 @@
         "data": {
           "pool_system_entity": "Interruttore del sistema",
           "heat_pump_entity": "Pompa di calore",
-          "filtration_schedule_entity": "Orario di filtrazione",
+          "filtration_schedule_mode": "Orario di filtrazione",
           "pump_entity": "Pompa del filtro",
           "pool_light_entity": "Luce piscina",
           "cover_entity": "Copertura"
+        },
+        "data_description": {
+          "filtration_schedule_mode": "Come questa piscina conserva le ore di filtrazione. La pianificazione è quella di Home Assistant; scegli le entità quando è la centralina della piscina a pubblicare già gli orari di accensione e spegnimento."
+        }
+      },
+      "schedule_helper": {
+        "title": "Orario di filtrazione",
+        "description": "La pianificazione che decide quando la filtrazione funziona. I suoi blocchi settimanali appaiono su ogni dashboard, accanto alle ore consigliate.",
+        "data": {
+          "filtration_schedule_entity": "Pianificazione"
+        }
+      },
+      "schedule_times": {
+        "title": "Orario di filtrazione",
+        "description": "Le entità che la centralina della piscina usa per il suo ciclo. Le due ore costruiscono la stessa vista settimanale di una pianificazione, e il sensore dice se la filtrazione sta funzionando adesso.",
+        "data": {
+          "filtration_on_time_entity": "Ora di accensione",
+          "filtration_off_time_entity": "Ora di spegnimento",
+          "filtration_state_entity": "Sensore di funzionamento (opzionale)"
+        },
+        "data_description": {
+          "filtration_state_entity": "Lascia vuoto per ricavare lo stato dalle ore stesse."
         }
       },
       "reminders": {
@@ -186,6 +208,13 @@
         "single_speed": "Velocità singola",
         "two_speed": "Due velocità",
         "variable_speed": "Velocità variabile"
+      }
+    },
+    "filtration_schedule_mode": {
+      "options": {
+        "none": "Nessuno",
+        "helper": "Una pianificazione (schedule) di Home Assistant",
+        "times": "Ora di accensione, ora di spegnimento e sensore di funzionamento"
       }
     }
   },

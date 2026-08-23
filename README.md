@@ -161,10 +161,12 @@ simply doesn't appear.
 
 **Filtration suggestion.** How long the filtration should run today, shown
 under the hours your schedule actually runs — *4 h/day*, and below it
-*recommended 8.5 h*. Without a schedule the row becomes *Recommended
-filtration* and shows the suggestion on its own. It is a suggestion for you to
-act on: the integration never touches the pump. How that number is worked out
-depends on how much you have told it — see below.
+*recommended 8.5 h*. Those hours come from a Home Assistant schedule helper or
+from your pool controller's own on/off time entities, whichever this pool has
+([both are supported](#the-filtration-schedule)). Without a schedule the row
+becomes *Recommended filtration* and shows the suggestion on its own. It is a
+suggestion for you to act on: the integration never touches the pump. How that
+number is worked out depends on how much you have told it — see below.
 
 ### Sizing the filtration
 
@@ -449,6 +451,29 @@ schedule…). Their state is formatted automatically — measurements with units
 on/off with "since when", and `schedule` helpers with *turns on/off at …* plus
 their real weekly grid (read from HA's storage for UI-created schedules;
 schedules are configuration, so they stay out of the history charts).
+
+### The filtration schedule
+
+The schedule is the one role that is not simply an entity to pick, because
+pools hold it in two different places. The same **Configure → Equipment** step
+asks which one this pool has, and the next screen collects it:
+
+- **A Home Assistant schedule helper** — the `schedule.` entity you drew in
+  the UI. Its weekly blocks are read straight from HA's storage.
+- **On time, off time and a running sensor** — for a pool controller that
+  already owns the cycle and publishes it as entities. Pick the entity holding
+  the hour it starts, the one holding the hour it stops (a `time`, an
+  `input_datetime` or a plain sensor — all three are read), and optionally
+  something that reports whether it is running right now (a `binary_sensor`,
+  a switch). Leave that third one empty and the state is read off the hours
+  themselves; fill it in and the controller wins, because only it knows about
+  a manual override.
+
+Either way you get the same thing everywhere: the weekly grid on the Status
+tab, today's cycle bar on the card and the wall dashboard, the countdown to
+the next change, and today's hours next to the recommended ones. A cycle that
+runs through midnight — 22:00 to 06:00 — is one run of eight hours, not two
+broken halves.
 
 ### Linked sensors (smart probes)
 

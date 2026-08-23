@@ -102,10 +102,32 @@
         "data": {
           "pool_system_entity": "Interrupteur du système",
           "heat_pump_entity": "Pompe à chaleur",
-          "filtration_schedule_entity": "Horaire de filtration",
+          "filtration_schedule_mode": "Horaire de filtration",
           "pump_entity": "Pompe de filtration",
           "pool_light_entity": "Éclairage de la piscine",
           "cover_entity": "Couverture"
+        },
+        "data_description": {
+          "filtration_schedule_mode": "Comment cette piscine conserve ses heures de filtration. Le planning est l'assistant natif de Home Assistant ; choisissez les entités lorsque le coffret de la piscine publie déjà les heures de marche et d'arrêt."
+        }
+      },
+      "schedule_helper": {
+        "title": "Horaire de filtration",
+        "description": "Le planning qui décide quand la filtration tourne. Ses plages hebdomadaires s'affichent sur tous les tableaux de bord, à côté des heures recommandées.",
+        "data": {
+          "filtration_schedule_entity": "Planning"
+        }
+      },
+      "schedule_times": {
+        "title": "Horaire de filtration",
+        "description": "Les entités que le coffret de la piscine utilise pour son cycle. Les deux heures construisent la même vue hebdomadaire qu'un planning, et le capteur indique si la filtration tourne en ce moment.",
+        "data": {
+          "filtration_on_time_entity": "Heure de marche",
+          "filtration_off_time_entity": "Heure d'arrêt",
+          "filtration_state_entity": "Capteur de fonctionnement (facultatif)"
+        },
+        "data_description": {
+          "filtration_state_entity": "Laissez vide pour déduire l'état des heures elles-mêmes."
         }
       },
       "reminders": {
@@ -186,6 +208,13 @@
         "single_speed": "Vitesse unique",
         "two_speed": "Deux vitesses",
         "variable_speed": "Vitesse variable"
+      }
+    },
+    "filtration_schedule_mode": {
+      "options": {
+        "none": "Aucun",
+        "helper": "Un planning (schedule) Home Assistant",
+        "times": "Heure de marche, heure d'arrêt et capteur de fonctionnement"
       }
     }
   },

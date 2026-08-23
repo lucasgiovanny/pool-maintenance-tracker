@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Final
+from collections.abc import Mapping
+from typing import Any, Final
 
 DOMAIN: Final = "pool_maintenance_tracker"
 
@@ -67,13 +68,45 @@ EQUIPMENT_ROLES: Final[dict[str, str]] = {
     "pool_light": CONF_POOL_LIGHT_ENTITY,
     "cover": CONF_COVER_ENTITY,
 }
+ROLE_FILTRATION_SCHEDULE: Final = "filtration_schedule"
+
+# A pool says when it filters in one of two ways. Home Assistant's own
+# schedule helper is the tidy one, and the one this integration started
+# with. The other is a pool controller that already owns the schedule and
+# publishes it as plain entities: the hour it starts, the hour it stops,
+# and something that says whether it is running right now. Both describe
+# the same week, so both are turned into the same weekly grid and every
+# surface downstream stays unaware of which one this pool has.
+CONF_FILTRATION_SCHEDULE_MODE: Final = "filtration_schedule_mode"
+SCHEDULE_MODE_NONE: Final = "none"
+SCHEDULE_MODE_HELPER: Final = "helper"
+SCHEDULE_MODE_TIMES: Final = "times"
+SCHEDULE_MODES: Final = [SCHEDULE_MODE_NONE, SCHEDULE_MODE_HELPER, SCHEDULE_MODE_TIMES]
+CONF_FILTRATION_ON_TIME_ENTITY: Final = "filtration_on_time_entity"
+CONF_FILTRATION_OFF_TIME_ENTITY: Final = "filtration_off_time_entity"
+CONF_FILTRATION_STATE_ENTITY: Final = "filtration_state_entity"
+SCHEDULE_TIME_KEYS: Final[tuple[str, ...]] = (
+    CONF_FILTRATION_ON_TIME_ENTITY,
+    CONF_FILTRATION_OFF_TIME_ENTITY,
+    CONF_FILTRATION_STATE_ENTITY,
+)
+# Where a time can live. A `time` entity and an `input_datetime` are the
+# native ways; a plain sensor is how many controllers expose theirs.
+SCHEDULE_TIME_DOMAINS: Final[tuple[str, ...]] = ("time", "input_datetime", "sensor")
+# What can answer "is the filtration running?" — an observation, not a control.
+SCHEDULE_STATE_DOMAINS: Final[tuple[str, ...]] = (
+    "binary_sensor",
+    "switch",
+    "input_boolean",
+    "sensor",
+)
 
 # What a maintenance plan may ask for. Only equipment roles: the page sends a
 # role, never an entity id, so the reach of a plan is exactly what the owner
 # assigned to this pool. The filtration schedule is left out — a schedule
-# helper is configuration, not an appliance, and has no on/off service.
+# is configuration, not an appliance, and has no on/off service.
 MAINTENANCE_ROLES: Final[tuple[str, ...]] = tuple(
-    role for role in EQUIPMENT_ROLES if role != "filtration_schedule"
+    role for role in EQUIPMENT_ROLES if role != ROLE_FILTRATION_SCHEDULE
 )
 # Domains we know how to command. A role pointed at a binary_sensor is an
 # observation, not a control, so it is never offered.
@@ -343,6 +376,20 @@ TECHNICIAN_PERSON: Final = "technician"
 
 # Re-notify damper for overdue reminders
 RENOTIFY_DAYS: Final = 3
+
+
+def schedule_mode(options: Mapping[str, Any]) -> str:
+    """How this pool expresses its filtration schedule.
+
+    Pools configured before there was a choice never stored one: a schedule
+    helper is what they have, and the entity they already picked says so.
+    """
+    mode = options.get(CONF_FILTRATION_SCHEDULE_MODE)
+    if mode in SCHEDULE_MODES:
+        return mode
+    if options.get(CONF_FILTRATION_SCHEDULE_ENTITY):
+        return SCHEDULE_MODE_HELPER
+    return SCHEDULE_MODE_NONE
 
 
 def maintenance_values(domain: str) -> tuple[str, ...]:

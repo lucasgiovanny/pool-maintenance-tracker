@@ -278,7 +278,10 @@ class PoolMaintenanceCard extends HTMLElement {
     const report = (this._data || {}).report || {};
     const ids = new Set(Object.values(report.entity_ids || {}));
     Object.values(report.roles || {}).forEach(role => {
-      if (role && role.entity_id) ids.add(role.entity_id);
+      if (!role) return;
+      if (role.entity_id) ids.add(role.entity_id);
+      /* A schedule kept as separate entities moves when its hours do */
+      (role.sources || []).forEach(id => ids.add(id));
     });
     (report.extra || []).forEach(item => ids.add(item.entity_id));
     if ((report.filter_pressure || {}).entity_id) ids.add(report.filter_pressure.entity_id);

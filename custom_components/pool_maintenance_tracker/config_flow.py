@@ -36,7 +36,11 @@ from .const import (
     CONF_FILTER_DAYS,
     CONF_FILTER_PRESSURE_RISE,
     CONF_FILTER_PRESSURE_SOURCE,
+    CONF_FILTRATION_OFF_TIME_ENTITY,
+    CONF_FILTRATION_ON_TIME_ENTITY,
     CONF_FILTRATION_SCHEDULE_ENTITY,
+    CONF_FILTRATION_SCHEDULE_MODE,
+    CONF_FILTRATION_STATE_ENTITY,
     CONF_HEAT_PUMP_ENTITY,
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
@@ -82,6 +86,14 @@ from .const import (
     POOL_TYPES,
     PUMP_SINGLE_SPEED,
     PUMP_TYPES,
+    ROLE_FILTRATION_SCHEDULE,
+    SCHEDULE_MODE_HELPER,
+    SCHEDULE_MODE_NONE,
+    SCHEDULE_MODES,
+    SCHEDULE_STATE_DOMAINS,
+    SCHEDULE_TIME_DOMAINS,
+    SCHEDULE_TIME_KEYS,
+    schedule_mode,
 )
 from .modules import (
     MODULE_FILTER,
@@ -285,6 +297,11 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
 class PoolOptionsFlow(OptionsFlow):
     """Edit modules, reminders, page settings, or regenerate the token."""
 
+    @callback
+    def _store(self, options: dict[str, Any]) -> None:
+        """Persist without leaving, for a step that hands over to another."""
+        self.hass.config_entries.async_update_entry(self.config_entry, options=options)
+
     async def _save(self, options: dict[str, Any]) -> ConfigFlowResult:
         """Store the options and go back to the menu.
 
@@ -293,7 +310,7 @@ class PoolOptionsFlow(OptionsFlow):
         means reopening Configure. Persisting the options ourselves and
         returning the menu keeps the dialog open where the user left off.
         """
-        self.hass.config_entries.async_update_entry(self.config_entry, options=options)
+        self._store(options)
         return await self.async_step_init()
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -390,15 +407,34 @@ class PoolOptionsFlow(OptionsFlow):
     async def async_step_equipment(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Point the dashboards at the entities that play a known role."""
+        """Point the dashboards at the entities that play a known role.
+
+        The filtration schedule is the one role that is not simply an entity
+        to pick: a pool holds it in a Home Assistant schedule helper, or in
+        the on/off times its own controller publishes. So this step asks
+        which of the two it is and the next one collects it.
+        """
         options = dict(self.config_entry.options)
         if user_input is not None:
-            for conf_key in EQUIPMENT_ROLES.values():
+            for role, conf_key in EQUIPMENT_ROLES.items():
+                if role == ROLE_FILTRATION_SCHEDULE:
+                    continue
                 if user_input.get(conf_key):
                     options[conf_key] = user_input[conf_key]
                 else:
                     options.pop(conf_key, None)
-            return await self._save(options)
+            mode = user_input.get(CONF_FILTRATION_SCHEDULE_MODE, SCHEDULE_MODE_NONE)
+            options[CONF_FILTRATION_SCHEDULE_MODE] = mode
+            if mode == SCHEDULE_MODE_NONE:
+                for conf_key in (CONF_FILTRATION_SCHEDULE_ENTITY, *SCHEDULE_TIME_KEYS):
+                    options.pop(conf_key, None)
+                return await self._save(options)
+            # Kept before handing over, so closing the dialog on the next
+            # step does not undo what was chosen on this one.
+            self._store(options)
+            if mode == SCHEDULE_MODE_HELPER:
+                return await self.async_step_schedule_helper()
+            return await self.async_step_schedule_times()
 
         domains = {
             CONF_POOL_SYSTEM_ENTITY: ["switch", "input_boolean", "binary_sensor"],
@@ -409,17 +445,101 @@ class PoolOptionsFlow(OptionsFlow):
                 "input_boolean",
                 "binary_sensor",
             ],
-            CONF_FILTRATION_SCHEDULE_ENTITY: ["schedule"],
             CONF_PUMP_ENTITY: ["switch", "input_boolean", "binary_sensor", "fan"],
             CONF_POOL_LIGHT_ENTITY: ["light", "switch"],
             CONF_COVER_ENTITY: ["cover", "switch", "binary_sensor", "input_boolean"],
         }
         schema: dict[vol.Marker, Any] = {}
-        for conf_key in EQUIPMENT_ROLES.values():
+        for role, conf_key in EQUIPMENT_ROLES.items():
+            if role == ROLE_FILTRATION_SCHEDULE:
+                schema[
+                    vol.Required(
+                        CONF_FILTRATION_SCHEDULE_MODE,
+                        default=schedule_mode(options),
+                    )
+                ] = SelectSelector(
+                    SelectSelectorConfig(
+                        options=SCHEDULE_MODES,
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="filtration_schedule_mode",
+                    )
+                )
+                continue
             schema[
                 vol.Optional(conf_key, description={"suggested_value": options.get(conf_key)})
             ] = EntitySelector(EntitySelectorConfig(domain=domains[conf_key]))
         return self.async_show_form(step_id="equipment", data_schema=vol.Schema(schema))
+
+    async def async_step_schedule_helper(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The filtration schedule as a Home Assistant schedule helper."""
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            options[CONF_FILTRATION_SCHEDULE_ENTITY] = user_input[CONF_FILTRATION_SCHEDULE_ENTITY]
+            for conf_key in SCHEDULE_TIME_KEYS:
+                options.pop(conf_key, None)
+            return await self._save(options)
+
+        return self.async_show_form(
+            step_id="schedule_helper",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_FILTRATION_SCHEDULE_ENTITY,
+                        description={
+                            "suggested_value": options.get(CONF_FILTRATION_SCHEDULE_ENTITY)
+                        },
+                    ): EntitySelector(EntitySelectorConfig(domain="schedule")),
+                }
+            ),
+        )
+
+    async def async_step_schedule_times(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The filtration schedule as the controller's own entities.
+
+        The two times are the schedule; the third entity is the answer to
+        "is it running now?". That one is optional — with the hours known,
+        a clock answers it too — but a controller that has it is more
+        truthful than the grid, which cannot know about a manual override.
+        """
+        options = dict(self.config_entry.options)
+        if user_input is not None:
+            options[CONF_FILTRATION_ON_TIME_ENTITY] = user_input[CONF_FILTRATION_ON_TIME_ENTITY]
+            options[CONF_FILTRATION_OFF_TIME_ENTITY] = user_input[CONF_FILTRATION_OFF_TIME_ENTITY]
+            if user_input.get(CONF_FILTRATION_STATE_ENTITY):
+                options[CONF_FILTRATION_STATE_ENTITY] = user_input[CONF_FILTRATION_STATE_ENTITY]
+            else:
+                options.pop(CONF_FILTRATION_STATE_ENTITY, None)
+            options.pop(CONF_FILTRATION_SCHEDULE_ENTITY, None)
+            return await self._save(options)
+
+        time_selector = EntitySelector(EntitySelectorConfig(domain=list(SCHEDULE_TIME_DOMAINS)))
+        return self.async_show_form(
+            step_id="schedule_times",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_FILTRATION_ON_TIME_ENTITY,
+                        description={
+                            "suggested_value": options.get(CONF_FILTRATION_ON_TIME_ENTITY)
+                        },
+                    ): time_selector,
+                    vol.Required(
+                        CONF_FILTRATION_OFF_TIME_ENTITY,
+                        description={
+                            "suggested_value": options.get(CONF_FILTRATION_OFF_TIME_ENTITY)
+                        },
+                    ): time_selector,
+                    vol.Optional(
+                        CONF_FILTRATION_STATE_ENTITY,
+                        description={"suggested_value": options.get(CONF_FILTRATION_STATE_ENTITY)},
+                    ): EntitySelector(EntitySelectorConfig(domain=list(SCHEDULE_STATE_DOMAINS))),
+                }
+            ),
+        )
 
     async def async_step_sensors(
         self, user_input: dict[str, Any] | None = None

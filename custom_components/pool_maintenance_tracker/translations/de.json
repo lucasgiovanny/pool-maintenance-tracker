@@ -102,10 +102,32 @@
         "data": {
           "pool_system_entity": "Systemschalter",
           "heat_pump_entity": "Wärmepumpe",
-          "filtration_schedule_entity": "Filterzeitplan",
+          "filtration_schedule_mode": "Filterzeitplan",
           "pump_entity": "Filterpumpe",
           "pool_light_entity": "Poolbeleuchtung",
           "cover_entity": "Abdeckung"
+        },
+        "data_description": {
+          "filtration_schedule_mode": "Wie dieser Pool seine Filterzeiten hält. Der Zeitplan ist der von Home Assistant selbst; wähle die Entitäten, wenn die Poolsteuerung die Ein- und Ausschaltzeit bereits veröffentlicht."
+        }
+      },
+      "schedule_helper": {
+        "title": "Filterzeitplan",
+        "description": "Der Zeitplan, der entscheidet, wann die Filterung läuft. Seine Wochenblöcke erscheinen auf jedem Dashboard, neben den empfohlenen Stunden.",
+        "data": {
+          "filtration_schedule_entity": "Zeitplan"
+        }
+      },
+      "schedule_times": {
+        "title": "Filterzeitplan",
+        "description": "Die Entitäten, die deine Poolsteuerung für ihren Zyklus nutzt. Die beiden Zeiten bauen dieselbe Wochenansicht wie ein Zeitplan, und der Sensor sagt, ob die Filterung gerade läuft.",
+        "data": {
+          "filtration_on_time_entity": "Einschaltzeit",
+          "filtration_off_time_entity": "Ausschaltzeit",
+          "filtration_state_entity": "Laufsensor (optional)"
+        },
+        "data_description": {
+          "filtration_state_entity": "Leer lassen, um den Zustand aus den Zeiten selbst zu lesen."
         }
       },
       "reminders": {
@@ -186,6 +208,13 @@
         "single_speed": "Eine Drehzahl",
         "two_speed": "Zwei Drehzahlen",
         "variable_speed": "Drehzahlgeregelt"
+      }
+    },
+    "filtration_schedule_mode": {
+      "options": {
+        "none": "Keiner",
+        "helper": "Ein Home-Assistant-Zeitplan (Schedule)",
+        "times": "Einschaltzeit, Ausschaltzeit und Laufsensor"
       }
     }
   },

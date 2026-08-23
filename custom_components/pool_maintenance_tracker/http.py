@@ -38,6 +38,10 @@ from .const import (
     ACID_ALERT_LEVELS,
     COMBINED_CHLORINE_ALERT,
     CONF_CELL_OUTPUT,
+    CONF_FILTRATION_OFF_TIME_ENTITY,
+    CONF_FILTRATION_ON_TIME_ENTITY,
+    CONF_FILTRATION_SCHEDULE_ENTITY,
+    CONF_FILTRATION_STATE_ENTITY,
     CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
@@ -95,8 +99,12 @@ from .const import (
     POOL_TYPE_SALT,
     PUMP_SINGLE_SPEED,
     RECENT_RECORDS_ATTR_COUNT,
+    ROLE_FILTRATION_SCHEDULE,
+    SCHEDULE_MODE_HELPER,
+    SCHEDULE_MODE_TIMES,
     THERMOSTAT_DOMAINS,
     TS_ANY,
+    UNAVAILABLE_STATES,
     URL_HISTORY,
     URL_KIOSK,
     URL_LOG,
@@ -106,6 +114,7 @@ from .const import (
     URL_STATE,
     equipment_on,
     maintenance_values,
+    schedule_mode,
 )
 from .entity import page_url
 from .filtration import advise
@@ -463,6 +472,116 @@ def _schedule_next_change(week: list[list[list[str]]], now: datetime) -> datetim
     return None
 
 
+def _time_of(hass: HomeAssistant, entity_id: str) -> str | None:
+    """The wall-clock "HH:MM" behind whatever entity holds a time.
+
+    A `time` entity says "08:00:00", an `input_datetime` may carry a date in
+    front of it, and a controller's sensor says whatever it likes — an ISO
+    timestamp, or just "8:00". All three mean one hour of one day.
+    """
+    state = hass.states.get(entity_id)
+    if state is None or state.state in UNAVAILABLE_STATES:
+        return None
+    # input_datetime spells the parts out, which beats parsing its state.
+    hour, minute = state.attributes.get("hour"), state.attributes.get("minute")
+    if isinstance(hour, int) and isinstance(minute, int):
+        return f"{hour:02d}:{minute:02d}"
+    raw = state.state.strip()
+    if moment := dt_util.parse_datetime(raw):
+        # A timestamp sensor speaks UTC; the schedule is read off a wall clock.
+        local = dt_util.as_local(moment) if moment.tzinfo else moment
+        return f"{local.hour:02d}:{local.minute:02d}"
+    parts = raw.split(":")
+    try:
+        hour, minute = int(parts[0]), int(parts[1]) if len(parts) > 1 else 0
+    except (IndexError, ValueError):
+        return None
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return None
+    return f"{hour:02d}:{minute:02d}"
+
+
+def _times_week(on_time: str, off_time: str) -> list[list[list[str]]] | None:
+    """One on/off pair as the weekly grid a schedule helper would produce.
+
+    Two times describe the same day seven times over. A pair that ends
+    before it starts runs through midnight, which the grid says with two
+    blocks that touch at it — exactly how the helper stores such a night,
+    so that everything reading the grid merges them back into one run.
+    """
+    if on_time == off_time:
+        return None
+    if off_time > on_time:
+        day = [[on_time, off_time]]
+    else:
+        day = [["00:00", off_time]] if off_time > "00:00" else []
+        day.append([on_time, "24:00"])
+    return [[list(block) for block in day] for _ in WEEKDAYS]
+
+
+def _in_block(week: list[list[list[str]]], now: datetime) -> bool:
+    """Whether the grid has the filtration running at this local moment."""
+    minutes = now.hour * 60 + now.minute
+    return any(
+        _minutes_of(start) <= minutes < _minutes_of(end) for start, end in week[now.weekday() % 7]
+    )
+
+
+@callback
+def _times_schedule_item(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any] | None:
+    """The filtration schedule of a pool whose controller owns it.
+
+    The two times give the week; the state entity gives the present. Without
+    one we read the present off the grid ourselves — a clock and a schedule
+    are enough to know whether the pump should be running.
+    """
+    on_entity = entry.options.get(CONF_FILTRATION_ON_TIME_ENTITY)
+    off_entity = entry.options.get(CONF_FILTRATION_OFF_TIME_ENTITY)
+    if not on_entity or not off_entity:
+        return None
+    on_time, off_time = _time_of(hass, on_entity), _time_of(hass, off_entity)
+    if on_time is None or off_time is None:
+        return None
+    week = _times_week(on_time, off_time)
+    if week is None:
+        return None
+    scheduled = _in_block(week, dt_util.now())
+
+    state_entity = entry.options.get(CONF_FILTRATION_STATE_ENTITY)
+    state = hass.states.get(state_entity) if state_entity else None
+    running: bool | None = None
+    if state is not None:
+        running = equipment_on(state_entity.split(".")[0], state.state)
+    if running is None:
+        # No sensor, or one that is not talking: the grid still knows.
+        running = scheduled
+    # A sensor that disagrees with the grid is somebody having overridden the
+    # cycle by hand, and nothing here can know when they will hand it back.
+    # Saying so beats counting down to a change that will not happen.
+    next_change = _schedule_next_change(week, dt_util.utcnow()) if running == scheduled else None
+
+    return {
+        # Whatever the page opens when the row is tapped: the thing that
+        # reports the state if there is one, the start time otherwise.
+        "entity_id": state_entity or on_entity,
+        "name": (state.attributes.get("friendly_name") if state else None) or on_entity,
+        "state": "on" if running else "off",
+        "on": running,
+        "action": None,
+        "target": None,
+        "target_unit": "",
+        "unit": "",
+        # A schedule is what this is, whichever entities spell it out.
+        "domain": "schedule",
+        "next_change": next_change.isoformat() if next_change else None,
+        "week": week,
+        "last_changed": state.last_changed.isoformat() if state else None,
+        # The card redraws when a watched entity moves, and moving the hours
+        # changes this tile as surely as the pump switching on does.
+        "sources": [entity for entity in (on_entity, off_entity, state_entity) if entity],
+    }
+
+
 async def _entity_item(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | None:
     """Normalized snapshot of an external entity for the dashboards."""
     state = hass.states.get(entity_id)
@@ -527,10 +646,30 @@ def _entity_ids(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, str]:
     }
 
 
+async def _filtration_schedule_item(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> dict[str, Any] | None:
+    """The pool's filtration schedule, from a helper or from three entities."""
+    mode = schedule_mode(entry.options)
+    if mode == SCHEDULE_MODE_TIMES:
+        return _times_schedule_item(hass, entry)
+    if mode == SCHEDULE_MODE_HELPER and (
+        entity_id := entry.options.get(CONF_FILTRATION_SCHEDULE_ENTITY)
+    ):
+        return await _entity_item(hass, entity_id)
+    return None
+
+
 async def _role_entities(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
     """Entities the user explicitly assigned to a known role."""
     roles: dict[str, Any] = {}
     for role, conf_key in EQUIPMENT_ROLES.items():
+        if role == ROLE_FILTRATION_SCHEDULE:
+            # One role, two ways of holding it — settled in one place so the
+            # rest of the report never has to ask which one this pool has.
+            if item := await _filtration_schedule_item(hass, entry):
+                roles[role] = item
+            continue
         entity_id = entry.options.get(conf_key)
         if entity_id and (item := await _entity_item(hass, entity_id)):
             roles[role] = item
@@ -1001,7 +1140,9 @@ async def _build_history(hass: HomeAssistant, entry: ConfigEntry, days: int) -> 
     # Role entities are charted too, so picking a heat pump as a role does
     # not cost you its runtime history.
     charted: list[str] = []
-    for conf_key in EQUIPMENT_ROLES.values():
+    # A schedule helper has no history worth charting, but the sensor that
+    # reports whether the filtration is running most certainly does.
+    for conf_key in (*EQUIPMENT_ROLES.values(), CONF_FILTRATION_STATE_ENTITY):
         if (entity_id := entry.options.get(conf_key)) and entity_id not in charted:
             charted.append(entity_id)
     for entity_id in entry.options.get(CONF_REPORT_SENSORS, ()):
