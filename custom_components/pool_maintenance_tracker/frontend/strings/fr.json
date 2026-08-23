@@ -162,7 +162,8 @@
     "actual_today": "a tourné {h} h aujourd'hui",
     "filter_pressure": "Pression du filtre",
     "pressure_rise": "+{p}% depuis le lavage",
-    "alert_acid_missing": "Pas de bidon d'acide — le pH n'est pas dosé"
+    "alert_acid_missing": "Pas de bidon d'acide — le pH n'est pas dosé",
+    "export_csv": "Télécharger le journal (CSV)"
   },
   "notes": {
     "title": "Notes",

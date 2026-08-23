@@ -162,7 +162,8 @@
     "actual_today": "correu {h} h hoje",
     "filter_pressure": "Pressão do filtro",
     "pressure_rise": "+{p}% desde a lavagem",
-    "alert_acid_missing": "Sem depósito de ácido — o pH não está a ser doseado"
+    "alert_acid_missing": "Sem depósito de ácido — o pH não está a ser doseado",
+    "export_csv": "Descarregar o registo (CSV)"
   },
   "notes": {
     "title": "Notas",

@@ -213,19 +213,19 @@
         "name": "pH (manual reading)"
       },
       "free_chlorine": {
-        "name": "Free chlorine"
+        "name": "Free chlorine (manual reading)"
       },
       "total_chlorine": {
-        "name": "Total chlorine"
+        "name": "Total chlorine (manual reading)"
       },
       "total_alkalinity": {
-        "name": "Total alkalinity"
+        "name": "Total alkalinity (manual reading)"
       },
       "cyanuric_acid": {
-        "name": "Cyanuric acid"
+        "name": "Cyanuric acid (manual reading)"
       },
       "calcium_hardness": {
-        "name": "Calcium hardness"
+        "name": "Calcium hardness (manual reading)"
       },
       "water_temperature": {
         "name": "Water temperature (manual reading)"
@@ -294,6 +294,30 @@
       },
       "combined_chlorine": {
         "name": "Combined chlorine"
+      },
+      "ph_measurement": {
+        "name": "pH"
+      },
+      "free_chlorine_measurement": {
+        "name": "Free chlorine"
+      },
+      "total_chlorine_measurement": {
+        "name": "Total chlorine"
+      },
+      "total_alkalinity_measurement": {
+        "name": "Total alkalinity"
+      },
+      "cyanuric_acid_measurement": {
+        "name": "Cyanuric acid"
+      },
+      "calcium_hardness_measurement": {
+        "name": "Calcium hardness"
+      },
+      "salt_level_measurement": {
+        "name": "Salt"
+      },
+      "water_temperature_measurement": {
+        "name": "Water temperature"
       }
     },
     "binary_sensor": {

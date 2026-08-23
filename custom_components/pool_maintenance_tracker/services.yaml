@@ -29,3 +29,10 @@ start_maintenance:
       required: false
       selector:
         object:
+export_records:
+  fields:
+    config_entry:
+      required: true
+      selector:
+        config_entry:
+          integration: pool_maintenance_tracker

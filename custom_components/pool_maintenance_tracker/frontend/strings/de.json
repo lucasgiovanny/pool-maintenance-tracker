@@ -162,7 +162,8 @@
     "actual_today": "lief heute {h} h",
     "filter_pressure": "Filterdruck",
     "pressure_rise": "+{p}% seit der Wäsche",
-    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert"
+    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert",
+    "export_csv": "Protokoll herunterladen (CSV)"
   },
   "notes": {
     "title": "Notizen",

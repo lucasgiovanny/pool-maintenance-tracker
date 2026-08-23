@@ -46,6 +46,7 @@ from .const import (
     KEY_TOTAL_ALKALINITY,
     KEY_TOTAL_CHLORINE,
     KEY_WATER_TEMPERATURE,
+    MEASUREMENT_KEYS,
     POOL_TYPE_CHLORINE,
     POOL_TYPE_OTHER,
     POOL_TYPE_SALT,
@@ -58,6 +59,7 @@ from .const import (
     TS_PROBE_CALIBRATION,
     TS_SALT_ADDED,
     TS_WATER_TEST,
+    measurement_sensor_key,
 )
 
 
@@ -251,6 +253,8 @@ def active_entity_keys(options: Mapping[str, Any]) -> set[str]:
     if options.get(CONF_MAINTENANCE_MODE, DEFAULT_MAINTENANCE_MODE):
         keys.add(KEY_MAINTENANCE_MODE)
     keys.update(enabled_value_keys(options))
+    # Each enabled measurement drags its statistics mirror along
+    keys.update(measurement_sensor_key(key) for key in MEASUREMENT_KEYS if key in keys)
     # Derived from two declared readings, so it follows them
     if KEY_TOTAL_CHLORINE in keys and KEY_FREE_CHLORINE in keys:
         keys.add(KEY_COMBINED_CHLORINE)

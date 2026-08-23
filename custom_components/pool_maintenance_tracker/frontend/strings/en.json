@@ -162,7 +162,8 @@
     "actual_today": "ran {h} h today",
     "filter_pressure": "Filter pressure",
     "pressure_rise": "+{p}% since the wash",
-    "alert_acid_missing": "No acid tank — pH is not being dosed"
+    "alert_acid_missing": "No acid tank — pH is not being dosed",
+    "export_csv": "Download the log (CSV)"
   },
   "notes": {
     "title": "Notes",

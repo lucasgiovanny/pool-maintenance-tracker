@@ -288,11 +288,34 @@ LINKED_VALUE_KEYS: Final[dict[str, str]] = {
     "temperature": KEY_WATER_TEMPERATURE,
 }
 
+# The water measurements. Each gets a statistics sensor mirroring the
+# declared value: numbers never feed Home Assistant's long-term statistics,
+# and the history of the water is exactly what a tracker must not lose.
+MEASUREMENT_KEYS: Final[tuple[str, ...]] = (
+    KEY_PH,
+    KEY_FREE_CHLORINE,
+    KEY_TOTAL_CHLORINE,
+    KEY_TOTAL_ALKALINITY,
+    KEY_CYANURIC_ACID,
+    KEY_CALCIUM_HARDNESS,
+    KEY_SALT_LEVEL,
+    KEY_WATER_TEMPERATURE,
+)
+
+
+def measurement_sensor_key(value_key: str) -> str:
+    """Entity key of the statistics sensor mirroring ``value_key``."""
+    return f"{value_key}_measurement"
+
+
 PAYLOAD_VERSION: Final = 2
 MAX_PERSON_LENGTH: Final = 40
 MAX_BODY_SIZE: Final = 16 * 1024  # bytes
-MAX_RECORDS: Final = 200
-MAX_NOTES: Final = 50
+# A tracker that discards its own diary is not much of a tracker. A
+# thousand records is decades at a weekly cadence and a couple of years
+# under daily probes; the export exists for whatever falls off the end.
+MAX_RECORDS: Final = 1000
+MAX_NOTES: Final = 200
 MAX_NOTE_LENGTH: Final = 500
 RECENT_RECORDS_ATTR_COUNT: Final = 20
 
@@ -317,6 +340,7 @@ URL_MANUAL: Final = "/api/pool_maintenance_tracker/{token}/manual"
 URL_STATE: Final = "/api/pool_maintenance_tracker/{token}/state"
 URL_KIOSK: Final = "/api/pool_maintenance_tracker/{token}/kiosk"
 URL_MODE: Final = "/api/pool_maintenance_tracker/{token}/mode"
+URL_EXPORT: Final = "/api/pool_maintenance_tracker/{token}/export"
 HISTORY_PERIODS: Final = (7, 30, 180)
 
 TECHNICIAN_PERSON: Final = "technician"

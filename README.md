@@ -486,6 +486,12 @@ Created per pool (depending on enabled modules):
 
 - **Numbers** (manually declared values): pH, free chlorine (ppm), water
   temperature (°C), salt (g/L), salt added (kg), chlorinator output (g/h)
+- **Measurement sensors** — one per water reading, mirroring the declared
+  value. The number is the pen; this is the archive: numbers never feed
+  Home Assistant's long-term statistics, so each reading also exists as a
+  `sensor` with `state_class: measurement`, which HA keeps statistics for
+  indefinitely. Chart years of pH in the native statistics card, no custom
+  anything.
 - **Selects**: chlorinator mode (smart/manual/boost), acid tank level (full…¼)
 - **Timestamps**: last water test, salt added, filter wash, cell cleaning,
   probe calibration, acid refill, cleaning, and last maintenance of any kind —
@@ -503,10 +509,25 @@ Created per pool (depending on enabled modules):
   <img src="assets/entities-screenshot.png" alt="Sensors, events and the QR code diagnostic entity" width="380">
 </p>
 
+Every accepted record also lands on the native **logbook** as a sentence in
+the pool's page language — *Piscina — Lucas · Filtro lavado* — so the pool's
+activity reads inline with the rest of the house's.
+
 Made a mistake? Call the **`pool_maintenance_tracker.delete_record`** action
 (Developer tools → Actions): pick the pool and optionally a `record_id` from
 the last-record sensor attributes — without an id it deletes the most recent
 record. Task timestamps are rebuilt from the remaining records.
+
+### Your data leaves whole
+
+The integration keeps the most recent 1000 records and 200 notes. Two doors
+out, both carrying everything:
+
+- **`pool_maintenance_tracker.export_records`** — an action that answers with
+  the full log and diary as response data, ready for a script or automation.
+- **Download the log (CSV)** — a link at the bottom of the page's Status tab:
+  one row per record, one column per value the pool has ever used, readable
+  by any spreadsheet. Same audience as the page itself.
 
 ## Automations
 

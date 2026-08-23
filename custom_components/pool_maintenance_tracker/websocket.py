@@ -51,7 +51,8 @@ async def ws_status(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
 ) -> None:
     """Everything the card needs to render one pool."""
-    from .http import _build_report, _live_values, _load_strings
+    from .http import _load_strings
+    from .report import _build_report, _live_values
 
     entry = hass.config_entries.async_get_entry(msg["entry_id"])
     if entry is None or entry.domain != DOMAIN or entry.state is not ConfigEntryState.LOADED:

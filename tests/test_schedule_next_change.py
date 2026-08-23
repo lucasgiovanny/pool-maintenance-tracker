@@ -4,7 +4,7 @@ from datetime import datetime
 
 from homeassistant.util import dt as dt_util
 
-from custom_components.pool_maintenance_tracker.http import (
+from custom_components.pool_maintenance_tracker.report import (
     _schedule_next_change,
     _today_scheduled_hours,
 )

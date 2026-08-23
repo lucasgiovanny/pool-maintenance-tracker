@@ -9,7 +9,13 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_NAME, Platform
-from homeassistant.core import Event, HomeAssistant, ServiceCall, callback
+from homeassistant.core import (
+    Event,
+    HomeAssistant,
+    ServiceCall,
+    SupportsResponse,
+    callback,
+)
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
@@ -23,11 +29,13 @@ from homeassistant.helpers.typing import ConfigType
 from . import filter_pressure, maintenance
 from .const import (
     CATEGORY_FILTER_WASH,
+    CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_POOL_SYSTEM_ENTITY,
     CONF_PUMP_ENTITY,
     CONF_TOKEN,
     DATA_TOKENS,
+    DEFAULT_LANGUAGE,
     DOMAIN,
     LINKED_MODE_MANUAL,
     LINKED_MODE_MIRROR,
@@ -36,7 +44,7 @@ from .const import (
     NUMBER_RANGES,
     signal_record,
 )
-from .http import async_register_views
+from .http import _load_strings, async_register_views
 from .maintenance import MaintenanceSession
 from .modules import active_entity_keys, enabled_value_keys
 from .reminders import ReminderEngine
@@ -102,6 +110,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
     async_register_views(hass)
     await _async_register_frontend(hass)
     async_register_websocket_api(hass)
+    # Warm the string cache in this pool's language: the logbook describer
+    # is synchronous and reads it, and the page will want it anyway.
+    await _load_strings(hass, entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE))
 
     _async_prune_stale_entities(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -210,6 +221,9 @@ DELETE_RECORD_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_EXPORT_RECORDS = "export_records"
+EXPORT_RECORDS_SCHEMA = vol.Schema({vol.Required("config_entry"): str})
+
 SERVICE_START_MAINTENANCE = "start_maintenance"
 START_MAINTENANCE_SCHEMA = vol.Schema(
     {
@@ -265,11 +279,34 @@ def _async_register_services(hass: HomeAssistant) -> None:
         _handle_delete_record,
         schema=DELETE_RECORD_SCHEMA,
     )
+
+    async def _handle_export_records(call: ServiceCall) -> dict[str, Any]:
+        """The whole log, handed back as response data.
+
+        The tracker's Store caps what it keeps; this is how the data leaves
+        the house whole — into an automation, a script, or a file of the
+        owner's choosing.
+        """
+        entry = _pool_entry(hass, call.data["config_entry"])
+        tracker = entry.runtime_data.tracker
+        return {
+            "pool": entry.title,
+            "records": list(tracker.records),
+            "notes": list(tracker.notes),
+        }
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_START_MAINTENANCE,
         _handle_start_maintenance,
         schema=START_MAINTENANCE_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_EXPORT_RECORDS,
+        _handle_export_records,
+        schema=EXPORT_RECORDS_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )
 
 

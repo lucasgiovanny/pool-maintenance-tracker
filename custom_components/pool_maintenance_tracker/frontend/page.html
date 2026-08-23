@@ -241,6 +241,9 @@
   }
   .note-save:disabled{background:var(--muted)}
 
+  .export-link{display:inline-block;margin-top:10px;color:var(--aqua);
+    font-weight:600;text-decoration:none}
+  .export-link:hover{text-decoration:underline}
   .week{margin:6px 0 10px}
   .week .day{display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .week .day span{flex:none;width:24px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
@@ -884,6 +887,13 @@ function renderReport(){
     return;
   }
   records.forEach(record => historyBody.appendChild(recordElement(record)));
+  /* The data belongs to whoever logged it: the whole log, as a file */
+  if (CFG.export_endpoint) {
+    const link = el("a", "hint export-link", S.report.export_csv);
+    link.href = CFG.export_endpoint;
+    link.setAttribute("download", "");
+    historyBody.appendChild(link);
+  }
 }
 
 /* Weekly on-blocks of a schedule helper: 7 rows (Mon..Sun), 0-24h tracks */

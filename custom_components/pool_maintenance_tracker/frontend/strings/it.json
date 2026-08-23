@@ -162,7 +162,8 @@
     "actual_today": "ha girato {h} h oggi",
     "filter_pressure": "Pressione del filtro",
     "pressure_rise": "+{p}% dal lavaggio",
-    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato"
+    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato",
+    "export_csv": "Scarica il registro (CSV)"
   },
   "notes": {
     "title": "Note",

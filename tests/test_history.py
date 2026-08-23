@@ -5,7 +5,7 @@ from datetime import timedelta
 from homeassistant.util import dt as dt_util
 
 from custom_components.pool_maintenance_tracker.const import URL_HISTORY, URL_LOG
-from custom_components.pool_maintenance_tracker.http import _ontime_buckets
+from custom_components.pool_maintenance_tracker.report import _ontime_buckets
 
 from .conftest import TEST_TOKEN, setup_entry
 
@@ -54,7 +54,7 @@ def test_ontime_buckets_counts_thermostat_modes():
 
 
 def test_state_began_skips_unavailable_gaps():
-    from custom_components.pool_maintenance_tracker.http import _state_began
+    from custom_components.pool_maintenance_tracker.report import _state_began
 
     now = dt_util.utcnow()
     rows = [
