@@ -39,7 +39,6 @@ class PoolQrCodeImage(PoolBaseEntity, ImageEntity):
 
     _attr_content_type = "image/png"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_icon = "mdi:qrcode"
 
     def __init__(self, hass: HomeAssistant, entry: PoolConfigEntry) -> None:
         PoolBaseEntity.__init__(self, entry, "access_qr")

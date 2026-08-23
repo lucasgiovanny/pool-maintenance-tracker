@@ -1,0 +1,129 @@
+{
+  "entity": {
+    "event": {
+      "maintenance_logged": {
+        "default": "mdi:clipboard-check"
+      }
+    },
+    "image": {
+      "access_qr": {
+        "default": "mdi:qrcode"
+      }
+    },
+    "number": {
+      "ph": {
+        "default": "mdi:ph"
+      },
+      "free_chlorine": {
+        "default": "mdi:test-tube"
+      },
+      "total_chlorine": {
+        "default": "mdi:flask"
+      },
+      "total_alkalinity": {
+        "default": "mdi:water-percent"
+      },
+      "cyanuric_acid": {
+        "default": "mdi:shield-sun-outline"
+      },
+      "calcium_hardness": {
+        "default": "mdi:diamond-stone"
+      },
+      "water_temperature": {
+        "default": "mdi:thermometer-water"
+      },
+      "salt_level": {
+        "default": "mdi:shaker-outline"
+      },
+      "salt_added": {
+        "default": "mdi:shaker"
+      },
+      "chlorinator_output": {
+        "default": "mdi:lightning-bolt-outline"
+      }
+    },
+    "select": {
+      "chlorinator_mode": {
+        "default": "mdi:auto-mode"
+      },
+      "acid_tank_level": {
+        "default": "mdi:cup-water"
+      }
+    },
+    "sensor": {
+      "calcium_hardness_measurement": {
+        "default": "mdi:diamond-stone"
+      },
+      "combined_chlorine": {
+        "default": "mdi:flask-outline"
+      },
+      "cyanuric_acid_measurement": {
+        "default": "mdi:shield-sun-outline"
+      },
+      "free_chlorine_measurement": {
+        "default": "mdi:test-tube"
+      },
+      "last_acid_refill": {
+        "default": "mdi:water-plus"
+      },
+      "last_cell_clean": {
+        "default": "mdi:battery-heart-variant"
+      },
+      "last_chemistry_test": {
+        "default": "mdi:beaker-check"
+      },
+      "last_cleaning": {
+        "default": "mdi:broom"
+      },
+      "last_filter_wash": {
+        "default": "mdi:air-filter"
+      },
+      "last_maintenance": {
+        "default": "mdi:pool"
+      },
+      "last_probe_calibration": {
+        "default": "mdi:tune-vertical"
+      },
+      "last_record": {
+        "default": "mdi:clipboard-text-clock"
+      },
+      "last_salt_added": {
+        "default": "mdi:shaker"
+      },
+      "last_water_test": {
+        "default": "mdi:test-tube"
+      },
+      "ph_measurement": {
+        "default": "mdi:ph"
+      },
+      "salt_level_measurement": {
+        "default": "mdi:shaker-outline"
+      },
+      "total_alkalinity_measurement": {
+        "default": "mdi:water-percent"
+      },
+      "total_chlorine_measurement": {
+        "default": "mdi:flask"
+      },
+      "water_temperature_measurement": {
+        "default": "mdi:thermometer-water"
+      }
+    },
+    "switch": {
+      "maintenance_mode": {
+        "default": "mdi:account-wrench"
+      }
+    }
+  },
+  "services": {
+    "delete_record": {
+      "service": "mdi:clipboard-remove-outline"
+    },
+    "start_maintenance": {
+      "service": "mdi:account-wrench"
+    },
+    "export_records": {
+      "service": "mdi:file-export-outline"
+    }
+  }
+}

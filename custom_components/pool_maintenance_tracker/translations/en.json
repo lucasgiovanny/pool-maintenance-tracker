@@ -383,5 +383,28 @@
         }
       }
     }
+  },
+  "issues": {
+    "missing_entity": {
+      "title": "{pool}: a configured entity is missing",
+      "description": "The entity `{entity_id}` is configured for the pool **{pool}**, but it no longer exists — removed, renamed, or its integration is gone. The dashboards simply stop showing it. Pick a replacement (or clear the field) under the pool's **Configure** options."
+    }
+  },
+  "exceptions": {
+    "unknown_entry": {
+      "message": "That is not a Pool Maintenance Tracker pool."
+    },
+    "not_loaded": {
+      "message": "The pool is not loaded."
+    },
+    "no_record": {
+      "message": "No matching record to delete."
+    },
+    "maintenance_disabled": {
+      "message": "Maintenance mode is switched off for this pool."
+    },
+    "invalid_plan": {
+      "message": "The maintenance request could not be read: {reason}"
+    }
   }
 }

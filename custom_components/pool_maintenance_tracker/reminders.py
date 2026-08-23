@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
@@ -138,7 +138,7 @@ class ReminderEngine:
         self.hass = hass
         self.entry = entry
         self.tracker = tracker
-        self._unsub = None
+        self._unsub: CALLBACK_TYPE | None = None
 
     @callback
     def async_start(self) -> None:

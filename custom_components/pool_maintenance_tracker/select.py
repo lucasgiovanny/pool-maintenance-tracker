@@ -28,11 +28,6 @@ SELECT_OPTIONS = {
     KEY_ACID_TANK_LEVEL: ACID_TANK_LEVELS,
 }
 
-ICONS = {
-    KEY_CHLORINATOR_MODE: "mdi:auto-mode",
-    KEY_ACID_TANK_LEVEL: "mdi:cup-water",
-}
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -49,7 +44,6 @@ class PoolSelect(PoolBaseEntity, SelectEntity):
     def __init__(self, entry: PoolConfigEntry, key: str) -> None:
         super().__init__(entry, key)
         self._attr_options = list(SELECT_OPTIONS[key])
-        self._attr_icon = ICONS[key]
 
     @property
     def current_option(self) -> str | None:

@@ -232,6 +232,10 @@ type: custom:pool-maintenance-card
   <img src="assets/card-screenshot.png" alt="The dashboard card: temperature, schedule countdown, equipment toggles and maintenance tasks" width="420">
 </p>
 
+The card updates live: it subscribes over the websocket, so a record logged
+at the pool, an edited value or the maintenance flag land on the dashboard
+within a heartbeat — no polling, no reload.
+
 The card composes itself. It shows everything your pool is configured with,
 in a fixed order that reads top-down like a pool check: what needs attention,
 the water right now (temperature beside the readings), the equipment, the
@@ -393,6 +397,11 @@ play a known role — pool system switch, heat pump, filtration schedule, filter
 pump, pool light, cover — instead of leaving them to guess. Roles get a fixed
 place on the page, on the card, on the wall dashboard and in the history
 charts.
+
+If a configured entity later disappears — renamed, removed, its integration
+gone — the integration raises a **repair issue** naming it and where it was
+configured, instead of silently dropping the row from the dashboards. The
+issue clears itself the moment the entity comes back.
 
 Anything else you want to show can be added under **Configure → Linked sensors
 → Extra entities**: any entity from any integration (a power sensor, another

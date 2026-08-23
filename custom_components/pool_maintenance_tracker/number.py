@@ -52,19 +52,6 @@ UNITS = {
     KEY_CHLORINATOR_OUTPUT: "g/h",
 }
 
-ICONS = {
-    KEY_PH: "mdi:ph",
-    KEY_FREE_CHLORINE: "mdi:test-tube",
-    KEY_TOTAL_CHLORINE: "mdi:flask",
-    KEY_TOTAL_ALKALINITY: "mdi:water-percent",
-    # Stabilizer is sunscreen for chlorine
-    KEY_CYANURIC_ACID: "mdi:shield-sun-outline",
-    KEY_CALCIUM_HARDNESS: "mdi:diamond-stone",
-    KEY_WATER_TEMPERATURE: "mdi:thermometer-water",
-    KEY_SALT_LEVEL: "mdi:shaker-outline",
-    KEY_SALT_ADDED: "mdi:shaker",
-    KEY_CHLORINATOR_OUTPUT: "mdi:lightning-bolt-outline",
-}
 
 DEVICE_CLASSES = {
     KEY_WATER_TEMPERATURE: NumberDeviceClass.TEMPERATURE,
@@ -93,7 +80,6 @@ class PoolNumber(PoolBaseEntity, NumberEntity):
         self._attr_native_max_value = maximum
         self._attr_native_step = step
         self._attr_native_unit_of_measurement = UNITS[key]
-        self._attr_icon = ICONS[key]
         if key in DEVICE_CLASSES:
             self._attr_device_class = DEVICE_CLASSES[key]
 

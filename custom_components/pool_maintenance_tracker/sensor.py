@@ -22,7 +22,6 @@ from .const import (
 )
 from .entity import PoolBaseEntity
 from .modules import active_entity_keys, enabled_timestamp_keys, timestamp_sensor_key
-from .number import ICONS as VALUE_ICONS
 from .number import UNITS as VALUE_UNITS
 
 # Everything is pushed from the tracker; nothing here polls.
@@ -30,18 +29,6 @@ PARALLEL_UPDATES = 0
 
 if TYPE_CHECKING:
     from . import PoolConfigEntry
-
-ICONS = {
-    "last_water_test": "mdi:test-tube",
-    "last_chemistry_test": "mdi:beaker-check",
-    "last_salt_added": "mdi:shaker",
-    "last_filter_wash": "mdi:air-filter",
-    "last_cell_clean": "mdi:battery-heart-variant",
-    "last_probe_calibration": "mdi:tune-vertical",
-    "last_acid_refill": "mdi:water-plus",
-    "last_cleaning": "mdi:broom",
-    "last_maintenance": "mdi:pool",
-}
 
 
 async def async_setup_entry(
@@ -72,7 +59,6 @@ class PoolTimestampSensor(PoolBaseEntity, SensorEntity):
     def __init__(self, entry: PoolConfigEntry, timestamp_key: str) -> None:
         super().__init__(entry, timestamp_sensor_key(timestamp_key))
         self.timestamp_key = timestamp_key
-        self._attr_icon = ICONS.get(self.key)
 
     @property
     def native_value(self) -> datetime | None:
@@ -103,7 +89,6 @@ class PoolMeasurementSensor(PoolBaseEntity, SensorEntity):
         super().__init__(entry, measurement_sensor_key(value_key))
         self.value_key = value_key
         self._attr_native_unit_of_measurement = VALUE_UNITS[value_key]
-        self._attr_icon = VALUE_ICONS[value_key]
         if value_key == KEY_PH:
             self._attr_device_class = SensorDeviceClass.PH
         elif value_key == KEY_WATER_TEMPERATURE:
@@ -122,7 +107,6 @@ class PoolCombinedChlorineSensor(PoolBaseEntity, SensorEntity):
     same test session the subtraction is meaningless and the sensor says so.
     """
 
-    _attr_icon = "mdi:flask-outline"
     _attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
@@ -137,7 +121,6 @@ class PoolCombinedChlorineSensor(PoolBaseEntity, SensorEntity):
 class PoolLastRecordSensor(PoolBaseEntity, SensorEntity):
     """Summary of the last accepted record."""
 
-    _attr_icon = "mdi:clipboard-text-clock"
     # The tracker's own Store is the log; the recorder does not need a copy
     # of twenty records glued to every state change.
     _unrecorded_attributes = frozenset({"recent_records", "data"})

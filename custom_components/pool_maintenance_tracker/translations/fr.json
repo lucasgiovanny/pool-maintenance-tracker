@@ -383,5 +383,28 @@
         }
       }
     }
+  },
+  "issues": {
+    "missing_entity": {
+      "title": "{pool} : une entité configurée est manquante",
+      "description": "L'entité `{entity_id}` est configurée pour la piscine **{pool}**, mais elle n'existe plus — supprimée, renommée, ou son intégration a disparu. Les tableaux de bord cessent simplement de l'afficher. Choisissez une remplaçante (ou videz le champ) dans les options **Configurer** de la piscine."
+    }
+  },
+  "exceptions": {
+    "unknown_entry": {
+      "message": "Ce n'est pas une piscine de Pool Maintenance Tracker."
+    },
+    "not_loaded": {
+      "message": "La piscine n'est pas chargée."
+    },
+    "no_record": {
+      "message": "Aucun enregistrement correspondant à supprimer."
+    },
+    "maintenance_disabled": {
+      "message": "Le mode maintenance est désactivé pour cette piscine."
+    },
+    "invalid_plan": {
+      "message": "La demande de maintenance n'a pas pu être lue : {reason}"
+    }
   }
 }

@@ -28,7 +28,7 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-from homeassistant.core import Context, HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, Context, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_track_point_in_utc_time
@@ -259,8 +259,8 @@ class MaintenanceSession:
         self.hass = hass
         self.entry = entry
         self.tracker = tracker
-        self._unsub_signal = None
-        self._unsub_timer = None
+        self._unsub_signal: CALLBACK_TYPE | None = None
+        self._unsub_timer: CALLBACK_TYPE | None = None
         self._armed: str | None = None
         self._was_on = tracker.maintenance_mode
 

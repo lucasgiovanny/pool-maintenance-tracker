@@ -26,7 +26,7 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.helpers.typing import ConfigType
 
-from . import filter_pressure, maintenance
+from . import filter_pressure, health, maintenance
 from .const import (
     CATEGORY_FILTER_WASH,
     CONF_LANGUAGE,
@@ -122,6 +122,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
     if entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL) == LINKED_MODE_MIRROR:
         _async_setup_linked_mirror(hass, entry, tracker)
     _async_setup_filter_pressure(hass, entry, tracker)
+    health.async_setup_health(hass, entry)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
@@ -237,9 +238,17 @@ START_MAINTENANCE_SCHEMA = vol.Schema(
 def _pool_entry(hass: HomeAssistant, entry_id: str) -> PoolConfigEntry:
     entry = hass.config_entries.async_get_entry(entry_id)
     if entry is None or entry.domain != DOMAIN:
-        raise ServiceValidationError("Unknown Pool Maintenance Tracker entry")
+        raise ServiceValidationError(
+            "Unknown Pool Maintenance Tracker entry",
+            translation_domain=DOMAIN,
+            translation_key="unknown_entry",
+        )
     if entry.state is not ConfigEntryState.LOADED:
-        raise ServiceValidationError("The pool is not loaded")
+        raise ServiceValidationError(
+            "The pool is not loaded",
+            translation_domain=DOMAIN,
+            translation_key="not_loaded",
+        )
     return entry
 
 
@@ -251,7 +260,11 @@ def _async_register_services(hass: HomeAssistant) -> None:
     async def _handle_delete_record(call: ServiceCall) -> None:
         entry = _pool_entry(hass, call.data["config_entry"])
         if not entry.runtime_data.tracker.async_delete_record(call.data.get("record_id")):
-            raise ServiceValidationError("No matching record to delete")
+            raise ServiceValidationError(
+                "No matching record to delete",
+                translation_domain=DOMAIN,
+                translation_key="no_record",
+            )
 
     async def _handle_start_maintenance(call: ServiceCall) -> None:
         """Raise the flag with a window and a plan, the way the page does.
@@ -262,12 +275,21 @@ def _async_register_services(hass: HomeAssistant) -> None:
         """
         entry = _pool_entry(hass, call.data["config_entry"])
         if not maintenance.is_enabled(entry):
-            raise ServiceValidationError("Maintenance mode is switched off for this pool")
+            raise ServiceValidationError(
+                "Maintenance mode is switched off for this pool",
+                translation_domain=DOMAIN,
+                translation_key="maintenance_disabled",
+            )
         try:
             until = maintenance.parse_minutes(call.data.get("minutes"))
             plan, ignored = maintenance.clean_plan(hass, entry, call.data.get("equipment"))
         except maintenance.PlanError as err:
-            raise ServiceValidationError(str(err)) from err
+            raise ServiceValidationError(
+                str(err),
+                translation_domain=DOMAIN,
+                translation_key="invalid_plan",
+                translation_placeholders={"reason": str(err)},
+            ) from err
         if ignored:
             _LOGGER.warning("start_maintenance ignored %s for %s", ", ".join(ignored), entry.title)
         entry.runtime_data.tracker.async_set_maintenance_mode(True, until=until, plan=plan)
@@ -404,6 +426,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> boo
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Delete the stored state when the entry is removed."""
+    health.async_remove_issues(hass, entry)
     tracker = PoolTracker(hass, entry.entry_id, entry.data.get(CONF_NAME, ""))
     await tracker.async_remove_storage()
 

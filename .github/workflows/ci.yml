@@ -24,6 +24,10 @@ jobs:
       - run: pip install ruff
       - run: ruff check .
       - run: ruff format --check .
+      - name: Install typing dependencies
+        run: pip install mypy -r requirements_test.txt
+      - name: Type check
+        run: mypy custom_components/pool_maintenance_tracker
       - name: Check the frontends parse and their strings resolve
         run: python scripts/check_frontend.py
 

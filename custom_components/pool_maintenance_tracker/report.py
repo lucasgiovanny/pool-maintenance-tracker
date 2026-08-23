@@ -31,6 +31,7 @@ from .const import (
     CONF_TEMPERATURE_SOURCE,
     DEFAULT_SALT_TARGET_MAX,
     DEFAULT_SALT_TARGET_MIN,
+    DOMAIN,
     EQUIPMENT_ROLES,
     IDEAL_CALCIUM_HARDNESS,
     IDEAL_CYANURIC,
@@ -157,10 +158,32 @@ def _state_began(rows: list[tuple[str, Any]], current: str) -> Any | None:
     return began
 
 
+LAST_CHANGED_CACHE = "true_last_changed"
+
+
 async def _true_last_changed(
     hass: HomeAssistant, entity_id: str, current_state: str, fallback: str
 ) -> str:
-    """When the entity's current state really began — survives HA restarts."""
+    """When the entity's current state really began — survives HA restarts.
+
+    The recorder's answer cannot change while ``last_changed`` (the
+    fallback) stands still, and every surface polls — so the query runs
+    once per state change instead of once per poll. Keyed by entity, not
+    by pool: the same heat pump answers the same for every dashboard.
+    """
+    cache: dict[str, tuple[str, str]] = hass.data[DOMAIN].setdefault(LAST_CHANGED_CACHE, {})
+    if (hit := cache.get(entity_id)) and hit[0] == fallback:
+        return hit[1]
+    began = await _true_last_changed_query(hass, entity_id, current_state, fallback)
+    if len(cache) > 256:
+        cache.clear()
+    cache[entity_id] = (fallback, began)
+    return began
+
+
+async def _true_last_changed_query(
+    hass: HomeAssistant, entity_id: str, current_state: str, fallback: str
+) -> str:
     if not _recorder_ready(hass):
         return fallback
     from functools import partial
@@ -198,7 +221,8 @@ async def _schedule_week(hass: HomeAssistant, entity_id: str) -> list[list[list[
 
     from homeassistant.helpers.storage import Store
 
-    data = await Store(hass, 1, "schedule").async_load()
+    store: Store[dict[str, Any]] = Store(hass, 1, "schedule")
+    data = await store.async_load()
     if not data:
         return None
     item = next(
@@ -335,7 +359,7 @@ def _times_schedule_item(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, A
     state_entity = entry.options.get(CONF_FILTRATION_STATE_ENTITY)
     state = hass.states.get(state_entity) if state_entity else None
     running: bool | None = None
-    if state is not None:
+    if state is not None and state_entity:
         running = equipment_on(state_entity.split(".")[0], state.state)
     if running is None:
         # No sensor, or one that is not talking: the grid still knows.
@@ -534,10 +558,9 @@ def _current_readings(
         declared_at = tracker.values_at.get(value_key)
         if probe is None and declared is None:
             continue
-        use_probe = probe is not None and (
+        if probe is not None and (
             declared is None or not declared_at or probe["at"] >= declared_at
-        )
-        if use_probe:
+        ):
             current[value_key] = {
                 "entity_id": probe.get("entity_id"),
                 "value": probe["value"],
@@ -631,7 +654,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         interval = int(entry.options.get(spec.conf_key, spec.default_days)) if spec else None
         next_due = (
             (runtime.reminders.overdue_since(ts_key) + timedelta(days=interval)).isoformat()
-            if spec
+            if interval is not None
             else None
         )
         tasks.append(
@@ -734,6 +757,8 @@ async def _daily_means(hass: HomeAssistant, entity_id: str, start) -> list[dict[
             if isinstance(raw_start, (int, float))
             else raw_start
         )
+        if stamp is None:
+            continue
         points.append({"t": stamp.isoformat(), "v": round(float(mean), 2)})
     return points
 
@@ -768,7 +793,7 @@ async def _temperature_trend(hass: HomeAssistant, entry: ConfigEntry) -> dict[st
         )
     except Exception:
         return trend
-    means = [row["mean"] for row in stats.get(entity_id, []) if row.get("mean") is not None]
+    means = [mean for row in stats.get(entity_id, []) if (mean := row.get("mean")) is not None]
     if len(means) >= 2:
         trend["delta_24h"] = round(float(means[-1]) - float(means[0]), 1)
     return trend
@@ -823,7 +848,11 @@ async def _ontime_daily(hass: HomeAssistant, entity_id: str, start, end) -> list
     states = await get_instance(hass).async_add_executor_job(
         partial(get_significant_states, hass, start, end, [entity_id])
     )
-    changes = [(state.last_changed, state.state) for state in states.get(entity_id, [])]
+    changes = [
+        (state.last_changed, state.state)
+        for state in states.get(entity_id, [])
+        if not isinstance(state, dict)
+    ]
     if not changes:
         return []
     return _ontime_buckets(entity_id.split(".")[0], sorted(changes), start, end)

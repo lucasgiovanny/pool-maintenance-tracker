@@ -43,6 +43,9 @@ const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
 const READING_KEYS = ["ph", "free_chlorine", "total_chlorine", "total_alkalinity",
   "cyanuric_acid", "calcium_hardness", "salt_level", "water_temperature"];
 const REFRESH_MS = 30000;
+/* With a live subscription the interval is only a safety net for what the
+   push cannot know: recorder-derived numbers drifting with the clock. */
+const SUBSCRIBED_REFRESH_MS = 300000;
 /* The maintenance sheet offers the same windows the page does, and 0 is
    the visit that runs until somebody ends it. */
 const VISIT_PRESETS = [30, 60, 120, 240, 0];
@@ -254,7 +257,11 @@ class PoolMaintenanceCard extends HTMLElement {
   }
 
   _start() {
-    if (!this._timer) this._timer = setInterval(() => this._load(), REFRESH_MS);
+    this._subscribe();
+    if (!this._timer) {
+      this._timer = setInterval(() => this._load(),
+        this._unsub ? SUBSCRIBED_REFRESH_MS : REFRESH_MS);
+    }
     if (!this._onVisible) {
       /* Background tabs get their timers throttled, and a phone waking up
          reconnects the websocket — either way, come back to a fresh card. */
@@ -266,6 +273,11 @@ class PoolMaintenanceCard extends HTMLElement {
   }
 
   _stop() {
+    if (this._unsub) {
+      this._unsub();
+      this._unsub = null;
+    }
+    this._subscribing = false;
     if (this._timer) clearInterval(this._timer);
     if (this._tick) clearInterval(this._tick);
     if (this._pending) clearTimeout(this._pending);
@@ -302,6 +314,39 @@ class PoolMaintenanceCard extends HTMLElement {
     const moved = this._last !== undefined && stamp !== this._last;
     this._last = stamp;
     return moved;
+  }
+
+  /* Live updates: the tracker pushes records, edits and the maintenance
+     flag the moment they land. subscribeMessage re-subscribes on every
+     reconnection by itself; older backends just leave us on the poll. */
+  async _subscribe() {
+    if (this._unsub || this._subscribing || !this._hass) return;
+    this._subscribing = true;
+    try {
+      const entryId = await this._entryId();
+      this._unsub = await this._hass.connection.subscribeMessage(
+        data => {
+          this._data = data;
+          this._error = null;
+          this._loadedAt = Date.now();
+          this._last = this._stamp();
+          this._render();
+        },
+        {
+          type: "pool_maintenance_tracker/subscribe",
+          entry_id: entryId,
+          language: this._hass.language || "en",
+        },
+      );
+      /* The safety-net poll can slow right down now */
+      if (this._timer) {
+        clearInterval(this._timer);
+        this._timer = setInterval(() => this._load(), SUBSCRIBED_REFRESH_MS);
+      }
+    } catch (error) {
+      this._unsub = null;
+    }
+    this._subscribing = false;
   }
 
   /* One logged record moves a dozen entities at once — coalesce them */

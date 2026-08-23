@@ -383,5 +383,28 @@
         }
       }
     }
+  },
+  "issues": {
+    "missing_entity": {
+      "title": "{pool}: eine konfigurierte Entität fehlt",
+      "description": "Die Entität `{entity_id}` ist für den Pool **{pool}** konfiguriert, existiert aber nicht mehr — entfernt, umbenannt, oder ihre Integration ist weg. Die Dashboards zeigen sie einfach nicht mehr an. Wähle unter den **Konfigurieren**-Optionen des Pools einen Ersatz (oder leere das Feld)."
+    }
+  },
+  "exceptions": {
+    "unknown_entry": {
+      "message": "Das ist kein Pool von Pool Maintenance Tracker."
+    },
+    "not_loaded": {
+      "message": "Der Pool ist nicht geladen."
+    },
+    "no_record": {
+      "message": "Kein passender Eintrag zum Löschen."
+    },
+    "maintenance_disabled": {
+      "message": "Der Wartungsmodus ist für diesen Pool ausgeschaltet."
+    },
+    "invalid_plan": {
+      "message": "Die Wartungsanfrage konnte nicht gelesen werden: {reason}"
+    }
   }
 }

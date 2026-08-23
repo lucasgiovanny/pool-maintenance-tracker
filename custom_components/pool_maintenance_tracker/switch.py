@@ -41,8 +41,6 @@ async def async_setup_entry(
 class PoolMaintenanceModeSwitch(PoolBaseEntity, SwitchEntity):
     """On while the pool is being worked on."""
 
-    _attr_icon = "mdi:account-wrench"
-
     def __init__(self, entry: PoolConfigEntry) -> None:
         super().__init__(entry, KEY_MAINTENANCE_MODE)
 

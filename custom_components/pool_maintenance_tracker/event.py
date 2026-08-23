@@ -33,7 +33,6 @@ class PoolRecordEventEntity(PoolBaseEntity, EventEntity):
     """Fires a ``logged`` event with the full record payload."""
 
     _attr_event_types = [EVENT_TYPE_LOGGED]  # noqa: RUF012
-    _attr_icon = "mdi:clipboard-check"
 
     def __init__(self, entry: PoolConfigEntry) -> None:
         super().__init__(entry, "maintenance_logged")

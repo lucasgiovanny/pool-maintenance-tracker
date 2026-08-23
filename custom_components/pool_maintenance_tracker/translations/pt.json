@@ -383,5 +383,28 @@
         }
       }
     }
+  },
+  "issues": {
+    "missing_entity": {
+      "title": "{pool}: uma entidade configurada desapareceu",
+      "description": "A entidade `{entity_id}` está configurada para a piscina **{pool}**, mas já não existe — foi removida, renomeada, ou a integração dela desapareceu. Os painéis simplesmente deixam de a mostrar. Escolhe uma substituta (ou limpa o campo) nas opções **Configurar** da piscina."
+    }
+  },
+  "exceptions": {
+    "unknown_entry": {
+      "message": "Isso não é uma piscina do Pool Maintenance Tracker."
+    },
+    "not_loaded": {
+      "message": "A piscina não está carregada."
+    },
+    "no_record": {
+      "message": "Nenhum registo correspondente para apagar."
+    },
+    "maintenance_disabled": {
+      "message": "O modo manutenção está desligado nesta piscina."
+    },
+    "invalid_plan": {
+      "message": "O pedido de manutenção não pôde ser lido: {reason}"
+    }
   }
 }
