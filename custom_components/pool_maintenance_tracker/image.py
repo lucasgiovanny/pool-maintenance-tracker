@@ -14,6 +14,9 @@ from homeassistant.util import dt as dt_util
 
 from .entity import PoolBaseEntity, kiosk_url, page_url
 
+# Everything is pushed from the tracker; nothing here polls.
+PARALLEL_UPDATES = 0
+
 if TYPE_CHECKING:
     from . import PoolConfigEntry
 
@@ -57,9 +60,14 @@ class PoolQrCodeImage(PoolBaseEntity, ImageEntity):
         if url is None:
             return None
         if url != self._rendered_url:
-            buffer = io.BytesIO()
-            segno.make(url, error="m").save(buffer, kind="png", scale=8, border=2)
-            self._png = buffer.getvalue()
+            # segno is synchronous; tiny, but the event loop is not the place
+            self._png = await self.hass.async_add_executor_job(self._render, url)
             self._rendered_url = url
             self._attr_image_last_updated = dt_util.utcnow()
         return self._png
+
+    @staticmethod
+    def _render(url: str) -> bytes:
+        buffer = io.BytesIO()
+        segno.make(url, error="m").save(buffer, kind="png", scale=8, border=2)
+        return buffer.getvalue()

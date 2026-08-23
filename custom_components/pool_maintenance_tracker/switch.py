@@ -22,6 +22,9 @@ from .const import (
 )
 from .entity import PoolBaseEntity
 
+# Everything is pushed from the tracker; nothing here polls.
+PARALLEL_UPDATES = 0
+
 if TYPE_CHECKING:
     from . import PoolConfigEntry
 

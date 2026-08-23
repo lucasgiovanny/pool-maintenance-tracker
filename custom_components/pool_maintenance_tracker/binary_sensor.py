@@ -17,6 +17,9 @@ from .const import TS_FILTER_WASH
 from .entity import PoolBaseEntity
 from .modules import ReminderSpec, enabled_reminders
 
+# Everything is pushed from the tracker; nothing here polls.
+PARALLEL_UPDATES = 0
+
 if TYPE_CHECKING:
     from . import PoolConfigEntry
 

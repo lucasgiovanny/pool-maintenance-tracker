@@ -162,7 +162,6 @@
     "actual_today": "funcionó {h} h hoy",
     "filter_pressure": "Presión del filtro",
     "pressure_rise": "+{p}% desde el lavado",
-    "wash_filter": "lavar",
     "alert_acid_missing": "Sin depósito de ácido — el pH no se está dosificando"
   },
   "notes": {

@@ -613,7 +613,7 @@ class PoolMaintenanceCard extends HTMLElement {
           + (pressure.rise_percent === null || pressure.rise_percent === undefined ? ""
             : " · " + S.report.pressure_rise.replace("{p}", pressure.rise_percent)),
         entity: pressure.entity_id,
-        badge: pressure.due ? { text: S.report.wash_filter, due: true } : null,
+        badge: pressure.due ? { text: S.report.overdue, due: true } : null,
         warn: !!pressure.due,
       });
     }

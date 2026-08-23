@@ -53,6 +53,7 @@ from .const import (
     CONF_TEMPERATURE_SOURCE,
     DATA_PAGE_TEMPLATE,
     DATA_RATE_LIMITER,
+    DATA_STRINGS_CACHE,
     DATA_TOKENS,
     DATA_VIEWS_REGISTERED,
     DEFAULT_KIOSK_ENABLED,
@@ -292,11 +293,21 @@ async def _load_page_template(hass: HomeAssistant) -> str:
 
 
 async def _load_strings(hass: HomeAssistant, language: str) -> dict[str, Any]:
+    """String bundle for one language, read from disk once per HA run.
+
+    The page polls every 60 s and the kiosk every 30 s; the bundles only
+    change with the integration itself, so cache them like the template.
+    """
+    cache: dict[str, dict[str, Any]] = hass.data[DOMAIN].setdefault(DATA_STRINGS_CACHE, {})
+    if (strings := cache.get(language)) is not None:
+        return strings
     path = STRINGS_DIR / f"{language}.json"
     if not path.exists():
         path = STRINGS_DIR / f"{DEFAULT_LANGUAGE}.json"
     raw = await hass.async_add_executor_job(path.read_text, "utf-8")
-    return json.loads(raw)
+    strings = json.loads(raw)
+    cache[language] = strings
+    return strings
 
 
 async def _page_people(hass: HomeAssistant, entry: ConfigEntry, technician_label: str) -> list[str]:

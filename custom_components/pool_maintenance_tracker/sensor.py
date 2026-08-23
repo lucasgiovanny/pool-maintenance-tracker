@@ -19,6 +19,9 @@ from .const import (
 from .entity import PoolBaseEntity
 from .modules import active_entity_keys, enabled_timestamp_keys, timestamp_sensor_key
 
+# Everything is pushed from the tracker; nothing here polls.
+PARALLEL_UPDATES = 0
+
 if TYPE_CHECKING:
     from . import PoolConfigEntry
 
@@ -95,6 +98,9 @@ class PoolLastRecordSensor(PoolBaseEntity, SensorEntity):
     """Summary of the last accepted record."""
 
     _attr_icon = "mdi:clipboard-text-clock"
+    # The tracker's own Store is the log; the recorder does not need a copy
+    # of twenty records glued to every state change.
+    _unrecorded_attributes = frozenset({"recent_records", "data"})
 
     def __init__(self, entry: PoolConfigEntry) -> None:
         super().__init__(entry, "last_record")

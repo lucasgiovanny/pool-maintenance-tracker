@@ -17,6 +17,9 @@ from .const import (
 from .entity import PoolBaseEntity
 from .modules import enabled_value_keys
 
+# Everything is pushed from the tracker; nothing here polls.
+PARALLEL_UPDATES = 0
+
 if TYPE_CHECKING:
     from . import PoolConfigEntry
 

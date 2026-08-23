@@ -83,6 +83,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     earliest this integration gets a say.
     """
     hass.data.setdefault(DOMAIN, {DATA_TOKENS: {}})
+    _async_register_services(hass)
     await _async_register_frontend(hass)
     return True
 
@@ -101,7 +102,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
     async_register_views(hass)
     await _async_register_frontend(hass)
     async_register_websocket_api(hass)
-    _async_register_services(hass)
 
     _async_prune_stale_entities(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -231,8 +231,8 @@ def _pool_entry(hass: HomeAssistant, entry_id: str) -> PoolConfigEntry:
 
 @callback
 def _async_register_services(hass: HomeAssistant) -> None:
-    if hass.services.has_service(DOMAIN, SERVICE_DELETE_RECORD):
-        return
+    """Register the actions. Called from async_setup: an action must exist
+    (and answer with a proper error) even while no pool is loaded."""
 
     async def _handle_delete_record(call: ServiceCall) -> None:
         entry = _pool_entry(hass, call.data["config_entry"])

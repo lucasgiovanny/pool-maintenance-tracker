@@ -162,7 +162,6 @@
     "actual_today": "lief heute {h} h",
     "filter_pressure": "Filterdruck",
     "pressure_rise": "+{p}% seit der Wäsche",
-    "wash_filter": "waschen",
     "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert"
   },
   "notes": {

@@ -768,7 +768,7 @@ function renderReport(){
           && (report.filter_pressure || {}).due !== undefined;
         const badge = el("span", "badge " + (task.due ? "due" : "ok"),
           task.due
-            ? (byPressure ? S.report.wash_filter : S.report.overdue)
+            ? S.report.overdue
             : (task.next && !byPressure
                 ? S.report.next_due.replace("{date}", shortDate(task.next))
                 : S.report.every_days.replace("{days}", task.interval_days)));
@@ -810,7 +810,7 @@ function renderReport(){
     row.appendChild(el("span", "k", S.report.filter_pressure));
     const holder = el("span", "v");
     if (pressure.due) {
-      holder.appendChild(el("span", "badge due", S.report.wash_filter));
+      holder.appendChild(el("span", "badge due", S.report.overdue));
       holder.appendChild(document.createTextNode(" "));
     }
     holder.appendChild(document.createTextNode(

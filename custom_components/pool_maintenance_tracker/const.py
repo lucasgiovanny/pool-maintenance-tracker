@@ -306,6 +306,7 @@ DATA_TOKENS: Final = "tokens"
 DATA_VIEWS_REGISTERED: Final = "views_registered"
 DATA_PAGE_TEMPLATE: Final = "page_template"
 DATA_RATE_LIMITER: Final = "rate_limiter"
+DATA_STRINGS_CACHE: Final = "strings_cache"
 DATA_TRACKERS: Final = "trackers"
 
 # Public HTTP endpoints (token is path-scoped)
