@@ -186,6 +186,7 @@
       "options": {
         "en": "English",
         "pt": "Português",
+        "pt-BR": "Português (Brasil)",
         "es": "Español",
         "fr": "Français",
         "de": "Deutsch",
@@ -380,6 +381,16 @@
         "equipment": {
           "name": "Geräte",
           "description": "Was jede Geräterolle während des Besuchs tun soll — zum Beispiel pool_system: off und heat_pump: on. Die Abdeckung nimmt open oder closed. Weggelassene Rollen werden nicht angefasst."
+        }
+      }
+    },
+    "export_records": {
+      "name": "Protokoll exportieren",
+      "description": "Gibt das vollständige Wartungsprotokoll und das Notiztagebuch des Pools als Antwortdaten zurück.",
+      "fields": {
+        "config_entry": {
+          "name": "Pool",
+          "description": "Der Pool, dessen Protokoll exportiert wird."
         }
       }
     }

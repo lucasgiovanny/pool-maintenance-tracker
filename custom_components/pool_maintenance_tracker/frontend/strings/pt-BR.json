@@ -1,0 +1,267 @@
+{
+  "technician": "Técnico",
+  "eyebrow": "Casa de máquinas",
+  "title": "Registro de manutenção da piscina",
+  "intro": "Escolha o que você fez, confira os valores e envie. Fica tudo salvo no sistema da casa.",
+  "who": "Quem está registrando?",
+  "when": "Quando foi feito?",
+  "probe": "Sonda agora",
+  "what": "O que foi feito?",
+  "what_hint": "toque em tudo o que se aplica",
+  "tiles": {
+    "water_test": "Leituras da água",
+    "chlorinator": "Clorador ajustado",
+    "salt": "Sal adicionado",
+    "filter_wash": "Filtro lavado",
+    "cell_clean": "Célula limpa",
+    "probe_calibration": "Sonda pH calibrada",
+    "acid_refill": "Ácido reabastecido",
+    "cleaning": "Aspiração / limpeza"
+  },
+  "panels": {
+    "water_test": {
+      "title": "Leituras da água",
+      "ph": "pH medido (fita ou kit)",
+      "free_chlorine": "Cloro livre",
+      "total_chlorine": "Cloro total",
+      "total_alkalinity": "Alcalinidade total",
+      "cyanuric_acid": "Ácido cianúrico (estabilizante)",
+      "calcium_hardness": "Dureza cálcica",
+      "salt": "Sal (medição manual)",
+      "temperature": "Temperatura da água",
+      "hint": "Preencha só o que você mediu. Campos vazios não alteram nada no sistema."
+    },
+    "chlorinator": {
+      "title": "Clorador ajustado",
+      "mode": "Modo",
+      "output": "Produção definida"
+    },
+    "salt": {
+      "title": "Sal adicionado",
+      "amount": "Quantidade colocada na piscina"
+    },
+    "filter_wash": {
+      "title": "Filtro lavado",
+      "hint": "Registra a lavagem. A data fica salva e o sistema avisa quando chegar a hora da próxima."
+    },
+    "cell_clean": {
+      "title": "Célula do clorador limpa",
+      "hint": "Inspeção ou limpeza do calcário nos eletrodos. A data fica registrada."
+    },
+    "probe_calibration": {
+      "title": "Sonda de pH calibrada",
+      "hint": "Calibração com as soluções tampão. A data fica registrada."
+    },
+    "acid_refill": {
+      "title": "Tanque de ácido reabastecido",
+      "level": "Nível após reabastecer (aprox.)"
+    },
+    "cleaning": {
+      "title": "Aspiração / limpeza",
+      "what": "O que foi feito"
+    }
+  },
+  "acid_levels": {
+    "full": "Cheio",
+    "three_quarters": "¾",
+    "half": "½",
+    "quarter": "¼",
+    "empty": "Vazio",
+    "none": "Sem tanque"
+  },
+  "modes": {
+    "smart": "Smart",
+    "manual": "Manual",
+    "boost": "Boost"
+  },
+  "cleaning_types": {
+    "vacuum": "Aspiração",
+    "waterline": "Linha de água",
+    "baskets": "Cestos"
+  },
+  "units": {
+    "ph": "pH",
+    "free_chlorine": "ppm",
+    "total_chlorine": "ppm",
+    "total_alkalinity": "ppm",
+    "cyanuric_acid": "ppm",
+    "calcium_hardness": "ppm",
+    "combined_chlorine": "ppm",
+    "salt_level": "g/L",
+    "salt_added": "kg",
+    "chlorinator_output": "g/h",
+    "water_temperature": "°C"
+  },
+  "save": "Salvar registro",
+  "saving": "Salvando…",
+  "nothing_title": "Nada para registrar",
+  "nothing_text": "Toque primeiro em um dos cartões de manutenção.",
+  "success_title": "Registro salvo",
+  "success_text": "O sistema da casa já recebeu esta manutenção.",
+  "error_title": "Não foi possível salvar",
+  "error_text": "Verifique a conexão com a internet e tente de novo.",
+  "again": "Novo registro",
+  "tabs": {
+    "log": "Registrar",
+    "report": "Estado",
+    "history": "Histórico"
+  },
+  "report": {
+    "current": "Estado atual",
+    "tasks": "Tarefas periódicas",
+    "history": "Últimos registros",
+    "overdue": "Em atraso",
+    "never": "Nunca registrado",
+    "today": "Hoje",
+    "day_ago": "há 1 dia",
+    "days_ago": "há {days} dias",
+    "every_days": "a cada {days} dias",
+    "empty_history": "Ainda não há registros.",
+    "values": {
+      "ph": "pH",
+      "free_chlorine": "Cloro livre",
+      "total_chlorine": "Cloro total",
+      "combined_chlorine": "Cloro combinado",
+      "total_alkalinity": "Alcalinidade total",
+      "cyanuric_acid": "Ácido cianúrico",
+      "calcium_hardness": "Dureza cálcica",
+      "chemistry_test": "Teste de estabilizante e dureza",
+      "salt_level": "Sal",
+      "water_temperature": "Temperatura da água",
+      "salt_added": "Sal adicionado",
+      "chlorinator_output": "Produção do clorador",
+      "chlorinator_mode": "Modo do clorador",
+      "acid_tank_level": "Tanque de ácido",
+      "cleaning_types": "Limpeza"
+    },
+    "equipment": "Equipamento",
+    "notes": "Notas",
+    "empty_notes": "Ainda não há notas.",
+    "state_on": "Ligado",
+    "state_off": "Desligado",
+    "state_heating": "Aquecendo",
+    "state_cooling": "Resfriando",
+    "target_temp": "alvo {temp}",
+    "just_now": "agora mesmo",
+    "ago_minutes": "há {n} min",
+    "ago_hours": "há {n} h",
+    "next_due": "próxima {date}",
+    "schedule_off": "desliga {date} às {time}",
+    "schedule_on": "liga {date} às {time}",
+    "alert_acid": "Tanque de ácido {level}",
+    "in_time": "em {t}",
+    "ideal_band": "ideal {min}–{max}",
+    "filtration": "Filtração",
+    "hours": "{h} h/dia",
+    "scheduled": "agendado {h} h",
+    "status": {
+      "low": "baixo",
+      "high": "alto",
+      "ideal": "ideal"
+    },
+    "actual_today": "rodou {h} h hoje",
+    "filter_pressure": "Pressão do filtro",
+    "pressure_rise": "+{p}% desde a lavagem",
+    "alert_acid_missing": "Sem tanque de ácido — o pH não está sendo dosado",
+    "export_csv": "Baixar o registro (CSV)"
+  },
+  "notes": {
+    "title": "Notas",
+    "hint": "opcional",
+    "placeholder": "Ex.: água ligeiramente turva, verificar amanhã…"
+  },
+  "history": {
+    "loading": "Carregando…",
+    "error": "Não foi possível carregar o histórico. Tente de novo.",
+    "no_data": "Sem dados neste período.",
+    "period_7": "7 dias",
+    "period_30": "30 dias",
+    "period_180": "6 meses",
+    "sensor": "sonda (média diária)",
+    "manual": "medição manual",
+    "on_hours": "horas ligado por dia"
+  },
+  "print_manual": "🖨 Imprimir manual para a casa de máquinas",
+  "manual": {
+    "title": "Manutenção da piscina",
+    "qr_title": "Escaneie para registrar",
+    "steps_title": "Como registrar",
+    "steps": [
+      "Aponte a câmera para o QR code (ou encoste o celular na tag NFC).",
+      "Escolha quem você é.",
+      "Confirme a data e a hora.",
+      "Toque no que você fez e preencha os valores que mediu.",
+      "Salve o registro."
+    ],
+    "report_hint": "A aba Estado mostra o estado da piscina, as próximas manutenções e os gráficos de histórico.",
+    "print": "Imprimir"
+  },
+  "kiosk": {
+    "connected": "Home Assistant conectado",
+    "offline": "Sem conexão",
+    "manual": "manual",
+    "attention": "Precisa de atenção",
+    "visits": "Últimas intervenções",
+    "register": "Registrar visita",
+    "register_hint": "Leia o código ou aproxime a tag NFC para abrir no celular",
+    "filtration_cycle": "Ciclo de filtração",
+    "temp_7d": "Temperatura · 7 dias",
+    "maintenance": "manutenção",
+    "delta_24h": "{delta} °C nas últimas 24 h",
+    "heating_active": "aquecimento ativo",
+    "until": "até às {time}",
+    "chlorinator": "Clorador",
+    "salt": "Sal",
+    "never_short": "Nunca",
+    "days_short": "há {days} d",
+    "minutes_short": "há {n} min",
+    "hours_short": "há {n} h",
+    "overdue_days": "atrasado {days} dias",
+    "never_recorded": "sem registro",
+    "no_visits": "Ainda não há intervenções.",
+    "overdue_count": "em atraso",
+    "blocks_total": "{n} blocos · {h} h"
+  },
+  "roles": {
+    "pool_system": "Sistema",
+    "heat_pump": "Bomba de calor",
+    "filtration_schedule": "Horário de filtração",
+    "pump": "Bomba",
+    "pool_light": "Luz da piscina",
+    "cover": "Cobertura"
+  },
+  "maintenance": {
+    "title": "Modo manutenção",
+    "hint": "Ligue enquanto você trabalha na piscina. O sistema da casa pode reagir a isso.",
+    "by": "por {who}",
+    "error": "Não foi possível mudar o modo manutenção.",
+    "sheet_title": "Iniciar manutenção",
+    "sheet_hint": "Diga o que deve acontecer enquanto você trabalha. Quando o tempo acabar, a visita termina e o equipamento volta a como você o encontrou.",
+    "keep": "Sem alteração",
+    "turn_on": "Ligar",
+    "turn_off": "Desligar",
+    "open": "Abrir",
+    "close": "Fechar",
+    "is_open": "Aberta",
+    "is_closed": "Fechada",
+    "now": "agora: {state}",
+    "duration": "Durante",
+    "preset_minutes": "{n} min",
+    "preset_hours": "{n} h",
+    "no_limit": "Sem limite",
+    "minutes": "min",
+    "start": "Iniciar manutenção",
+    "cancel": "Cancelar",
+    "ends": "termina às {time}",
+    "failed": "{name} — não foi possível mudar",
+    "started": "Modo manutenção ligado",
+    "started_text": "O sistema da casa sabe que alguém está trabalhando na piscina.",
+    "ok": "OK"
+  },
+  "card": {
+    "turns_on": "Liga em",
+    "turns_off": "Desliga em",
+    "no_schedule": "Sem horário associado"
+  },
+  "impact_salt": "≈ +{delta} g/L em {volume} m³"
+}

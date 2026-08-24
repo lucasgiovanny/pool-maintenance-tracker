@@ -186,6 +186,7 @@
       "options": {
         "en": "English",
         "pt": "Português",
+        "pt-BR": "Português (Brasil)",
         "es": "Español",
         "fr": "Français",
         "de": "Deutsch",
@@ -380,6 +381,16 @@
         "equipment": {
           "name": "Équipement",
           "description": "Ce que chaque rôle d'équipement doit faire pendant la visite — par exemple pool_system: off et heat_pump: on. La couverture accepte open ou closed. Les rôles que vous omettez ne sont pas touchés."
+        }
+      }
+    },
+    "export_records": {
+      "name": "Exporter le journal",
+      "description": "Renvoie le journal de maintenance complet et le carnet de notes de la piscine comme données de réponse.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscine",
+          "description": "La piscine dont exporter le journal."
         }
       }
     }

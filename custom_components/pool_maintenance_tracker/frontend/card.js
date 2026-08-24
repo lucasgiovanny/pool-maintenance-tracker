@@ -73,7 +73,7 @@ const DEFAULTS = {
   hidden: [],
 };
 
-/* Editor labels — same six languages as the pages. */
+/* Editor labels — same languages as the pages. */
 const EDITOR_TEXT = {
   en: {
     entry: "Pool", entry_help: "Leave empty to use the only pool you have.",
@@ -92,6 +92,17 @@ const EDITOR_TEXT = {
     temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
     countdown: "Contagem decrescente do horário", filtration: "Horas de filtração", chlorinator: "Clorador",
     acid_tank: "Depósito de ácido",
+    layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
+    show_icons: "Mostrar ícones",
+    shown: "Itens exibidos", header: "Cabeçalho (nome e ícone)",
+  },
+  "pt-BR": {
+    entry: "Piscina", entry_help: "Deixe vazio para usar a única piscina que você tem.",
+    title: "Título (opcional)", only_due_tasks: "Mostrar só tarefas atrasadas",
+    general: "Geral", equipment: "Equipamento", readings: "Leituras da água", tasks: "Tarefas",
+    temperature: "Temperatura da água (cabeçalho)", alerts: "Alertas",
+    countdown: "Contagem regressiva do horário", filtration: "Horas de filtração", chlorinator: "Clorador",
+    acid_tank: "Tanque de ácido",
     layout: "Disposição", layout_list: "Lista", layout_tiles: "Cartões",
     show_icons: "Mostrar ícones",
     shown: "Itens exibidos", header: "Cabeçalho (nome e ícone)",
@@ -144,8 +155,9 @@ const EDITOR_TEXT = {
 };
 
 function editorText(hass) {
-  const language = (hass && hass.language ? hass.language : "en").split("-")[0];
-  return EDITOR_TEXT[language] || EDITOR_TEXT.en;
+  const language = hass && hass.language ? hass.language : "en";
+  /* The exact regional code wins when we ship it (pt-BR); its base next */
+  return EDITOR_TEXT[language] || EDITOR_TEXT[language.split("-")[0]] || EDITOR_TEXT.en;
 }
 
 function fireEvent(node, type, detail) {

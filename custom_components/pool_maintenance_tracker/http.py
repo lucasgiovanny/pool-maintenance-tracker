@@ -222,6 +222,9 @@ async def _load_strings(hass: HomeAssistant, language: str) -> dict[str, Any]:
         return strings
     path = STRINGS_DIR / f"{language}.json"
     if not path.exists():
+        # "pt-BR" falls back to "pt" before falling back to English
+        path = STRINGS_DIR / f"{language.split('-')[0]}.json"
+    if not path.exists():
         path = STRINGS_DIR / f"{DEFAULT_LANGUAGE}.json"
     raw = await hass.async_add_executor_job(path.read_text, "utf-8")
     strings = json.loads(raw)

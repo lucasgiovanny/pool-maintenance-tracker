@@ -263,10 +263,14 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
                     options=options,
                 )
 
-        default_language = (
-            self.hass.config.language.split("-")[0]
-            if self.hass.config.language.split("-")[0] in LANGUAGES
-            else DEFAULT_LANGUAGE
+        ha_language = self.hass.config.language
+        default_language = next(
+            (
+                candidate
+                for candidate in (ha_language, ha_language.split("-")[0])
+                if candidate in LANGUAGES
+            ),
+            DEFAULT_LANGUAGE,
         )
         schema: dict[vol.Marker, Any] = {
             vol.Required(CONF_LANGUAGE, default=default_language): _language_selector(),

@@ -171,7 +171,7 @@ POOL_TYPE_CHLORINE: Final = "chlorine"
 POOL_TYPE_OTHER: Final = "other"
 POOL_TYPES: Final = [POOL_TYPE_SALT, POOL_TYPE_CHLORINE, POOL_TYPE_OTHER]
 
-LANGUAGES: Final = ["en", "pt", "es", "fr", "de", "it"]
+LANGUAGES: Final = ["en", "pt", "pt-BR", "es", "fr", "de", "it"]
 DEFAULT_LANGUAGE: Final = "en"
 DEFAULT_FILTER_DAYS: Final = 30
 DEFAULT_PROBE_DAYS: Final = 60

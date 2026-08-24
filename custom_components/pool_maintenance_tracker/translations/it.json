@@ -186,6 +186,7 @@
       "options": {
         "en": "English",
         "pt": "Português",
+        "pt-BR": "Português (Brasil)",
         "es": "Español",
         "fr": "Français",
         "de": "Deutsch",
@@ -380,6 +381,16 @@
         "equipment": {
           "name": "Attrezzatura",
           "description": "Cosa deve fare ogni ruolo dell'attrezzatura durante la visita — per esempio pool_system: off e heat_pump: on. La copertura accetta open o closed. I ruoli che ometti non vengono toccati."
+        }
+      }
+    },
+    "export_records": {
+      "name": "Esporta registro",
+      "description": "Restituisce il registro di manutenzione completo e il diario delle note della piscina come dati di risposta.",
+      "fields": {
+        "config_entry": {
+          "name": "Piscina",
+          "description": "La piscina di cui esportare il registro."
         }
       }
     }

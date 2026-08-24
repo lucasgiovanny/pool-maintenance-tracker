@@ -356,7 +356,8 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
 
    Water testing (pH, free chlorine, total alkalinity, temperature) and the
    maintenance log are always on.
-3. **Page and reminders** — page language (English, Portuguese, Spanish,
+3. **Page and reminders** — page language (English, Portuguese — European
+   and Brazilian, Spanish,
    French, German, Italian), an optional notification target, and reminder
    periods (defaults: filter 30 days, pH probe 60 days, chlorinator cell
    90 days, stabilizer & hardness test 30 days).

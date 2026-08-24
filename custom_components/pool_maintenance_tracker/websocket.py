@@ -60,11 +60,12 @@ def _resolve(
     if entry is None or entry.domain != DOMAIN or entry.state is not ConfigEntryState.LOADED:
         connection.send_error(msg["id"], "not_found", "Unknown or unloaded pool")
         return None
-    requested = (msg.get("language") or "").split("-")[0]
-    language = requested or entry.options.get("language", "en")
-    if language not in LANGUAGES:
-        language = DEFAULT_LANGUAGE
-    return entry, language
+    requested = msg.get("language") or entry.options.get("language", "en")
+    # "pt-BR" is its own bundle; any other region falls back to its base.
+    for candidate in (requested, requested.split("-")[0]):
+        if candidate in LANGUAGES:
+            return entry, candidate
+    return entry, DEFAULT_LANGUAGE
 
 
 async def _status_payload(hass: HomeAssistant, entry: ConfigEntry, language: str) -> dict[str, Any]:

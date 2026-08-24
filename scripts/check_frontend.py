@@ -23,7 +23,7 @@ FRONTEND = (
     / "frontend"
 )
 PAGES = ("page.html", "kiosk.html", "manual.html")
-LANGUAGES = ("en", "pt", "es", "fr", "de", "it")
+LANGUAGES = ("en", "pt", "pt-BR", "es", "fr", "de", "it")
 
 SCRIPT_RE = re.compile(r"<script>(.*?)</script>", re.DOTALL)
 # S.a.b — the long way into the string bundle, used from anywhere

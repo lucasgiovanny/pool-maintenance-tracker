@@ -186,6 +186,7 @@
       "options": {
         "en": "English",
         "pt": "Português",
+        "pt-BR": "Português (Brasil)",
         "es": "Español",
         "fr": "Français",
         "de": "Deutsch",
@@ -380,6 +381,16 @@
         "equipment": {
           "name": "Equipment",
           "description": "What each equipment role should do while the visit lasts — for example pool_system: off and heat_pump: on. Covers take open or closed. Roles you leave out are not touched."
+        }
+      }
+    },
+    "export_records": {
+      "name": "Export records",
+      "description": "Returns the pool's full maintenance log and notes diary as response data.",
+      "fields": {
+        "config_entry": {
+          "name": "Pool",
+          "description": "The pool whose log to export."
         }
       }
     }

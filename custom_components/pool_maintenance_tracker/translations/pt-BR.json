@@ -9,7 +9,7 @@
           "pool_volume": "Volume (m³)"
         },
         "data_description": {
-          "pool_type": "Pré-seleciona os módulos de equipamento. Podes ajustá-los no passo seguinte."
+          "pool_type": "Pré-seleciona os módulos de equipamento. Você pode ajustá-los na próxima etapa."
         }
       },
       "modules": {
@@ -30,12 +30,12 @@
           "chemistry_days": "Lembrete do teste de estabilizante e dureza (dias)"
         },
         "data_description": {
-          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações."
+          "notify_service": "Por exemplo notify.mobile_app_meucelular. Deixe vazio para não receber notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as suas automações."
         }
       }
     },
     "error": {
-      "invalid_notify_service": "Indica um serviço como notify.mobile_app_meutelemovel, ou deixa vazio."
+      "invalid_notify_service": "Indique um serviço como notify.mobile_app_meucelular, ou deixe vazio."
     }
   },
   "options": {
@@ -54,7 +54,7 @@
       },
       "pool": {
         "title": "Piscina",
-        "description": "O volume desbloqueia a dica de dosagem de sal. A faixa de sal é a referência das leituras — confirma o que o teu clorador pede.",
+        "description": "O volume desbloqueia a dica de dosagem de sal. A faixa de sal é a referência das leituras — confirme o que o seu clorador pede.",
         "data": {
           "pool_volume": "Volume (m³)",
           "salt_target_min": "Sal alvo — mínimo (g/L)",
@@ -62,7 +62,7 @@
           "maintenance_mode_enabled": "Interruptor de modo manutenção"
         },
         "data_description": {
-          "maintenance_mode_enabled": "Adiciona um interruptor que diz que alguém está a trabalhar na piscina. Na página de manutenção vem com um painel: o que cada equipamento deve fazer enquanto o trabalho durar, e por quanto tempo. Quando o tempo acaba, a visita termina e o equipamento volta a como estava. Só as entidades que atribuíste em Equipamento são tocadas — e qualquer pessoa com o link da página pode começar uma visita."
+          "maintenance_mode_enabled": "Adiciona um interruptor que diz que alguém está trabalhando na piscina. Na página de manutenção vem com um painel: o que cada equipamento deve fazer enquanto o trabalho durar, e por quanto tempo. Quando o tempo acaba, a visita termina e o equipamento volta a como estava. Só as entidades que você atribuiu em Equipamento são tocadas — e qualquer pessoa com o link da página pode iniciar uma visita."
         }
       },
       "modules": {
@@ -74,14 +74,14 @@
       },
       "people": {
         "title": "Pessoas na página",
-        "description": "Escolhe que utilizadores do Home Assistant aparecem como opções na página de manutenção. O chip genérico Técnico aparece sempre. Selecionar todos (ou nenhum) mostra todos os utilizadores ativos.",
+        "description": "Escolha quais usuários do Home Assistant aparecem como opções na página de manutenção. O chip genérico Técnico aparece sempre. Selecionar todos (ou nenhum) mostra todos os usuários ativos.",
         "data": {
-          "people_users": "Utilizadores"
+          "people_users": "Usuários"
         }
       },
       "sensors": {
         "title": "Sensores ligados",
-        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registo. Deixa um campo vazio para desligar. Com um sensor de pressão ligado, o aviso de lavagem do filtro passa a seguir a subida de pressão face ao filtro limpo em vez do intervalo fixo. A referência é capturada automaticamente na próxima lavagem registada.",
+        "description": "Liga sensores existentes (por exemplo de uma sonda inteligente ou de outra integração da piscina) a esta piscina. Os valores atuais aparecem na página de manutenção ao lado das medições manuais, e um snapshot é guardado em cada registro. Deixe um campo vazio para desvincular. Com um sensor de pressão ligado, o aviso de lavagem do filtro passa a seguir a subida de pressão face ao filtro limpo em vez do intervalo fixo. A referência é capturada automaticamente na próxima lavagem registrada.",
         "data": {
           "ph_source": "Sensor de pH",
           "chlorine_source": "Sensor de cloro livre",
@@ -89,41 +89,41 @@
           "temperature_source": "Sensor de temperatura da água",
           "linked_mode": "Comportamento dos sensores ligados",
           "report_sensors": "Entidades extra na aba Estado",
-          "filter_pressure_source": "Manómetro do filtro"
+          "filter_pressure_source": "Manômetro do filtro"
         }
       },
       "equipment": {
         "title": "Equipamento",
-        "description": "Indica as entidades que desempenham um papel conhecido, em vez de os painéis terem de adivinhar pela lista de entidades extra.",
+        "description": "Indique as entidades que desempenham um papel conhecido, em vez de os painéis terem de adivinhar pela lista de entidades extra.",
         "data": {
           "pool_system_entity": "Interruptor do sistema",
           "heat_pump_entity": "Bomba de calor",
-          "filtration_schedule_mode": "Horário de filtragem",
+          "filtration_schedule_mode": "Horário de filtração",
           "pump_entity": "Bomba do filtro",
           "pool_light_entity": "Luz da piscina",
           "cover_entity": "Cobertura"
         },
         "data_description": {
-          "filtration_schedule_mode": "Como esta piscina guarda as horas de filtragem. O agendamento é o helper do próprio Home Assistant; escolhe as entidades quando é o controlador da piscina que já publica as horas de ligar e desligar."
+          "filtration_schedule_mode": "Como esta piscina guarda as horas de filtração. O agendamento é o helper do próprio Home Assistant; escolha as entidades quando é o controlador da piscina que já publica as horas de ligar e desligar."
         }
       },
       "schedule_helper": {
-        "title": "Horário de filtragem",
-        "description": "O agendamento que decide quando a filtragem corre. Os blocos semanais aparecem em todos os painéis, e as horas de hoje com eles.",
+        "title": "Horário de filtração",
+        "description": "O agendamento que decide quando a filtração funciona. Os blocos semanais aparecem em todos os painéis, e as horas de hoje com eles.",
         "data": {
           "filtration_schedule_entity": "Agendamento"
         }
       },
       "schedule_times": {
-        "title": "Horário de filtragem",
-        "description": "As entidades que o controlador da piscina usa para o ciclo. As duas horas constroem a mesma vista semanal de um agendamento, e o sensor diz se a filtragem está a funcionar agora.",
+        "title": "Horário de filtração",
+        "description": "As entidades que o controlador da piscina usa para o ciclo. As duas horas constroem a mesma visão semanal de um agendamento, e o sensor diz se a filtração está funcionando agora.",
         "data": {
           "filtration_on_time_entity": "Hora de ligar",
           "filtration_off_time_entity": "Hora de desligar",
           "filtration_state_entity": "Sensor de funcionamento (opcional)"
         },
         "data_description": {
-          "filtration_state_entity": "Deixa vazio para o estado ser lido a partir das próprias horas."
+          "filtration_state_entity": "Deixe vazio para o estado ser lido a partir das próprias horas."
         }
       },
       "reminders": {
@@ -146,22 +146,22 @@
           "kiosk_enabled": "Página de dashboard de parede"
         },
         "data_description": {
-          "notify_service": "Por exemplo notify.mobile_app_meutelemovel. Deixa vazio para não haver notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as tuas automações.",
-          "report_enabled": "Adiciona uma aba de relatório (só leitura) à página pública: valores atuais, estado das tarefas e últimos registos. Visível para quem tiver o URL da página.",
-          "kiosk_enabled": "Um dashboard escuro, só de exibição, para um ecrã junto à piscina (7\" horizontal ou maior): leituras da água, equipamento e contagem decrescente para a próxima mudança do horário. Sem toque nem navegação. O URL está nos atributos da entidade do QR code."
+          "notify_service": "Por exemplo notify.mobile_app_meucelular. Deixe vazio para não receber notificações da integração — os sensores binários de atraso e o evento de manutenção continuam disponíveis para as suas automações.",
+          "report_enabled": "Adiciona uma aba de relatório (só leitura) à página pública: valores atuais, estado das tarefas e últimos registros. Visível para quem tiver o URL da página.",
+          "kiosk_enabled": "Um dashboard escuro, só de exibição, para uma tela junto à piscina (7\" horizontal ou maior): leituras da água, equipamento e contagem regressiva para a próxima mudança do horário. Sem toque nem navegação. O URL está nos atributos da entidade do QR code."
         },
-        "description": "Escolhe um serviço notify (por exemplo o teu telemóvel, da app companion) ou uma entidade notify. Deixa vazio e a integração não envia nada — os binary sensors de atraso e o evento de manutenção continuam disponíveis para as tuas automações."
+        "description": "Escolha um serviço notify (por exemplo o seu celular, do app Companion) ou uma entidade notify. Deixe vazio e a integração não envia nada — os binary sensors de atraso e o evento de manutenção continuam disponíveis para as suas automações."
       },
       "security": {
         "title": "Segurança",
-        "description": "Regenerar o token de acesso invalida o URL atual da página. Terás de regravar o QR code ou a tag NFC.",
+        "description": "Regenerar o token de acesso invalida o URL atual da página. Você terá que regravar o QR code ou a tag NFC.",
         "data": {
           "regenerate_token": "Regenerar token de acesso"
         }
       }
     },
     "error": {
-      "invalid_notify_service": "Indica um serviço como notify.mobile_app_meutelemovel, ou deixa vazio."
+      "invalid_notify_service": "Indique um serviço como notify.mobile_app_meucelular, ou deixe vazio."
     }
   },
   "selector": {
@@ -176,7 +176,7 @@
       "options": {
         "salt_chlorinator": "Clorador salino",
         "water_chemistry": "Química da água completa (cianúrico, dureza, cloro total)",
-        "acid_tank": "Depósito de ácido do doseador de pH",
+        "acid_tank": "Tanque de ácido do dosador de pH",
         "filter": "Filtro",
         "ph_probe": "Sonda de pH",
         "cleaning": "Tarefas de limpeza"
@@ -196,7 +196,7 @@
     "linked_mode": {
       "options": {
         "manual_only": "Só mostrar na página (entidades ficam manuais)",
-        "fill_on_record": "Preencher entidades com a sonda ao guardar um registo",
+        "fill_on_record": "Preencher entidades com a sonda ao salvar um registro",
         "mirror": "Espelhar continuamente (sobrepõe valores manuais)"
       }
     },
@@ -251,14 +251,14 @@
         }
       },
       "acid_tank_level": {
-        "name": "Nível do depósito de ácido",
+        "name": "Nível do tanque de ácido",
         "state": {
           "full": "Cheio",
           "three_quarters": "¾",
           "half": "½",
           "quarter": "¼",
           "empty": "Vazio",
-          "none": "Sem depósito"
+          "none": "Sem tanque"
         }
       }
     },
@@ -282,7 +282,7 @@
         "name": "Última calibração da sonda de pH"
       },
       "last_acid_refill": {
-        "name": "Último atesto de ácido"
+        "name": "Último reabastecimento de ácido"
       },
       "last_cleaning": {
         "name": "Última limpeza"
@@ -291,7 +291,7 @@
         "name": "Última manutenção"
       },
       "last_record": {
-        "name": "Último registo"
+        "name": "Último registro"
       },
       "combined_chlorine": {
         "name": "Cloro combinado"
@@ -342,7 +342,7 @@
     },
     "event": {
       "maintenance_logged": {
-        "name": "Manutenção registada"
+        "name": "Manutenção registrada"
       }
     },
     "image": {
@@ -353,22 +353,22 @@
   },
   "services": {
     "delete_record": {
-      "name": "Apagar registo",
-      "description": "Apaga um registo de manutenção (o mais recente se não indicares id) e recalcula as datas das tarefas a partir dos registos restantes.",
+      "name": "Apagar registro",
+      "description": "Apaga um registro de manutenção (o mais recente se você não indicar um id) e recalcula as datas das tarefas a partir dos registros restantes.",
       "fields": {
         "config_entry": {
           "name": "Piscina",
-          "description": "A piscina de onde apagar o registo."
+          "description": "A piscina de onde apagar o registro."
         },
         "record_id": {
-          "name": "Id do registo",
-          "description": "Id do registo a apagar (vê o atributo recent_records do sensor de último registo). Deixa vazio para apagar o mais recente."
+          "name": "Id do registro",
+          "description": "Id do registro a apagar (veja o atributo recent_records do sensor de último registro). Deixe vazio para apagar o mais recente."
         }
       }
     },
     "start_maintenance": {
-      "name": "Começar manutenção",
-      "description": "Liga o modo manutenção com uma janela de tempo e um plano para o equipamento, como faz a página de manutenção. Para terminar, usa switch.turn_off, que também devolve o equipamento ao que estava.",
+      "name": "Iniciar manutenção",
+      "description": "Liga o modo manutenção com uma janela de tempo e um plano para o equipamento, como faz a página de manutenção. Para terminar, use switch.turn_off, que também devolve o equipamento ao que estava.",
       "fields": {
         "config_entry": {
           "name": "Piscina",
@@ -376,21 +376,21 @@
         },
         "minutes": {
           "name": "Durante",
-          "description": "Minutos até a visita terminar sozinha e o equipamento voltar ao que estava. Deixa vazio para não ter limite."
+          "description": "Minutos até a visita terminar sozinha e o equipamento voltar ao que estava. Deixe vazio para não ter limite."
         },
         "equipment": {
           "name": "Equipamento",
-          "description": "O que cada papel de equipamento deve fazer enquanto a visita durar — por exemplo pool_system: off e heat_pump: on. A cobertura aceita open ou closed. Os papéis que deixares de fora não são tocados."
+          "description": "O que cada papel de equipamento deve fazer enquanto a visita durar — por exemplo pool_system: off e heat_pump: on. A cobertura aceita open ou closed. Os papéis que você deixar de fora não são tocados."
         }
       }
     },
     "export_records": {
-      "name": "Exportar registos",
-      "description": "Devolve o registo de manutenção completo e o diário de notas da piscina como dados de resposta.",
+      "name": "Exportar registros",
+      "description": "Devolve o registro de manutenção completo e o diário de notas da piscina como dados de resposta.",
       "fields": {
         "config_entry": {
           "name": "Piscina",
-          "description": "A piscina cujo registo exportar."
+          "description": "A piscina cujo registro exportar."
         }
       }
     }
@@ -398,7 +398,7 @@
   "issues": {
     "missing_entity": {
       "title": "{pool}: uma entidade configurada desapareceu",
-      "description": "A entidade `{entity_id}` está configurada para a piscina **{pool}**, mas já não existe — foi removida, renomeada, ou a integração dela desapareceu. Os painéis simplesmente deixam de a mostrar. Escolhe uma substituta (ou limpa o campo) nas opções **Configurar** da piscina."
+      "description": "A entidade `{entity_id}` está configurada para a piscina **{pool}**, mas não existe mais — foi removida, renomeada, ou a integração dela desapareceu. Os painéis simplesmente deixam de mostrá-la. Escolha uma substituta (ou limpe o campo) nas opções **Configurar** da piscina."
     }
   },
   "exceptions": {
@@ -409,7 +409,7 @@
       "message": "A piscina não está carregada."
     },
     "no_record": {
-      "message": "Nenhum registo correspondente para apagar."
+      "message": "Nenhum registro correspondente para apagar."
     },
     "maintenance_disabled": {
       "message": "O modo manutenção está desligado nesta piscina."
