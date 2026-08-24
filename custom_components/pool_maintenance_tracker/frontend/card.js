@@ -230,6 +230,7 @@ class PoolMaintenanceCard extends HTMLElement {
     this._onVisible = null;
     this._loadedAt = 0;
     this._loading = false;
+    this._themed = null;
   }
 
   setConfig(config) {
@@ -511,6 +512,7 @@ class PoolMaintenanceCard extends HTMLElement {
     /* A repaint would wipe the half-filled sheet under the user's finger,
        so the card holds still until the visit is started or called off. */
     if (this._sheet) return;
+    this._syncTheme();
     if (this._tick) { clearInterval(this._tick); this._tick = null; }
     if (!this._data) {
       this.shadowRoot.innerHTML = `<ha-card><div class="empty">${
@@ -1164,10 +1166,49 @@ class PoolMaintenanceCard extends HTMLElement {
     return true;
   }
 
+  /* Corners and borders belong to the theme: a square theme should square
+     this card off along with everything else on the dashboard. Reading the
+     tokens straight from CSS is not enough — a theme that leaves one of them
+     empty makes var() invalid at computed-value time, and that does not fall
+     back: the property resets to its initial value, and the corners (once,
+     the border) vanish. So the tokens are read here, the browser is asked
+     whether they are usable at all, and only then are they handed to the
+     stylesheet. */
+  _syncTheme() {
+    const themes = this._hass ? this._hass.themes : null;
+    const key = themes ? `${themes.theme}|${themes.darkMode}` : "";
+    if (key === this._themed) return;
+    this._themed = key;
+    const style = getComputedStyle(this);
+    const take = (token, property, fallback) => {
+      const value = style.getPropertyValue(token).trim();
+      const usable = value && window.CSS && CSS.supports
+        && CSS.supports(property, value);
+      return usable ? value : fallback;
+    };
+    this.style.setProperty("--pmt-radius",
+      take("--ha-card-border-radius", "border-radius", "12px"));
+    this.style.setProperty("--pmt-border-width",
+      take("--ha-card-border-width", "border-width", "1px"));
+  }
+
   _styles() {
     return `<style>
       *{box-sizing:border-box}
-      :host{display:block}
+      :host{
+        display:block;
+        /* The accent cannot be borrowed from --state-icon-color: themes are
+           free to paint icons whatever neutral they like, and the ones that
+           grey them out greyed out every toggle, chip and bar on this card
+           with them. --primary-color is the one accent every theme both
+           defines and means. */
+        --pmt-accent:var(--primary-color,#44739E);
+        /* What the theme's own tokens are worth, filled in by _syncTheme;
+           these values are what a theme that leaves them unset gets. */
+        --pmt-radius:12px;
+        --pmt-radius-sm:min(var(--pmt-radius),10px);
+        --pmt-border-width:1px;
+      }
       ha-card{padding:16px;display:block}
       /* With the header gone, whatever lands first should not keep the gap
          that was there to separate it from the header. */
@@ -1178,7 +1219,7 @@ class PoolMaintenanceCard extends HTMLElement {
       .head{display:flex;align-items:center;gap:14px}
       .icon{
         width:52px;height:52px;border-radius:50%;flex:none;
-        background:var(--state-icon-color,#0FA3B1);opacity:.9;
+        background:var(--pmt-accent);opacity:.9;
         display:flex;align-items:center;justify-content:center;
       }
       .icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round}
@@ -1202,20 +1243,23 @@ class PoolMaintenanceCard extends HTMLElement {
       .temp small{font-size:.95rem;color:var(--secondary-text-color,#8a8f94);margin-left:3px}
 
       .alert{
-        display:flex;gap:10px;margin-top:14px;padding:10px 12px;border-radius:10px;
+        display:flex;gap:10px;margin-top:14px;padding:10px 12px;border-radius:var(--pmt-radius-sm);
         background:rgba(233,185,79,.14);color:var(--warning-color,#E9B94F);
         font-size:.95rem;line-height:1.45;font-weight:500;
+      }
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .alert{background:color-mix(in srgb,var(--warning-color,#E9B94F) 14%,transparent)}
       }
       .alert svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;flex:none;margin-top:1px}
 
       .countdown{
         display:flex;align-items:center;gap:10px;margin-top:14px;
-        padding:10px 12px;border-radius:10px;background:var(--secondary-background-color,rgba(127,127,127,.12));
+        padding:10px 12px;border-radius:var(--pmt-radius-sm);background:var(--secondary-background-color,rgba(127,127,127,.12));
       }
       .cd-label{color:var(--secondary-text-color,#8a8f94);font-size:.92rem;font-weight:500;flex:1}
       .cd-value{
         font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;
-        color:var(--state-icon-color,#44739E);
+        color:var(--pmt-accent);
       }
       .countdown.soon .cd-value{color:var(--warning-color,#E9B94F)}
 
@@ -1225,16 +1269,15 @@ class PoolMaintenanceCard extends HTMLElement {
          theme's own card surface — so a tiles dashboard reads as native
          HA cards on the transparent background, dark or light. */
       ha-card.tiles-layout{background:none;border:none;box-shadow:none}
-      /* Radius is fixed on purpose. Reading --ha-card-border-radius looked
-         right, but on installs where the token resolves to nothing valid,
-         a failed var() does not fall back — the property resets to its
-         initial value, and the corners (and once, the border) vanish.
-         12px is HA's own default; the colors stay the theme's. */
+      /* Standing in for cards, the minis take the theme's card surface,
+         border, corners and shadow — the tokens vetted in _syncTheme, so a
+         theme that leaves one empty gets HA's own default instead of a
+         collapsed corner. */
       .tiles-layout .mini,.tiles-layout .tile,.tiles-layout .countdown{
         background:var(--ha-card-background,var(--card-background-color,#fff));
-        border:1px solid var(--ha-card-border-color,var(--divider-color,rgba(127,127,127,.25)));
-        border-radius:12px;
-        box-shadow:none;
+        border:var(--pmt-border-width) solid var(--ha-card-border-color,var(--divider-color,rgba(127,127,127,.25)));
+        border-radius:var(--pmt-radius);
+        box-shadow:var(--ha-card-box-shadow,none);
       }
 
       /* Tiles layout: kiosk-style minis for a single-card dashboard */
@@ -1246,7 +1289,7 @@ class PoolMaintenanceCard extends HTMLElement {
       .sec > *{flex:1 1 150px;min-width:150px}
       .sec-alerts > *{flex:0 1 auto;min-width:180px;max-width:340px}
       .mini{
-        border:1px solid var(--divider-color,#e0e0e0);border-radius:12px;
+        border:1px solid var(--divider-color,#e0e0e0);border-radius:var(--pmt-radius);
         padding:10px 12px;cursor:pointer;min-width:0;
       }
       .mini-name{
@@ -1260,7 +1303,7 @@ class PoolMaintenanceCard extends HTMLElement {
         margin-top:2px;line-height:1.35;
       }
       .mini-badge{margin-top:6px}
-      .item-icon{--mdc-icon-size:15px;color:var(--state-icon-color,#44739E);flex:none}
+      .item-icon{--mdc-icon-size:15px;color:var(--pmt-accent);flex:none}
       .tile-name .item-icon,.row-name .item-icon{--mdc-icon-size:17px}
       .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
       .hero{flex:2 1 280px;display:flex;flex-direction:column;justify-content:center}
@@ -1275,7 +1318,7 @@ class PoolMaintenanceCard extends HTMLElement {
       }
       .cycle-track i{
         position:absolute;top:0;bottom:0;border-radius:999px;
-        background:var(--state-icon-color,#44739E);
+        background:var(--pmt-accent);
       }
       .cycle-track b{
         position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
@@ -1299,17 +1342,18 @@ class PoolMaintenanceCard extends HTMLElement {
       .tiles-layout .toggles .tile{flex:1 1 150px}
       .tile{
         flex:1 1 calc(50% - 5px);min-width:0;border:1px solid var(--divider-color,rgba(127,127,127,.35));
-        border-radius:12px;padding:10px 12px;cursor:pointer;
+        border-radius:var(--pmt-radius);padding:10px 12px;cursor:pointer;
       }
       .tile-top{display:flex;align-items:center;gap:8px}
       .tile-name{flex:1;min-width:0;font-weight:500;display:inline-flex;align-items:center;gap:6px}
       .tile-sub{color:var(--secondary-text-color,#8a8f94);font-size:.88rem;margin-top:3px}
-      .tile.on .tile-sub{color:var(--state-icon-color,#44739E)}
+      .tile.on .tile-sub{color:var(--pmt-accent)}
       .switch{
-        width:38px;height:22px;border-radius:11px;background:var(--disabled-text-color,#8c8c8c);
+        width:38px;height:22px;border-radius:11px;
+        background:var(--switch-unchecked-color,var(--disabled-text-color,#8c8c8c));
         flex:none;position:relative;transition:background .15s;
       }
-      .switch.on{background:var(--state-icon-color,#44739E)}
+      .switch.on{background:var(--switch-checked-color,var(--pmt-accent))}
       .switch i{
         position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
         background:#fff;transition:transform .15s;
@@ -1323,8 +1367,11 @@ class PoolMaintenanceCard extends HTMLElement {
         background:var(--disabled-text-color,#8c8c8c);
       }
       .lamp.on{
-        background:var(--state-icon-color,#44739E);
+        background:var(--pmt-accent);
         box-shadow:0 0 0 4px rgba(68,115,158,.25);
+      }
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .lamp.on{box-shadow:0 0 0 4px color-mix(in srgb,var(--pmt-accent) 25%,transparent)}
       }
 
       /* Maintenance mode takes the full width and, when on, the warning
@@ -1357,14 +1404,17 @@ class PoolMaintenanceCard extends HTMLElement {
         background:var(--secondary-background-color,rgba(127,127,127,.12));color:var(--secondary-text-color,#8a8f94);
       }
       .badge.due,.badge.low,.badge.high{
-        background:rgba(68,115,158,.18);color:var(--state-icon-color,#44739E);
+        background:rgba(68,115,158,.18);color:var(--pmt-accent);
       }
       @supports (background:color-mix(in srgb,red 10%,transparent)){
         .badge.due,.badge.low,.badge.high{
-          background:color-mix(in srgb,var(--state-icon-color,#44739E) 16%,transparent);
+          background:color-mix(in srgb,var(--pmt-accent) 16%,transparent);
         }
       }
       .badge.ideal{background:rgba(47,204,139,.18);color:var(--success-color,#2FCC8B)}
+      @supports (background:color-mix(in srgb,red 10%,transparent)){
+        .badge.ideal{background:color-mix(in srgb,var(--success-color,#2FCC8B) 18%,transparent)}
+      }
 
       /* The maintenance sheet: the page's questions, inside the card */
       .sheet{
@@ -1374,7 +1424,7 @@ class PoolMaintenanceCard extends HTMLElement {
       .sheet .panel{
         width:100%;max-width:420px;max-height:86vh;overflow:auto;
         background:var(--card-background-color,#fff);color:var(--primary-text-color,#212121);
-        border-radius:16px;padding:18px;
+        border-radius:var(--pmt-radius);padding:18px;
         box-shadow:0 12px 40px rgba(0,0,0,.4);
       }
       .sheet h3{margin:0;font-size:1.15rem;font-weight:600}
@@ -1388,27 +1438,27 @@ class PoolMaintenanceCard extends HTMLElement {
       .sheet .seg{display:flex;flex-wrap:wrap;gap:6px}
       .sheet .seg button{
         flex:1 1 auto;min-width:64px;padding:8px 10px;font:inherit;font-size:.86rem;
-        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:10px;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:var(--pmt-radius-sm);
         background:transparent;color:inherit;cursor:pointer;
       }
       .sheet .seg button.on{
-        border-color:var(--state-icon-color,#44739E);
+        border-color:var(--pmt-accent);
         background:rgba(68,115,158,.18);font-weight:600;
       }
       @supports (background:color-mix(in srgb,red 10%,transparent)){
         .sheet .seg button.on{
-          background:color-mix(in srgb,var(--state-icon-color,#44739E) 16%,transparent);
+          background:color-mix(in srgb,var(--pmt-accent) 16%,transparent);
         }
       }
       .sheet .stepper{display:flex;align-items:center;gap:8px;margin-top:10px}
       .sheet .stepper button{
         width:40px;height:40px;font-size:1.2rem;line-height:1;cursor:pointer;
-        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:10px;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:var(--pmt-radius-sm);
         background:transparent;color:inherit;
       }
       .sheet .stepper input{
         flex:1;min-width:0;padding:9px 10px;font:inherit;text-align:center;
-        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:10px;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));border-radius:var(--pmt-radius-sm);
         background:transparent;color:inherit;
       }
       .sheet .unit{color:var(--secondary-text-color,#8a8f94);font-size:.86rem}
@@ -1416,12 +1466,12 @@ class PoolMaintenanceCard extends HTMLElement {
       .sheet .sheet-error:empty{display:none}
       .sheet .actions{display:flex;gap:8px;margin-top:18px}
       .sheet .actions button{
-        flex:1;padding:12px;font:inherit;font-weight:600;border-radius:12px;cursor:pointer;
+        flex:1;padding:12px;font:inherit;font-weight:600;border-radius:var(--pmt-radius-sm);cursor:pointer;
         border:1px solid var(--divider-color,rgba(127,127,127,.35));
         background:transparent;color:inherit;
       }
       .sheet .actions .primary{
-        border-color:transparent;background:var(--state-icon-color,#44739E);color:#fff;
+        border-color:transparent;background:var(--pmt-accent);color:#fff;
       }
       .sheet .actions button[disabled]{opacity:.6;cursor:default}
     </style>`;

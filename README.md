@@ -276,6 +276,12 @@ the wall dashboard leads with. In tiles the outer card dissolves: each mini
 takes the theme's own card surface on the dashboard's transparent background,
 so it reads as native HA cards, dark or light.
 
+Whatever theme is on, the card wears it. The accent on toggles, chips, icons
+and the cycle bar is the theme's own primary color, a toggle takes the color
+the theme paints its switches with, and corners and borders come from the same
+`ha-card` tokens Home Assistant hands its own cards — put a square theme on and
+this card squares off with the rest of the dashboard.
+
 You can also override the title and pick the pool when you have several.
 Tapping a row opens the usual more-info dialog — for a water reading, of
 whichever entity the number on screen came from, the linked probe or the manual
