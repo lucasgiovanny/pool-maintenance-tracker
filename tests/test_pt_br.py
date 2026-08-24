@@ -50,7 +50,7 @@ async def test_card_language_pt_br_gets_its_own_bundle(hass, salt_entry, hass_ws
     )
     result = await client.receive_json()
     assert result["success"]
-    assert result["result"]["language"] == "pt-BR"
+    assert result["result"]["language"] == "pt-br"
     assert result["result"]["strings"]["save"] == "Salvar registro"
 
 
@@ -73,14 +73,14 @@ async def test_unknown_region_falls_back_to_its_base(hass, salt_entry, hass_ws_c
 async def test_page_can_speak_pt_br(hass, salt_entry, hass_client_no_auth):
     salt_entry.add_to_hass(hass)
     hass.config_entries.async_update_entry(
-        salt_entry, options={**salt_entry.options, CONF_LANGUAGE: "pt-BR"}
+        salt_entry, options={**salt_entry.options, CONF_LANGUAGE: "pt-br"}
     )
     assert await hass.config_entries.async_setup(salt_entry.entry_id)
     await hass.async_block_till_done()
     client = await hass_client_no_auth()
 
     config = extract_config(await (await client.get(URL_PAGE.format(token=TEST_TOKEN))).text())
-    assert config["language"] == "pt-BR"
+    assert config["language"] == "pt-br"
     assert config["strings"]["save"] == "Salvar registro"
     assert config["strings"]["report"]["export_csv"] == "Baixar o registro (CSV)"
 
@@ -98,4 +98,4 @@ async def test_config_flow_defaults_to_the_exact_regional_code(hass):
     assert result["type"] is FlowResultType.FORM
     schema = result["data_schema"].schema
     language_key = next(key for key in schema if key.schema == CONF_LANGUAGE)
-    assert language_key.default() == "pt-BR"
+    assert language_key.default() == "pt-br"

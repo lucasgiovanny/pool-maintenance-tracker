@@ -171,7 +171,11 @@ POOL_TYPE_CHLORINE: Final = "chlorine"
 POOL_TYPE_OTHER: Final = "other"
 POOL_TYPES: Final = [POOL_TYPE_SALT, POOL_TYPE_CHLORINE, POOL_TYPE_OTHER]
 
-LANGUAGES: Final = ["en", "pt", "pt-BR", "es", "fr", "de", "it"]
+# Internal codes are lowercase — hassfest requires [a-z0-9-_]+ for the
+# selector translation keys. Only the native translations file keeps Home
+# Assistant's own casing (translations/pt-BR.json), because that is the
+# name HA loads for a pt-BR install.
+LANGUAGES: Final = ["en", "pt", "pt-br", "es", "fr", "de", "it"]
 DEFAULT_LANGUAGE: Final = "en"
 DEFAULT_FILTER_DAYS: Final = 30
 DEFAULT_PROBE_DAYS: Final = 60

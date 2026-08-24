@@ -96,7 +96,7 @@ const EDITOR_TEXT = {
     show_icons: "Mostrar ícones",
     shown: "Itens exibidos", header: "Cabeçalho (nome e ícone)",
   },
-  "pt-BR": {
+  "pt-br": {
     entry: "Piscina", entry_help: "Deixe vazio para usar a única piscina que você tem.",
     title: "Título (opcional)", only_due_tasks: "Mostrar só tarefas atrasadas",
     general: "Geral", equipment: "Equipamento", readings: "Leituras da água", tasks: "Tarefas",
@@ -155,8 +155,8 @@ const EDITOR_TEXT = {
 };
 
 function editorText(hass) {
-  const language = hass && hass.language ? hass.language : "en";
-  /* The exact regional code wins when we ship it (pt-BR); its base next */
+  const language = (hass && hass.language ? hass.language : "en").toLowerCase();
+  /* The exact regional code wins when we ship it (pt-br); its base next */
   return EDITOR_TEXT[language] || EDITOR_TEXT[language.split("-")[0]] || EDITOR_TEXT.en;
 }
 

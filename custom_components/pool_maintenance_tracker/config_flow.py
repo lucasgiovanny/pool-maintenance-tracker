@@ -263,7 +263,7 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
                     options=options,
                 )
 
-        ha_language = self.hass.config.language
+        ha_language = self.hass.config.language.lower()
         default_language = next(
             (
                 candidate

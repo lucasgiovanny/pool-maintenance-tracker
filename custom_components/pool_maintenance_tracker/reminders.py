@@ -64,7 +64,7 @@ NOTIFY_STRINGS = {
         "acid_empty": "Vazio",
         "acid_quarter": "1/4",
     },
-    "pt-BR": {
+    "pt-br": {
         "title": "Piscina: {pool}",
         TS_FILTER_WASH: "A lavagem do filtro está atrasada ({when}).",
         TS_CELL_CLEAN: "A limpeza da célula do clorador está atrasada ({when}).",
