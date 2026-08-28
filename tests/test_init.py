@@ -46,7 +46,8 @@ async def test_the_lovelace_card_is_served_and_registered(
 
     await setup_entry(hass, salt_entry)
 
-    assert any(url.startswith("/pool_maintenance_tracker/card.js?v=") for url in urls)
+    for card in ("card.js", "scene-card.js"):
+        assert any(url.startswith(f"/pool_maintenance_tracker/{card}?v=") for url in urls)
 
     client = await hass_client_no_auth()
     response = await client.get("/pool_maintenance_tracker/card.js")
@@ -54,8 +55,23 @@ async def test_the_lovelace_card_is_served_and_registered(
     body = await response.text()
     assert 'customElements.define("pool-maintenance-card"' in body
 
+    response = await client.get("/pool_maintenance_tracker/scene-card.js")
+    assert response.status == 200
+    body = await response.text()
+    assert 'customElements.define("pool-scene-card"' in body
 
-async def test_the_card_becomes_a_lovelace_resource(hass, salt_entry, hass_client_no_auth):
+
+async def test_the_scene_photo_is_served(hass, salt_entry, hass_client_no_auth):
+    """The scene card draws on a photo we ship; a 404 there is a blank card."""
+    await setup_entry(hass, salt_entry)
+
+    client = await hass_client_no_auth()
+    response = await client.get("/pool_maintenance_tracker/scene/pool.jpg")
+    assert response.status == 200
+    assert response.content_type == "image/jpeg"
+
+
+async def test_the_cards_become_lovelace_resources(hass, salt_entry, hass_client_no_auth):
     """A resource is fetched on every dashboard load; extra-js lives in the
     app HTML, which the service worker caches — the source of the
     intermittent "custom element doesn't exist"."""
@@ -65,14 +81,19 @@ async def test_the_card_becomes_a_lovelace_resource(hass, salt_entry, hass_clien
     await setup_entry(hass, salt_entry)
 
     resources = hass.data["lovelace"].resources
-    items = resources.async_items()
-    assert len(items) == 1
-    assert items[0]["url"].startswith("/pool_maintenance_tracker/card.js?v=")
-    assert items[0]["type"] == "module"
+    urls = {item["url"].split("?")[0]: item for item in resources.async_items()}
+    assert set(urls) == {
+        "/pool_maintenance_tracker/card.js",
+        "/pool_maintenance_tracker/scene-card.js",
+    }
+    for base, item in urls.items():
+        assert item["url"].startswith(f"{base}?v=")
+        assert item["type"] == "module"
 
-    # the file behind the resource actually resolves
+    # the files behind the resources actually resolve
     client = await hass_client_no_auth()
-    assert (await client.get("/pool_maintenance_tracker/card.js")).status == 200
+    for base in urls:
+        assert (await client.get(base)).status == 200
 
 
 async def test_an_existing_resource_is_updated_not_duplicated(hass, salt_entry):
@@ -89,5 +110,6 @@ async def test_an_existing_resource_is_updated_not_duplicated(hass, salt_entry):
     await setup_entry(hass, salt_entry)
 
     items = resources.async_items()
-    assert len(items) == 1
-    assert not items[0]["url"].endswith("v=0.1.0")
+    assert len(items) == 2
+    stale = [item for item in items if item["url"].endswith("v=0.1.0")]
+    assert not stale

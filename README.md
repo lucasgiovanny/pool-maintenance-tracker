@@ -217,12 +217,13 @@ along with the current pressure and the rise.
 
 ## Dashboard card
 
-The integration ships a Lovelace card and registers it for you — in storage
-mode it manages its own entry in **Settings → Dashboards → Resources**, kept
-pointed at the current version (with YAML-managed resources it falls back to
-the frontend's extra-js list). If you ever see *Custom element doesn't exist*,
-hard-refresh the browser. Add the card from the picker ("Pool Maintenance
-Tracker") or with a manual card:
+The integration ships two Lovelace cards — this one and the [scene
+card](#scene-card) — and registers them for you: in storage mode it manages
+their entries in **Settings → Dashboards → Resources**, kept pointed at the
+current version (with YAML-managed resources it falls back to the frontend's
+extra-js list). If you ever see *Custom element doesn't exist*, hard-refresh
+the browser. Add the card from the picker ("Pool Maintenance Tracker") or with
+a manual card:
 
 ```yaml
 type: custom:pool-maintenance-card
@@ -292,6 +293,61 @@ a lamp rather than a toggle, says whether it is heating or cooling and what it
 is aiming for, and hands a tap to Home Assistant's own dialog. The card speaks
 the **Home Assistant UI language** of whoever is looking at it, independently of
 the language you chose for the public page.
+
+## Scene card
+
+The card above tells you what is on. This one shows it. It draws your pool as
+a picture and animates the three things that are either happening or not:
+water turning over in the filter, heat coming off the heat pump, and the lamp
+lit under the surface.
+
+```yaml
+type: custom:pool-scene-card
+```
+
+<p align="center">
+  <img src="assets/scene-card-day.png" alt="The scene card by day: filtration running along the plumbing, heat rising off the heat pump" width="460">
+  <img src="assets/scene-card-night.png" alt="The same card after dark: the pool light lit under the water" width="460">
+</p>
+
+There is nothing to configure. It reads the same [equipment
+roles](#equipment-roles) the rest of the integration uses, so a pool that is
+already set up needs no entities picked here:
+
+| What you see | Where it comes from |
+| --- | --- |
+| Water turning over inside the filter, ripples at the skimmer and the jet | **Pump**, or the **filtration schedule**, or the **system** switch — whichever your pool has, in that order |
+| Fan spinning, heat rising off the unit | **Heat pump**. On a `climate` or `water_heater` entity, `hvac_action` decides: a unit that is on but has reached its target shows as on without producing heat |
+| Glow under the water | **Pool light** |
+| The reading at the bottom | Water temperature — the manual one or the linked probe, whichever measured last, same as the other card |
+
+A role you have not assigned simply is not drawn, label and all.
+
+Each machine that is working shows it on itself: the filter churns, the heat
+pump's fan turns and gives off heat. Nothing is drawn along the pipework —
+an animated line traced over the plumbing looked like an animated line traced
+over the plumbing, however carefully it was fitted. The pool gets the two
+ripples instead, where water leaves and where it comes back.
+
+After sunset the scene fades to evening on its own, tracking `sun.sun` and
+the light it still has: the picture dims and desaturates, the lit panels come
+up, and the lamp takes over the water. It stops at dusk rather than pitch
+dark, because the photo was taken at noon and no amount of overlay makes
+midday shadows read as midnight. **Lighting** in the editor pins it to *always
+day* or *always night* for a screen that wants one look.
+
+The other options are display preferences: the pool, an optional title,
+whether to show the title, the labels and the temperature, and a
+**background image** if you would rather it were your pool in the picture —
+any URL Home Assistant can serve, drawn in a 600×400 box (a 3:2 photo fits
+exactly). The equipment overlays are positioned for the picture that ships
+with the integration, so your own shot will animate in the same places
+regardless of what is in it.
+
+It is a display and only a display: nothing on it is clickable and it commands
+nothing — for switching things on, use the card above. Animations pause while
+the card is scrolled out of view, and a browser set to reduce motion gets the
+same scene with everything still and legible.
 
 ## Wall dashboard (kiosk)
 

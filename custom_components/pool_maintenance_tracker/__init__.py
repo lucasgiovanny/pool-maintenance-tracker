@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Final
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
@@ -130,10 +130,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
 
 DATA_FRONTEND_REGISTERED = "frontend_registered"
 CARD_URL = f"/{DOMAIN}/card.js"
+SCENE_CARD_URL = f"/{DOMAIN}/scene-card.js"
+# The photo the scene card draws on, and anything else it grows into.
+SCENE_ASSETS_URL = f"/{DOMAIN}/scene"
+# Every card this integration ships, in the order a dashboard loads them.
+CARD_URLS: Final[tuple[str, ...]] = (CARD_URL, SCENE_CARD_URL)
 
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
-    """Serve the Lovelace card and get it loaded by the dashboards.
+    """Serve the Lovelace cards and get them loaded by the dashboards.
 
     There are two ways to load a card and they fail differently. The
     frontend's extra-js list is baked into the app's HTML, which the
@@ -149,50 +154,63 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         return
     from pathlib import Path
 
-    card = Path(__file__).parent / "frontend" / "card.js"
+    frontend = Path(__file__).parent / "frontend"
     try:
         from homeassistant.components.http import StaticPathConfig
         from homeassistant.loader import async_get_integration
     except ImportError:
-        _LOGGER.warning("Home Assistant frontend unavailable; the pool card was not loaded")
+        _LOGGER.warning("Home Assistant frontend unavailable; the pool cards were not loaded")
         return
 
+    paths = [
+        StaticPathConfig(CARD_URL, str(frontend / "card.js"), True),
+        StaticPathConfig(SCENE_CARD_URL, str(frontend / "scene-card.js"), True),
+        StaticPathConfig(SCENE_ASSETS_URL, str(frontend / "scene"), True),
+    ]
     try:
-        await hass.http.async_register_static_paths([StaticPathConfig(CARD_URL, str(card), True)])
+        await hass.http.async_register_static_paths(paths)
     except (RuntimeError, ValueError) as err:
         # Already served from an earlier setup in this session — harmless.
-        _LOGGER.debug("Card already served at %s (%s)", CARD_URL, err)
+        _LOGGER.debug("Cards already served under /%s (%s)", DOMAIN, err)
 
     integration = await async_get_integration(hass, DOMAIN)
-    versioned_url = f"{CARD_URL}?v={integration.version}"
+    versioned = [f"{url}?v={integration.version}" for url in CARD_URLS]
 
-    if await _async_register_lovelace_resource(hass, versioned_url):
+    # All or nothing: the fallback has to cover every card, and a partial
+    # Lovelace registration would leave the rest loaded by neither route.
+    if all(
+        [
+            await _async_register_lovelace_resource(hass, base, url)
+            for base, url in zip(CARD_URLS, versioned, strict=True)
+        ]
+    ):
         domain_data[DATA_FRONTEND_REGISTERED] = True
-        _LOGGER.debug("Card registered as a Lovelace resource: %s", versioned_url)
+        _LOGGER.debug("Cards registered as Lovelace resources: %s", ", ".join(versioned))
         return
 
     try:
         from homeassistant.components.frontend import add_extra_js_url
 
-        add_extra_js_url(hass, versioned_url)
+        for url in versioned:
+            add_extra_js_url(hass, url)
     except Exception:
         _LOGGER.warning(
-            "Could not add %s to the dashboards - the Pool Maintenance card will show "
-            "'Custom element does not exist'",
-            CARD_URL,
+            "Could not add the cards to the dashboards - the Pool Maintenance cards will "
+            "show 'Custom element does not exist'",
             exc_info=True,
         )
         return
     domain_data[DATA_FRONTEND_REGISTERED] = True
-    _LOGGER.debug("Card registered via extra_js_url (Lovelace storage unavailable)")
+    _LOGGER.debug("Cards registered via extra_js_url (Lovelace storage unavailable)")
 
 
-async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> bool:
-    """Point a Lovelace resource entry at the current card version.
+async def _async_register_lovelace_resource(hass: HomeAssistant, base: str, url: str) -> bool:
+    """Point a Lovelace resource entry at the current version of one card.
 
-    One entry, updated in place on version changes — including an entry the
-    user once added by hand for the same path. Returns False when Lovelace
-    is absent or its resources are YAML-managed, and the caller falls back.
+    One entry per card, updated in place on version changes — including an
+    entry the user once added by hand for the same path. Returns False when
+    Lovelace is absent or its resources are YAML-managed, and the caller
+    falls back.
     """
     lovelace = hass.data.get("lovelace")
     resources = getattr(lovelace, "resources", None)
@@ -203,13 +221,13 @@ async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> bo
             await resources.async_load()
             resources.loaded = True
         for item in resources.async_items():
-            if str(item.get("url", "")).split("?")[0] == CARD_URL:
+            if str(item.get("url", "")).split("?")[0] == base:
                 if item["url"] != url:
                     await resources.async_update_item(item["id"], {"url": url})
                 return True
         await resources.async_create_item({"res_type": "module", "url": url})
     except Exception:
-        _LOGGER.warning("Could not manage the Lovelace resource for %s", CARD_URL, exc_info=True)
+        _LOGGER.warning("Could not manage the Lovelace resource for %s", base, exc_info=True)
         return False
     return True
 

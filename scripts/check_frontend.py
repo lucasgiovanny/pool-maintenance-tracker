@@ -23,11 +23,15 @@ FRONTEND = (
     / "frontend"
 )
 PAGES = ("page.html", "kiosk.html", "manual.html")
+# Every card, and the custom element each one owes Lovelace.
+CARDS = {"card.js": "pool-maintenance-card", "scene-card.js": "pool-scene-card"}
 LANGUAGES = ("en", "pt", "pt-br", "es", "fr", "de", "it")
 
 SCRIPT_RE = re.compile(r"<script>(.*?)</script>", re.DOTALL)
 # S.a.b — the long way into the string bundle, used from anywhere
-SECTION_RE = re.compile(r"\bS\.(report|kiosk|roles|tiles|units|modes|maintenance)\.([a-z_0-9]+)")
+SECTION_RE = re.compile(
+    r"\bS\.(report|kiosk|roles|tiles|units|modes|maintenance|card)\.([a-z_0-9]+)"
+)
 # Every page also takes a one-letter shorthand for the section it works in,
 # and the same letter means different things in different files.
 ALIASES = {
@@ -39,7 +43,7 @@ ALIASES = {
 
 def check_syntax(errors: list[str]) -> None:
     """Every inline script and the card must parse under node."""
-    targets: list[tuple[str, str]] = [("card.js", (FRONTEND / "card.js").read_text())]
+    targets: list[tuple[str, str]] = [(name, (FRONTEND / name).read_text()) for name in CARDS]
     for name in PAGES:
         text = (FRONTEND / name).read_text()
         for index, body in enumerate(SCRIPT_RE.findall(text)):
@@ -67,8 +71,8 @@ globalThis.customElements = { define: (name) => defined.push(name), get: () => u
 globalThis.window = globalThis;
 globalThis.document = { createElement: () => ({ style: {}, classList: { add() {} } }) };
 await import(SPECIFIER);
-if (!defined.includes("pool-maintenance-card")) {
-  console.error("card.js did not define pool-maintenance-card (defined: " + defined + ")");
+if (!defined.includes(ELEMENT)) {
+  console.error(FILE + " did not define " + ELEMENT + " (defined: " + defined + ")");
   process.exit(1);
 }
 """
@@ -83,20 +87,27 @@ def _first_useful_line(stderr: str) -> str:
 
 
 def check_card_defines_its_element(errors: list[str]) -> None:
-    """Load the card the way a browser does and check it registers."""
-    with tempfile.TemporaryDirectory() as folder:
-        card = Path(folder) / "card.mjs"
-        card.write_text((FRONTEND / "card.js").read_text())
-        harness = Path(folder) / "harness.mjs"
-        harness.write_text(CARD_HARNESS.replace("SPECIFIER", json.dumps(card.as_uri())))
-        result = subprocess.run(["node", str(harness)], capture_output=True, text=True, cwd=folder)
-    if result.returncode != 0:
-        errors.append(f"card.js: {_first_useful_line(result.stderr)}")
+    """Load each card the way a browser does and check it registers."""
+    for name, element in CARDS.items():
+        with tempfile.TemporaryDirectory() as folder:
+            card = Path(folder) / "card.mjs"
+            card.write_text((FRONTEND / name).read_text())
+            harness = Path(folder) / "harness.mjs"
+            harness.write_text(
+                CARD_HARNESS.replace("SPECIFIER", json.dumps(card.as_uri()))
+                .replace("ELEMENT", json.dumps(element))
+                .replace("FILE", json.dumps(name))
+            )
+            result = subprocess.run(
+                ["node", str(harness)], capture_output=True, text=True, cwd=folder
+            )
+        if result.returncode != 0:
+            errors.append(f"{name}: {_first_useful_line(result.stderr)}")
 
 
 def check_strings(errors: list[str]) -> None:
     """Every key a frontend reads must exist in all six bundles."""
-    sources = {name: (FRONTEND / name).read_text() for name in (*PAGES, "card.js")}
+    sources = {name: (FRONTEND / name).read_text() for name in (*PAGES, *CARDS)}
     for language in LANGUAGES:
         bundle = json.loads((FRONTEND / "strings" / f"{language}.json").read_text())
         for name, text in sources.items():
