@@ -316,7 +316,7 @@ already set up needs no entities picked here:
 
 | What you see | Where it comes from |
 | --- | --- |
-| Water turning over inside the filter, a line out and a line back, ripples at the skimmer and the jet | **Pump**, or the **filtration schedule**, or the **system** switch — whichever your pool has, in that order |
+| Water turning over inside the filter, the circuit running, ripples at the skimmer and the jet | **Pump**, or the **filtration schedule**, or the **system** switch — whichever your pool has, in that order |
 | Fan spinning, heat rising off the unit | **Heat pump**. On a `climate` or `water_heater` entity, `hvac_action` decides: a unit that is on but has reached its target shows as on without producing heat |
 | Glow under the water | **Pool light** |
 | The reading at the bottom | Water temperature — the manual one or the linked probe, whichever measured last, same as the other card |
@@ -324,13 +324,21 @@ already set up needs no entities picked here:
 A role you have not assigned simply is not drawn, label and all.
 
 Each machine that is working shows it on itself: the filter churns, the heat
-pump's fan turns and gives off heat. Between them and the pool run **two
-lines** — one out, one back, the return warming to orange while the heat pump
-is heating. They are not the plumbing: a line traced along the pipes read as a
-line drawn over the pipes however carefully it was fitted, and the real run is
-buried under the decking anyway. Each one lands on the water where it belongs,
-at the skimmer it draws from and the jet it comes back through, and both of
-those ripple while the water is moving.
+pump's fan turns and gives off heat.
+
+Around them runs the **circuit**, the way the water actually goes: out of the
+pool at the skimmer, onto the pad and along the low front pipe, up past the
+pump and over the top pipe into the filter, down its valve stack and along the
+back pipe to the heat pump, then out under it and back into the pool at the
+jet. It follows the pipework in the photo — the bends are where the pipe
+bends — and the two runs between the pool and the pad are the only stretch
+drawn rather than traced, because in life they are buried under the decking.
+Both ends ripple the water while it is moving.
+
+**Cold in, warm out.** Everything up to the heat pump is blue whatever it is
+doing. Only the leg leaving it turns orange, and only while the unit is
+actually heating — a heat pump that is on but has reached its target adds no
+heat, and the water leaves it no warmer than it went in.
 
 After sunset the scene fades to evening on its own, tracking `sun.sun` and
 the light it still has: the picture dims and desaturates, the lit panels come
@@ -355,12 +363,13 @@ it belongs.
   <img src="assets/scene-card-editor.png" alt="The visual position editor: a handle on every piece of the scene, with the two lines shown as dashed ghosts" width="620">
 </p>
 
-There are sixteen of them — the title, the four labels, the filter's churn,
+There are twenty-two of them — the title, the four labels, the filter's churn,
 the fan, the heat, the two lit displays and the pressure gauge, the lamp, the
-skimmer, the jet, and the machine end of each of the two lines. Hover one for
-its name; drag it anywhere on the picture. A line has a single handle, at the
-machine: its other end is the skimmer or the jet, so moving those takes the
-line with them. **Reset all** puts everything back.
+skimmer, the jet, the circuit's turn at each machine, and the six small marks
+that are the bends keeping it on the pipework. Hover one for its name; drag it
+anywhere on the picture. The circuit is a chain: every handle it passes
+through shapes it, so moving the jet takes the leg arriving there with it.
+**Reset all** puts everything back.
 
 Positions are saved as they are dragged, and only what you moved is written:
 

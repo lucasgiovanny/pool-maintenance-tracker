@@ -62,7 +62,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Scene positions",
     pos_reset: "Reset all",
     pos_done: "Done",
-    pos_hint: "Drag anything on the picture. Each line follows the skimmer or the jet it arrives at.",
+    pos_hint: "Drag anything on the picture. The circuit runs pool → filter → heat pump → pool; the small marks are the bends that keep it on the pipework.",
     pos_title: "Title",
     pos_filtration: "Filtration label",
     pos_heat: "Heat pump label",
@@ -77,8 +77,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lamp",
     pos_skimmer: "Skimmer",
     pos_jet: "Return jet",
-    pos_leg_out: "Line out",
-    pos_leg_back: "Line back",
+    pos_leg_out: "Circuit at the filter",
+    pos_leg_back: "Circuit at the heat pump",
+    pos_via_deck: "Bend at the deck",
+    pos_via_pump: "Bend by the pump",
+    pos_via_riser: "Bend at the riser",
+    pos_via_top: "Bend above the pump",
+    pos_via_filter: "Bend under the filter",
+    pos_via_return: "Bend under the heat pump",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -92,7 +98,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Posições da cena",
     pos_reset: "Repor tudo",
     pos_done: "Concluído",
-    pos_hint: "Arrasta o que quiseres na imagem. Cada linha acompanha o skimmer ou o retorno onde chega.",
+    pos_hint: "Arrasta o que quiseres na imagem. O circuito vai piscina → filtro → bomba de calor → piscina; as marcas pequenas são as curvas que o mantêm sobre a tubagem.",
     pos_title: "Título",
     pos_filtration: "Etiqueta da filtração",
     pos_heat: "Etiqueta da bomba de calor",
@@ -107,8 +113,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lâmpada",
     pos_skimmer: "Skimmer",
     pos_jet: "Retorno",
-    pos_leg_out: "Linha de ida",
-    pos_leg_back: "Linha de volta",
+    pos_leg_out: "Circuito no filtro",
+    pos_leg_back: "Circuito na bomba de calor",
+    pos_via_deck: "Curva no deck",
+    pos_via_pump: "Curva junto à bomba",
+    pos_via_riser: "Curva na subida",
+    pos_via_top: "Curva acima da bomba",
+    pos_via_filter: "Curva sob o filtro",
+    pos_via_return: "Curva sob a bomba de calor",
   },
   "pt-br": {
     entry: "Piscina", entry_help: "Deixe vazio para usar a única piscina que você tem.",
@@ -122,7 +134,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Posições da cena",
     pos_reset: "Redefinir tudo",
     pos_done: "Concluído",
-    pos_hint: "Arraste o que quiser na imagem. Cada linha acompanha o skimmer ou o retorno onde chega.",
+    pos_hint: "Arraste o que quiser na imagem. O circuito vai piscina → filtro → bomba de calor → piscina; as marcas pequenas são as curvas que o mantêm sobre a tubulação.",
     pos_title: "Título",
     pos_filtration: "Etiqueta da filtração",
     pos_heat: "Etiqueta da bomba de calor",
@@ -137,8 +149,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lâmpada",
     pos_skimmer: "Skimmer",
     pos_jet: "Retorno",
-    pos_leg_out: "Linha de ida",
-    pos_leg_back: "Linha de volta",
+    pos_leg_out: "Circuito no filtro",
+    pos_leg_back: "Circuito na bomba de calor",
+    pos_via_deck: "Curva no deck",
+    pos_via_pump: "Curva junto à bomba",
+    pos_via_riser: "Curva na subida",
+    pos_via_top: "Curva acima da bomba",
+    pos_via_filter: "Curva sob o filtro",
+    pos_via_return: "Curva sob a bomba de calor",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -152,7 +170,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Posiciones de la escena",
     pos_reset: "Restablecer todo",
     pos_done: "Listo",
-    pos_hint: "Arrastra lo que quieras en la imagen. Cada línea sigue al skimmer o al retorno donde llega.",
+    pos_hint: "Arrastra lo que quieras en la imagen. El circuito va piscina → filtro → bomba de calor → piscina; las marcas pequeñas son los codos que lo mantienen sobre la tubería.",
     pos_title: "Título",
     pos_filtration: "Etiqueta de filtración",
     pos_heat: "Etiqueta de la bomba de calor",
@@ -167,8 +185,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lámpara",
     pos_skimmer: "Skimmer",
     pos_jet: "Retorno",
-    pos_leg_out: "Línea de ida",
-    pos_leg_back: "Línea de vuelta",
+    pos_leg_out: "Circuito en el filtro",
+    pos_leg_back: "Circuito en la bomba de calor",
+    pos_via_deck: "Codo en la tarima",
+    pos_via_pump: "Codo junto a la bomba",
+    pos_via_riser: "Codo en la subida",
+    pos_via_top: "Codo sobre la bomba",
+    pos_via_filter: "Codo bajo el filtro",
+    pos_via_return: "Codo bajo la bomba de calor",
   },
   fr: {
     entry: "Piscine", entry_help: "Laisse vide pour utiliser la seule piscine que tu as.",
@@ -182,7 +206,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Positions de la scène",
     pos_reset: "Tout réinitialiser",
     pos_done: "Terminé",
-    pos_hint: "Fais glisser ce que tu veux sur l'image. Chaque ligne suit le skimmer ou le refoulement où elle arrive.",
+    pos_hint: "Fais glisser ce que tu veux sur l'image. Le circuit va piscine → filtre → pompe à chaleur → piscine ; les petits repères sont les coudes qui le maintiennent sur la tuyauterie.",
     pos_title: "Titre",
     pos_filtration: "Étiquette de filtration",
     pos_heat: "Étiquette de la pompe à chaleur",
@@ -197,8 +221,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lampe",
     pos_skimmer: "Skimmer",
     pos_jet: "Refoulement",
-    pos_leg_out: "Ligne aller",
-    pos_leg_back: "Ligne retour",
+    pos_leg_out: "Circuit au filtre",
+    pos_leg_back: "Circuit à la pompe à chaleur",
+    pos_via_deck: "Coude sur la terrasse",
+    pos_via_pump: "Coude près de la pompe",
+    pos_via_riser: "Coude sur la montée",
+    pos_via_top: "Coude au-dessus de la pompe",
+    pos_via_filter: "Coude sous le filtre",
+    pos_via_return: "Coude sous la pompe à chaleur",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -212,7 +242,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Szenenpositionen",
     pos_reset: "Alles zurücksetzen",
     pos_done: "Fertig",
-    pos_hint: "Zieh alles im Bild an seinen Platz. Jede Leitung folgt dem Skimmer oder dem Rücklauf, an dem sie ankommt.",
+    pos_hint: "Zieh alles im Bild an seinen Platz. Der Kreislauf läuft Pool → Filter → Wärmepumpe → Pool; die kleinen Marken sind die Bögen, die ihn auf der Rohrführung halten.",
     pos_title: "Titel",
     pos_filtration: "Beschriftung Filterung",
     pos_heat: "Beschriftung Wärmepumpe",
@@ -227,8 +257,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lampe",
     pos_skimmer: "Skimmer",
     pos_jet: "Rücklauf",
-    pos_leg_out: "Leitung hin",
-    pos_leg_back: "Leitung zurück",
+    pos_leg_out: "Kreislauf am Filter",
+    pos_leg_back: "Kreislauf an der Wärmepumpe",
+    pos_via_deck: "Bogen am Deck",
+    pos_via_pump: "Bogen an der Pumpe",
+    pos_via_riser: "Bogen am Steigrohr",
+    pos_via_top: "Bogen über der Pumpe",
+    pos_via_filter: "Bogen unter dem Filter",
+    pos_via_return: "Bogen unter der Wärmepumpe",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -242,7 +278,7 @@ const EDITOR_TEXT = {
     pos_kicker: "Posizioni della scena",
     pos_reset: "Reimposta tutto",
     pos_done: "Fatto",
-    pos_hint: "Trascina quello che vuoi sull'immagine. Ogni linea segue lo skimmer o la bocchetta a cui arriva.",
+    pos_hint: "Trascina quello che vuoi sull'immagine. Il circuito va piscina → filtro → pompa di calore → piscina; i segni piccoli sono le curve che lo tengono sulle tubazioni.",
     pos_title: "Titolo",
     pos_filtration: "Etichetta filtrazione",
     pos_heat: "Etichetta pompa di calore",
@@ -257,8 +293,14 @@ const EDITOR_TEXT = {
     pos_lamp: "Lampada",
     pos_skimmer: "Skimmer",
     pos_jet: "Bocchetta di mandata",
-    pos_leg_out: "Linea di andata",
-    pos_leg_back: "Linea di ritorno",
+    pos_leg_out: "Circuito al filtro",
+    pos_leg_back: "Circuito alla pompa di calore",
+    pos_via_deck: "Curva sul deck",
+    pos_via_pump: "Curva vicino alla pompa",
+    pos_via_riser: "Curva sulla montante",
+    pos_via_top: "Curva sopra la pompa",
+    pos_via_filter: "Curva sotto il filtro",
+    pos_via_return: "Curva sotto la pompa di calore",
   },
 };
 
@@ -318,21 +360,43 @@ const LAYOUT = {
      or the jet — the same point the ripples are at, so drag the jet and the
      line that arrives there comes with it. Two handles on one spot is a
      coin toss over which one you grab. */
-  leg_out: { kind: "anchor", group: "flow", x: 198, y: 243 },
-  leg_back: { kind: "anchor", group: "flow", x: 400, y: 242 },
+  leg_out: { kind: "anchor", group: "flow", x: 240, y: 190 },
+  leg_back: { kind: "anchor", group: "flow", x: 336, y: 242 },
+  /* The bends in between. They are what lets the circuit sit on the pipe
+     that is in the photo instead of arcing over the top of it: out along
+     the low front run, up past the pump, over to the filter, down its
+     valve stack, along the back run, and under the heat pump. */
+  via_deck: { kind: "via", group: "flow", x: 163, y: 257 },
+  via_pump: { kind: "via", group: "flow", x: 313, y: 250 },
+  via_riser: { kind: "via", group: "flow", x: 292, y: 210 },
+  via_top: { kind: "via", group: "flow", x: 291, y: 188 },
+  via_filter: { kind: "via", group: "flow", x: 231, y: 246 },
+  via_return: { kind: "via", group: "flow", x: 424, y: 241 },
 };
 
-/* Which way round each leg runs, and what its wet end is tied to. */
+/* The circuit, in the order the water goes round it: out of the pool at the
+   skimmer, through the filter, on to the heat pump, back in at the jet. Each
+   path is drawn from its source to its destination, which is also the way
+   the dashes travel — so the animation reads as the round trip it is.
+
+   Only the two turns are handles. The middle run has none: it is simply the
+   line between them, so moving either machine's handle takes it with it.
+
+   `warm` marks the leg that carries heated water. Everything before the heat
+   pump stays blue whatever it is doing; only what leaves it turns orange,
+   and only while it is actually working. */
 const LEGS = [
-  { key: "leg_out", from: "skimmer", to: "leg_out" },
-  { key: "leg_back", from: "leg_back", to: "jet" },
+  { key: "leg_out",
+    via: ["skimmer", "via_deck", "via_pump", "via_riser", "via_top", "leg_out"] },
+  { key: "leg_mid", via: ["leg_out", "via_filter", "leg_back"] },
+  { key: "leg_back", via: ["leg_back", "via_return", "jet"], warm: true },
 ];
 
 const LAYOUT_GROUPS = ["labels", "equipment", "water", "flow"];
 
-/* How far a leg bows off the straight line between its ends, as a fraction
-   of its length. Enough to read as a run of hose rather than a ruler. */
-const LEG_BOW = 0.15;
+/* How much of each segment a corner eats as it rounds off. Pipe bends, and
+   a mitre would read as a diagram rather than as plumbing. */
+const LEG_CORNER = 9;
 
 const FAN_R = 25;
 const DISPLAY = { w: 15, h: 14 };
@@ -380,19 +444,37 @@ function placement(positions, key) {
   return at;
 }
 
-/* A leg, as a curve between its two ends. The bow is computed rather than
-   stored: it keeps its shape wherever the ends are dragged to, and it always
-   arcs upwards, away from the ground, which is the way a hose lies. */
-function legPath(from, to) {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = Math.hypot(dx, dy) || 1;
-  /* Whichever normal points up the screen */
-  const sign = dx >= 0 ? 1 : -1;
-  const bow = LEG_BOW * length;
-  const cx = (from.x + to.x) / 2 + (dy / length) * bow * sign;
-  const cy = (from.y + to.y) / 2 - (dx / length) * bow * sign;
-  return `M ${from.x} ${from.y} Q ${round(cx)} ${round(cy)} ${to.x} ${to.y}`;
+/* A leg, as a polyline through its waypoints with the corners rounded off.
+   Straight between the points it was given and softened where it turns,
+   which is how a run of pipe looks and, more to the point, is predictable:
+   drag a bend and the line goes exactly where you put it. */
+function legPath(points) {
+  if (points.length < 2) return "";
+  const parts = [`M ${points[0].x} ${points[0].y}`];
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const previous = points[i - 1];
+    const corner = points[i];
+    const next = points[i + 1];
+    const back = Math.hypot(corner.x - previous.x, corner.y - previous.y) || 1;
+    const on = Math.hypot(next.x - corner.x, next.y - corner.y) || 1;
+    /* Never eat more than half a segment, or two tight corners in a row
+       would round straight past each other. */
+    const cutBack = Math.min(LEG_CORNER, back / 2);
+    const cutOn = Math.min(LEG_CORNER, on / 2);
+    const enter = {
+      x: corner.x - ((corner.x - previous.x) / back) * cutBack,
+      y: corner.y - ((corner.y - previous.y) / back) * cutBack,
+    };
+    const leave = {
+      x: corner.x + ((next.x - corner.x) / on) * cutOn,
+      y: corner.y + ((next.y - corner.y) / on) * cutOn,
+    };
+    parts.push(`L ${round(enter.x)} ${round(enter.y)}`);
+    parts.push(`Q ${corner.x} ${corner.y} ${round(leave.x)} ${round(leave.y)}`);
+  }
+  const end = points[points.length - 1];
+  parts.push(`L ${end.x} ${end.y}`);
+  return parts.join(" ");
 }
 
 function round(value) {
@@ -769,7 +851,7 @@ class PoolSceneCard extends HTMLElement {
             <g id="flow">
               ${LEGS.map(leg =>
                 `<path id="${leg.key.replace("_", "-")}" class="leg"
-                       d="${legPath(at(leg.from), at(leg.to))}"></path>`).join("")}
+                       d="${legPath(leg.via.map(at))}"></path>`).join("")}
             </g>
 
             <g id="swirl" transform="translate(${at("swirl").x} ${at("swirl").y})">
@@ -857,7 +939,8 @@ class PoolSceneCard extends HTMLElement {
       lamp: pick("#lamp"),
       surface: pick("#surface"),
       flow: pick("#flow"),
-      legBack: pick("#leg-back"),
+      warmLegs: LEGS.filter(leg => leg.warm)
+        .map(leg => pick("#" + leg.key.replace("_", "-"))),
       swirl: pick("#swirl"),
       fan: pick("#fan"),
       heat: pick("#heat"),
@@ -902,9 +985,10 @@ class PoolSceneCard extends HTMLElement {
     nodes.swirl.classList.toggle("on", running);
     nodes.surface.classList.toggle("on", running);
     nodes.flow.classList.toggle("running", running);
-    /* Water on its way back from a heat pump that is working is the warm
-       one, and the only thing on the scene whose colour says so. */
-    nodes.legBack.classList.toggle("warm", running && warming);
+    /* Water enters the heat pump cold and leaves it warm, so only the leg
+       after it changes colour — and only while the unit is actually
+       working. Everything upstream stays blue. */
+    nodes.warmLegs.forEach(leg => leg.classList.toggle("warm", running && warming));
 
     nodes.fan.classList.toggle("on", warming);
     nodes.heat.classList.toggle("on", warming && heating.action !== "cooling");
@@ -1399,7 +1483,7 @@ class PoolSceneCardEditor extends HTMLElement {
     const name = key => this._escape(text["pos_" + key] || key);
     const ghosts = LEGS.map(leg =>
       `<path class="ghost" data-ghost="${leg.key}"
-             d="${legPath(this._at(leg.from), this._at(leg.to))}"></path>`).join("");
+             d="${legPath(leg.via.map(key => this._at(key)))}"></path>`).join("");
     const handles = LAYOUT_GROUPS.map(group => Object.keys(LAYOUT)
       .filter(key => LAYOUT[key].group === group)
       .map(key => {
@@ -1407,10 +1491,10 @@ class PoolSceneCardEditor extends HTMLElement {
         const at = this._at(key);
         return `<g class="handle ${spec.kind} ${spec.group}" data-handle="${key}"
                    transform="translate(${at.x} ${at.y})">
-            <circle class="hit" r="15"></circle>
+            <circle class="hit" r="${spec.kind === "via" ? 12 : 15}"></circle>
             ${spec.kind === "text"
               ? '<rect class="plate" x="-9" y="-9" width="18" height="18" rx="4"></rect>'
-              : '<circle class="ring" r="8"></circle>'}
+              : `<circle class="ring" r="${spec.kind === "via" ? 5 : 8}"></circle>`}
             <circle class="pip" r="2"></circle>
             <text class="cap" y="20">${name(key)}</text>
           </g>`;
@@ -1474,10 +1558,10 @@ class PoolSceneCardEditor extends HTMLElement {
     this._config = Object.assign({}, this._config, { positions });
 
     handle.setAttribute("transform", `translate(${at.x} ${at.y})`);
-    /* A leg is two anchors: whichever end just moved, redraw the curve. */
-    LEGS.filter(leg => leg.from === key || leg.to === key).forEach(leg => {
+    /* A leg is a chain of points: redraw every one this handle is part of. */
+    LEGS.filter(leg => leg.via.indexOf(key) !== -1).forEach(leg => {
       const ghost = svg.querySelector(`[data-ghost="${leg.key}"]`);
-      if (ghost) ghost.setAttribute("d", legPath(this._at(leg.from), this._at(leg.to)));
+      if (ghost) ghost.setAttribute("d", legPath(leg.via.map(point => this._at(point))));
     });
     /* The card behind the dialog is a live preview — repaint it as the
        handle moves, and let the debounce keep the storage writes down. */
@@ -1562,6 +1646,10 @@ class PoolSceneCardEditor extends HTMLElement {
         fill:rgba(94,231,255,.16);stroke:#5ee7ff;stroke-width:1.6;
       }
       .pms-pe .pip{fill:#eaf9ff}
+      /* A bend is a smaller mark than a machine: it shapes the run rather
+         than saying where anything is. */
+      .pms-pe .via .pip{r:1.4}
+      .pms-pe .via .cap{font-size:7.5px}
       /* A leg's handle is the colour of the leg it belongs to */
       .pms-pe .flow .ring{fill:rgba(255,176,102,.18);stroke:#ffb066}
       .pms-pe .ghost{
