@@ -1110,37 +1110,53 @@ class PoolSceneCard extends HTMLElement {
       /* --- labels --------------------------------------------------- */
       .node{transition:opacity .3s ease}
       .node.hidden{display:none}
+      /* Every word is read against whatever the photo happens to put behind
+         it — bright sky, sunlit grass, pale concrete. A drop-shadow is a
+         blur, and against a light background it thins to nothing; what
+         holds is a real outline drawn behind the glyphs, which is what
+         paint-order:stroke is for. Stroke width is about a fifth of the
+         type size: enough to carry, not enough to read as bold. */
       text{
         font-family:var(--paper-font-body1_-_font-family,system-ui,sans-serif);
         paint-order:stroke;
+        stroke:rgba(3,12,28,.82);
+        stroke-linejoin:round;
+        stroke-linecap:round;
       }
       .title{
-        font-size:15px;font-weight:600;fill:#f4f9ff;letter-spacing:.01em;
-        filter:drop-shadow(0 1px 3px rgba(2,10,25,.9));
+        font-size:15px;font-weight:600;fill:#f6faff;letter-spacing:.01em;
+        stroke-width:3;
+        filter:drop-shadow(0 1px 3px rgba(2,10,25,.55));
       }
       .node-label{
         font-size:8.5px;font-weight:600;letter-spacing:.09em;
         text-transform:uppercase;text-anchor:middle;
-        fill:rgba(219,235,250,.78);
-        filter:drop-shadow(0 1px 2px rgba(2,10,25,.95));
+        fill:rgba(236,245,255,.94);
+        stroke-width:1.9;
+        filter:drop-shadow(0 1px 2px rgba(2,10,25,.5));
       }
       .node-value{
-        font-size:12px;font-weight:700;text-anchor:middle;fill:#eef6ff;
-        filter:drop-shadow(0 1px 3px rgba(2,10,25,.95))
-               drop-shadow(0 0 8px rgba(2,10,25,.6));
+        font-size:12px;font-weight:700;text-anchor:middle;fill:#f3f9ff;
+        stroke-width:2.5;
+        filter:drop-shadow(0 1px 3px rgba(2,10,25,.55));
       }
       .temp-value{
-        font-size:26px;font-weight:700;text-anchor:middle;fill:#f6fbff;
-        filter:drop-shadow(0 2px 5px rgba(2,10,25,.95))
-               drop-shadow(0 0 12px rgba(2,10,25,.6));
+        font-size:26px;font-weight:700;text-anchor:middle;fill:#f8fcff;
+        stroke-width:4.6;
+        filter:drop-shadow(0 2px 5px rgba(2,10,25,.5));
       }
-      .temp-unit{font-size:14px;font-weight:600;fill:rgba(232,244,255,.82)}
+      /* A tspan inherits the stroke; it needs its own width for its size */
+      .temp-unit{font-size:14px;font-weight:600;fill:#e8f4ff;stroke-width:2.6}
       .at-start{text-anchor:start}
-      .guide{stroke:rgba(219,235,250,.42);stroke-width:1;stroke-linecap:round}
+      .guide{
+        stroke:rgba(226,240,255,.6);stroke-width:1;stroke-linecap:round;
+        filter:drop-shadow(0 0 1.5px rgba(2,10,25,.9));
+      }
       .node.active .node-value{fill:#8ff2ff}
       #node-heat.active .node-value{fill:#ffc287}
       #node-light.active .node-value{fill:#ffe6a8}
-      .node:not(.active) .node-value{opacity:.72}
+      /* Off is still a state worth reading, so it dims a little, not a lot */
+      .node:not(.active) .node-value{opacity:.88}
 
       /* Off screen, none of this is worth a frame. */
       :host(.offscreen) .leg,
