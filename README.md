@@ -316,7 +316,7 @@ already set up needs no entities picked here:
 
 | What you see | Where it comes from |
 | --- | --- |
-| Water turning over inside the filter, ripples at the skimmer and the jet | **Pump**, or the **filtration schedule**, or the **system** switch — whichever your pool has, in that order |
+| Water turning over inside the filter, a line out and a line back, ripples at the skimmer and the jet | **Pump**, or the **filtration schedule**, or the **system** switch — whichever your pool has, in that order |
 | Fan spinning, heat rising off the unit | **Heat pump**. On a `climate` or `water_heater` entity, `hvac_action` decides: a unit that is on but has reached its target shows as on without producing heat |
 | Glow under the water | **Pool light** |
 | The reading at the bottom | Water temperature — the manual one or the linked probe, whichever measured last, same as the other card |
@@ -324,10 +324,13 @@ already set up needs no entities picked here:
 A role you have not assigned simply is not drawn, label and all.
 
 Each machine that is working shows it on itself: the filter churns, the heat
-pump's fan turns and gives off heat. Nothing is drawn along the pipework —
-an animated line traced over the plumbing looked like an animated line traced
-over the plumbing, however carefully it was fitted. The pool gets the two
-ripples instead, where water leaves and where it comes back.
+pump's fan turns and gives off heat. Between them and the pool run **two
+lines** — one out, one back, the return warming to orange while the heat pump
+is heating. They are not the plumbing: a line traced along the pipes read as a
+line drawn over the pipes however carefully it was fitted, and the real run is
+buried under the decking anyway. Each one lands on the water where it belongs,
+at the skimmer it draws from and the jet it comes back through, and both of
+those ripple while the water is moving.
 
 After sunset the scene fades to evening on its own, tracking `sun.sun` and
 the light it still has: the picture dims and desaturates, the lit panels come
@@ -336,13 +339,47 @@ dark, because the photo was taken at noon and no amount of overlay makes
 midday shadows read as midnight. **Lighting** in the editor pins it to *always
 day* or *always night* for a screen that wants one look.
 
-The other options are display preferences: the pool, an optional title,
-whether to show the title, the labels and the temperature, and a
-**background image** if you would rather it were your pool in the picture —
-any URL Home Assistant can serve, drawn in a 600×400 box (a 3:2 photo fits
-exactly). The equipment overlays are positioned for the picture that ships
-with the integration, so your own shot will animate in the same places
-regardless of what is in it.
+The other options are display preferences: the pool, an optional title, and
+whether to show the title, the labels and the temperature.
+
+### Your own photo, and moving things around
+
+**Background image** takes any URL Home Assistant can serve — your own pool,
+drawn in a 600×400 box, so a 3:2 photo fits exactly. Everything the card draws
+on top is placed for the picture that ships with the integration, which means
+on your photo all of it is in the wrong place. **Edit visually** in the editor
+is how you fix that: the picture with a handle on every piece, dragged where
+it belongs.
+
+<p align="center">
+  <img src="assets/scene-card-editor.png" alt="The visual position editor: a handle on every piece of the scene, with the two lines shown as dashed ghosts" width="620">
+</p>
+
+There are sixteen of them — the title, the four labels, the filter's churn,
+the fan, the heat, the two lit displays and the pressure gauge, the lamp, the
+skimmer, the jet, and the machine end of each of the two lines. Hover one for
+its name; drag it anywhere on the picture. A line has a single handle, at the
+machine: its other end is the skimmer or the jet, so moving those takes the
+line with them. **Reset all** puts everything back.
+
+Positions are saved as they are dragged, and only what you moved is written:
+
+```yaml
+type: custom:pool-scene-card
+background: /local/my-pool.jpg
+positions:
+  lamp: {x: 268, y: 291}
+  jet: {x: 500, y: 260}
+```
+
+One thing the editor cannot drag is the outline of the water, which is what
+the lamp's glow is clipped to — a glow spilling onto the decking is obvious
+immediately. It is a path rather than a point, so for a custom photo it goes
+in the config by hand:
+
+```yaml
+water: "M 0 331 L 465 270 L 600 309 L 600 351 L 350 400 L 0 400 Z"
+```
 
 It is a display and only a display: nothing on it is clickable and it commands
 nothing — for switching things on, use the card above. Animations pause while

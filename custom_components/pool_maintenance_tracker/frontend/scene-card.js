@@ -37,6 +37,13 @@ const DEFAULTS = {
   /* auto follows sun.sun; the other two pin the scene for a dashboard that
      wants one look (a kiosk screen in a dark hallway, say). */
   night: "auto",
+  /* Where the dashboard has dragged things to, keyed by the names in
+     LAYOUT. Only what was moved is in here; everything else keeps the
+     table's own coordinates. */
+  positions: {},
+  /* The outline of the water, for a card showing its own photo. Empty means
+     the shipped picture's, which is what the lamp glow is clipped to. */
+  water: "",
 };
 
 const NIGHT_MODES = ["auto", "day", "night"];
@@ -51,6 +58,27 @@ const EDITOR_TEXT = {
     night_night: "Always night",
     background: "Background image (optional)",
     background_help: "Leave empty for the picture that ships with the integration.",
+    pos_open: "Edit visually",
+    pos_kicker: "Scene positions",
+    pos_reset: "Reset all",
+    pos_done: "Done",
+    pos_hint: "Drag anything on the picture. Each line follows the skimmer or the jet it arrives at.",
+    pos_title: "Title",
+    pos_filtration: "Filtration label",
+    pos_heat: "Heat pump label",
+    pos_light: "Light label",
+    pos_temperature: "Temperature",
+    pos_swirl: "Filter churn",
+    pos_fan: "Fan",
+    pos_heat_waves: "Heat",
+    pos_gauge: "Pressure gauge",
+    pos_heat_display: "Heat pump display",
+    pos_panel_display: "Controller display",
+    pos_lamp: "Lamp",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Return jet",
+    pos_leg_out: "Line out",
+    pos_leg_back: "Line back",
   },
   pt: {
     entry: "Piscina", entry_help: "Deixa vazio para usar a única piscina que tens.",
@@ -60,6 +88,27 @@ const EDITOR_TEXT = {
     night_night: "Sempre noite",
     background: "Imagem de fundo (opcional)",
     background_help: "Deixa vazio para a imagem que vem com a integração.",
+    pos_open: "Editar visualmente",
+    pos_kicker: "Posições da cena",
+    pos_reset: "Repor tudo",
+    pos_done: "Concluído",
+    pos_hint: "Arrasta o que quiseres na imagem. Cada linha acompanha o skimmer ou o retorno onde chega.",
+    pos_title: "Título",
+    pos_filtration: "Etiqueta da filtração",
+    pos_heat: "Etiqueta da bomba de calor",
+    pos_light: "Etiqueta da luz",
+    pos_temperature: "Temperatura",
+    pos_swirl: "Turbilhão do filtro",
+    pos_fan: "Ventoinha",
+    pos_heat_waves: "Calor",
+    pos_gauge: "Manómetro",
+    pos_heat_display: "Visor da bomba de calor",
+    pos_panel_display: "Visor do quadro",
+    pos_lamp: "Lâmpada",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Retorno",
+    pos_leg_out: "Linha de ida",
+    pos_leg_back: "Linha de volta",
   },
   "pt-br": {
     entry: "Piscina", entry_help: "Deixe vazio para usar a única piscina que você tem.",
@@ -69,6 +118,27 @@ const EDITOR_TEXT = {
     night_night: "Sempre noite",
     background: "Imagem de fundo (opcional)",
     background_help: "Deixe vazio para a imagem que vem com a integração.",
+    pos_open: "Editar visualmente",
+    pos_kicker: "Posições da cena",
+    pos_reset: "Redefinir tudo",
+    pos_done: "Concluído",
+    pos_hint: "Arraste o que quiser na imagem. Cada linha acompanha o skimmer ou o retorno onde chega.",
+    pos_title: "Título",
+    pos_filtration: "Etiqueta da filtração",
+    pos_heat: "Etiqueta da bomba de calor",
+    pos_light: "Etiqueta da luz",
+    pos_temperature: "Temperatura",
+    pos_swirl: "Turbilhão do filtro",
+    pos_fan: "Ventoinha",
+    pos_heat_waves: "Calor",
+    pos_gauge: "Manômetro",
+    pos_heat_display: "Visor da bomba de calor",
+    pos_panel_display: "Visor do painel",
+    pos_lamp: "Lâmpada",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Retorno",
+    pos_leg_out: "Linha de ida",
+    pos_leg_back: "Linha de volta",
   },
   es: {
     entry: "Piscina", entry_help: "Déjalo vacío para usar la única piscina que tengas.",
@@ -78,6 +148,27 @@ const EDITOR_TEXT = {
     night_night: "Siempre de noche",
     background: "Imagen de fondo (opcional)",
     background_help: "Déjalo vacío para la imagen que viene con la integración.",
+    pos_open: "Editar visualmente",
+    pos_kicker: "Posiciones de la escena",
+    pos_reset: "Restablecer todo",
+    pos_done: "Listo",
+    pos_hint: "Arrastra lo que quieras en la imagen. Cada línea sigue al skimmer o al retorno donde llega.",
+    pos_title: "Título",
+    pos_filtration: "Etiqueta de filtración",
+    pos_heat: "Etiqueta de la bomba de calor",
+    pos_light: "Etiqueta de la luz",
+    pos_temperature: "Temperatura",
+    pos_swirl: "Remolino del filtro",
+    pos_fan: "Ventilador",
+    pos_heat_waves: "Calor",
+    pos_gauge: "Manómetro",
+    pos_heat_display: "Pantalla de la bomba de calor",
+    pos_panel_display: "Pantalla del cuadro",
+    pos_lamp: "Lámpara",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Retorno",
+    pos_leg_out: "Línea de ida",
+    pos_leg_back: "Línea de vuelta",
   },
   fr: {
     entry: "Piscine", entry_help: "Laisse vide pour utiliser la seule piscine que tu as.",
@@ -87,6 +178,27 @@ const EDITOR_TEXT = {
     night_night: "Toujours nuit",
     background: "Image de fond (optionnel)",
     background_help: "Laisse vide pour l'image fournie avec l'intégration.",
+    pos_open: "Édition visuelle",
+    pos_kicker: "Positions de la scène",
+    pos_reset: "Tout réinitialiser",
+    pos_done: "Terminé",
+    pos_hint: "Fais glisser ce que tu veux sur l'image. Chaque ligne suit le skimmer ou le refoulement où elle arrive.",
+    pos_title: "Titre",
+    pos_filtration: "Étiquette de filtration",
+    pos_heat: "Étiquette de la pompe à chaleur",
+    pos_light: "Étiquette de la lumière",
+    pos_temperature: "Température",
+    pos_swirl: "Tourbillon du filtre",
+    pos_fan: "Ventilateur",
+    pos_heat_waves: "Chaleur",
+    pos_gauge: "Manomètre",
+    pos_heat_display: "Écran de la pompe à chaleur",
+    pos_panel_display: "Écran du coffret",
+    pos_lamp: "Lampe",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Refoulement",
+    pos_leg_out: "Ligne aller",
+    pos_leg_back: "Ligne retour",
   },
   de: {
     entry: "Pool", entry_help: "Leer lassen, um den einzigen Pool zu verwenden.",
@@ -96,6 +208,27 @@ const EDITOR_TEXT = {
     night_night: "Immer Nacht",
     background: "Hintergrundbild (optional)",
     background_help: "Leer lassen für das mitgelieferte Bild.",
+    pos_open: "Visuell bearbeiten",
+    pos_kicker: "Szenenpositionen",
+    pos_reset: "Alles zurücksetzen",
+    pos_done: "Fertig",
+    pos_hint: "Zieh alles im Bild an seinen Platz. Jede Leitung folgt dem Skimmer oder dem Rücklauf, an dem sie ankommt.",
+    pos_title: "Titel",
+    pos_filtration: "Beschriftung Filterung",
+    pos_heat: "Beschriftung Wärmepumpe",
+    pos_light: "Beschriftung Licht",
+    pos_temperature: "Temperatur",
+    pos_swirl: "Filterströmung",
+    pos_fan: "Lüfter",
+    pos_heat_waves: "Wärme",
+    pos_gauge: "Manometer",
+    pos_heat_display: "Display der Wärmepumpe",
+    pos_panel_display: "Display der Steuerung",
+    pos_lamp: "Lampe",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Rücklauf",
+    pos_leg_out: "Leitung hin",
+    pos_leg_back: "Leitung zurück",
   },
   it: {
     entry: "Piscina", entry_help: "Lascia vuoto per usare l'unica piscina che hai.",
@@ -105,6 +238,27 @@ const EDITOR_TEXT = {
     night_night: "Sempre notte",
     background: "Immagine di sfondo (opzionale)",
     background_help: "Lascia vuoto per l'immagine inclusa nell'integrazione.",
+    pos_open: "Modifica visiva",
+    pos_kicker: "Posizioni della scena",
+    pos_reset: "Reimposta tutto",
+    pos_done: "Fatto",
+    pos_hint: "Trascina quello che vuoi sull'immagine. Ogni linea segue lo skimmer o la bocchetta a cui arriva.",
+    pos_title: "Titolo",
+    pos_filtration: "Etichetta filtrazione",
+    pos_heat: "Etichetta pompa di calore",
+    pos_light: "Etichetta luce",
+    pos_temperature: "Temperatura",
+    pos_swirl: "Vortice del filtro",
+    pos_fan: "Ventola",
+    pos_heat_waves: "Calore",
+    pos_gauge: "Manometro",
+    pos_heat_display: "Display della pompa di calore",
+    pos_panel_display: "Display del quadro",
+    pos_lamp: "Lampada",
+    pos_skimmer: "Skimmer",
+    pos_jet: "Bocchetta di mandata",
+    pos_leg_out: "Linea di andata",
+    pos_leg_back: "Linea di ritorno",
   },
 };
 
@@ -120,28 +274,69 @@ function fireEvent(node, type, detail) {
   }));
 }
 
-/* Where things are in the photo, in the 600x400 space the SVG draws in.
-   Measured off the image once, so every overlay below reads as a name
-   instead of a pair of magic numbers. */
-const SCENE = {
-  /* The water, traced from the photo: far edge, right coping, near deck.
-     The lamp glow is clipped to it, which is the whole reason it is exact —
-     a glow spilling onto the decking reads as a bug immediately. */
-  water: "M 0 331 L 465 270 L 600 309 L 600 351 L 350 400 L 0 400 Z",
-  /* Underwater lamp, sitting on the far wall */
-  lamp: { x: 230, y: 302 },
-  /* The two holes in the far wall: water leaves at the skimmer and comes
-     back at the jet. Everything between them is buried under the decking,
-     so the surface is the only place the circuit is visible from here. */
-  skimmer: { x: 120, y: 320 },
-  jet: { x: 455, y: 277 },
-  heatPump: { fan: { x: 382, y: 205, r: 25 }, display: { x: 404, y: 175, w: 15, h: 14 } },
+/* The water, traced from the photo: far edge, right coping, near deck. The
+   lamp glow is clipped to it, which is the whole reason it is exact — a glow
+   spilling onto the decking reads as a bug immediately. A card pointed at
+   somebody else's photo can hand over its own outline in `water`. */
+const WATER = "M 0 331 L 465 270 L 600 309 L 600 351 L 350 400 L 0 400 Z";
+
+/* Everything the scene puts on top of the photo, and where it sits by
+   default — in the 600x400 space the SVG draws in, measured off the shipped
+   picture. This table is the whole of what the visual editor can move: one
+   entry per handle, so the card, the editor and the saved config all name
+   the same things, and adding a piece to the scene is adding a row here.
+
+   `kind` says what a piece is and therefore how it is dragged: a pair of
+   words, an effect pinned to a machine, or a line with an end at each side.
+   Point the card at your own photo and every one of these is in the wrong
+   place, which is exactly what the editor is for. */
+const LAYOUT = {
+  title: { kind: "text", group: "labels", x: 18, y: 32 },
+  filtration: { kind: "text", group: "labels", x: 211, y: 102 },
+  heat: { kind: "text", group: "labels", x: 443, y: 184 },
+  light: { kind: "text", group: "labels", x: 230, y: 334 },
+  temperature: { kind: "text", group: "labels", x: 26, y: 344 },
   /* Inside the filter's body, clear of the clamp band and the valves */
-  swirl: { x: 210, y: 206 },
-  /* The controller box on its pole, left of the filter */
-  panel: { x: 146, y: 143, w: 21, h: 15 },
-  filterGauge: { x: 222, y: 125 },
+  swirl: { kind: "anchor", group: "equipment", x: 210, y: 206 },
+  fan: { kind: "anchor", group: "equipment", x: 382, y: 205 },
+  heat_waves: { kind: "anchor", group: "equipment", x: 381, y: 166 },
+  gauge: { kind: "anchor", group: "equipment", x: 222, y: 125 },
+  heat_display: { kind: "anchor", group: "equipment", x: 411, y: 182 },
+  panel_display: { kind: "anchor", group: "equipment", x: 156, y: 150 },
+  /* Underwater lamp, sitting on the far wall */
+  lamp: { kind: "anchor", group: "water", x: 230, y: 302 },
+  /* The two holes in the far wall: water leaves at the skimmer and comes
+     back at the jet. */
+  skimmer: { kind: "anchor", group: "water", x: 120, y: 320 },
+  jet: { kind: "anchor", group: "water", x: 455, y: 277 },
+  /* The run out to the machines and the run back. Everything in between is
+     buried under the decking in life, so these are not the plumbing: two
+     lines, one each way, drawn where they read rather than where the pipe
+     happens to go.
+
+     Only the machine end of each is a handle. The other end is the skimmer
+     or the jet — the same point the ripples are at, so drag the jet and the
+     line that arrives there comes with it. Two handles on one spot is a
+     coin toss over which one you grab. */
+  leg_out: { kind: "anchor", group: "flow", x: 198, y: 243 },
+  leg_back: { kind: "anchor", group: "flow", x: 400, y: 242 },
 };
+
+/* Which way round each leg runs, and what its wet end is tied to. */
+const LEGS = [
+  { key: "leg_out", from: "skimmer", to: "leg_out" },
+  { key: "leg_back", from: "leg_back", to: "jet" },
+];
+
+const LAYOUT_GROUPS = ["labels", "equipment", "water", "flow"];
+
+/* How far a leg bows off the straight line between its ends, as a fraction
+   of its length. Enough to read as a run of hose rather than a ruler. */
+const LEG_BOW = 0.15;
+
+const FAN_R = 25;
+const DISPLAY = { w: 15, h: 14 };
+const PANEL_DISPLAY = { w: 21, h: 15 };
 
 /* Water turning over inside the filter. Three dashed rings at different
    radii and speeds, the middle one running the other way, which is enough
@@ -155,11 +350,12 @@ const SWIRL_RINGS = [
   { r: 5.5, dash: "6 6", dur: "1.7s", reverse: false },
 ];
 
-/* Three ribbons of warm air off the top of the heat pump */
+/* Three ribbons of warm air off the top of the heat pump, spaced either
+   side of the anchor so the whole set moves with one handle. */
 const HEAT_WAVES = [
-  { x: 352, delay: "0s" },
-  { x: 381, delay: "0.85s" },
-  { x: 410, delay: "1.7s" },
+  { dx: -29, delay: "0s" },
+  { dx: 0, delay: "0.85s" },
+  { dx: 29, delay: "1.7s" },
 ];
 
 /* A wave is drawn once and reused at each x: same shape, staggered start. */
@@ -168,6 +364,40 @@ const HEAT_WAVE_PATH = "M 0 0 c -5 -8, 5 -14, 0 -22 c -5 -8, 5 -13, 0 -20";
 /* Six of them, evenly spaced, so the group's box is centred on the hub and
    the spin turns about the fan instead of wobbling around a lopsided one. */
 const FAN_BLADES = [0, 60, 120, 180, 240, 300];
+
+/* Where a piece actually sits: its place in the table, with whatever the
+   dashboard has moved laid over the top. Shared by the card and the editor
+   so a handle in one is the same coordinate as a shape in the other. */
+function placement(positions, key) {
+  const base = LAYOUT[key];
+  const saved = (positions || {})[key];
+  const at = { x: base.x, y: base.y };
+  if (saved) {
+    Object.keys(at).forEach(axis => {
+      if (typeof saved[axis] === "number") at[axis] = saved[axis];
+    });
+  }
+  return at;
+}
+
+/* A leg, as a curve between its two ends. The bow is computed rather than
+   stored: it keeps its shape wherever the ends are dragged to, and it always
+   arcs upwards, away from the ground, which is the way a hose lies. */
+function legPath(from, to) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy) || 1;
+  /* Whichever normal points up the screen */
+  const sign = dx >= 0 ? 1 : -1;
+  const bow = LEG_BOW * length;
+  const cx = (from.x + to.x) / 2 + (dy / length) * bow * sign;
+  const cy = (from.y + to.y) / 2 - (dx / length) * bow * sign;
+  return `M ${from.x} ${from.y} Q ${round(cx)} ${round(cy)} ${to.x} ${to.y}`;
+}
+
+function round(value) {
+  return Math.round(value * 10) / 10;
+}
 
 class PoolSceneCard extends HTMLElement {
   constructor() {
@@ -475,15 +705,23 @@ class PoolSceneCard extends HTMLElement {
   /* The markup, built once per configuration. `_apply` does the rest. */
   _build() {
     const background = this._config.background || SCENE_URL;
-    const signature = JSON.stringify([background, this._config.show_title]);
+    /* Positions are in here: dragging one in the editor has to rebuild the
+       scene, and nothing else would notice the coordinates had changed. */
+    const signature = JSON.stringify([
+      background, this._config.show_title, this._config.water, this._config.positions,
+    ]);
     if (this._built === signature && this._nodes) return;
+
+    const at = key => placement(this._config.positions, key);
 
     this.shadowRoot.innerHTML = `${this._styles()}
       <ha-card>
         <div class="scene">
           <svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
-              <clipPath id="water-clip"><path d="${SCENE.water}"></path></clipPath>
+              <clipPath id="water-clip">
+                <path d="${this._escape(this._config.water || WATER)}"></path>
+              </clipPath>
               <linearGradient id="sky-fade" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stop-color="#03142b" stop-opacity="0.72"></stop>
                 <stop offset="100%" stop-color="#03142b" stop-opacity="0"></stop>
@@ -514,78 +752,97 @@ class PoolSceneCard extends HTMLElement {
 
             <g clip-path="url(#water-clip)">
               <g id="lamp">
-                <ellipse class="lamp-glow" cx="${SCENE.lamp.x}" cy="${SCENE.lamp.y + 26}"
+                <ellipse class="lamp-glow" cx="${at("lamp").x}" cy="${at("lamp").y + 26}"
                          rx="185" ry="96"></ellipse>
-                <ellipse class="lamp-core" cx="${SCENE.lamp.x}" cy="${SCENE.lamp.y}"
+                <ellipse class="lamp-core" cx="${at("lamp").x}" cy="${at("lamp").y}"
                          rx="15" ry="6"></ellipse>
               </g>
               <g id="surface">
-                ${this._ripples("jet", SCENE.jet)}
-                ${this._ripples("skimmer", SCENE.skimmer)}
+                ${this._ripples("jet", at("jet"))}
+                ${this._ripples("skimmer", at("skimmer"))}
               </g>
             </g>
 
-            <g id="swirl" transform="translate(${SCENE.swirl.x} ${SCENE.swirl.y})">
+            <!-- Out to the machines and back again. Not the plumbing: the run
+                 is buried under the decking, so these two say which way the
+                 water is going and leave the pipe out of it. -->
+            <g id="flow">
+              ${LEGS.map(leg =>
+                `<path id="${leg.key.replace("_", "-")}" class="leg"
+                       d="${legPath(at(leg.from), at(leg.to))}"></path>`).join("")}
+            </g>
+
+            <g id="swirl" transform="translate(${at("swirl").x} ${at("swirl").y})">
               ${SWIRL_RINGS.map(ring =>
                 `<circle class="swirl-ring${ring.reverse ? " swirl-back" : ""}"
                          r="${ring.r}" stroke-dasharray="${ring.dash}"
                          style="animation-duration:${ring.dur}"></circle>`).join("")}
             </g>
 
-            <g id="fan" transform="translate(${SCENE.heatPump.fan.x} ${SCENE.heatPump.fan.y})">
+            <g id="fan" transform="translate(${at("fan").x} ${at("fan").y})">
               <g class="fan-spin">
                 ${FAN_BLADES.map(angle =>
                   `<path class="fan-blade" transform="rotate(${angle})"
-                         d="M 0 0 L ${SCENE.heatPump.fan.r} -5 A ${SCENE.heatPump.fan.r} ${
-                    SCENE.heatPump.fan.r} 0 0 1 ${SCENE.heatPump.fan.r * 0.94} 8 Z"></path>`)
-                  .join("")}
+                         d="M 0 0 L ${FAN_R} -5 A ${FAN_R} ${FAN_R} 0 0 1 ${
+                    round(FAN_R * 0.94)} 8 Z"></path>`).join("")}
               </g>
-              <circle class="fan-ring" cx="0" cy="0" r="${SCENE.heatPump.fan.r}"></circle>
+              <circle class="fan-ring" cx="0" cy="0" r="${FAN_R}"></circle>
             </g>
 
             <!-- The translate stays on a wrapper: the rising animation is a
                  transform of its own, and one on the path would replace it. -->
             <g id="heat">
               ${HEAT_WAVES.map(wave =>
-                `<g transform="translate(${wave.x} 166)"><path class="heat-wave"
+                `<g transform="translate(${at("heat_waves").x + wave.dx} ${
+                  at("heat_waves").y})"><path class="heat-wave"
                    style="animation-delay:${wave.delay}" d="${HEAT_WAVE_PATH}"></path></g>`)
                 .join("")}
             </g>
 
-            <rect id="hp-display" class="display" x="${SCENE.heatPump.display.x}"
-                  y="${SCENE.heatPump.display.y}" width="${SCENE.heatPump.display.w}"
-                  height="${SCENE.heatPump.display.h}" rx="2"></rect>
-            <rect id="panel-display" class="display" x="${SCENE.panel.x}" y="${SCENE.panel.y}"
-                  width="${SCENE.panel.w}" height="${SCENE.panel.h}" rx="1.5"></rect>
-            <circle id="gauge" class="gauge" cx="${SCENE.filterGauge.x}"
-                    cy="${SCENE.filterGauge.y}" r="6"></circle>
+            <rect id="hp-display" class="display"
+                  x="${round(at("heat_display").x - DISPLAY.w / 2)}"
+                  y="${round(at("heat_display").y - DISPLAY.h / 2)}"
+                  width="${DISPLAY.w}" height="${DISPLAY.h}" rx="2"></rect>
+            <rect id="panel-display" class="display"
+                  x="${round(at("panel_display").x - PANEL_DISPLAY.w / 2)}"
+                  y="${round(at("panel_display").y - PANEL_DISPLAY.h / 2)}"
+                  width="${PANEL_DISPLAY.w}" height="${PANEL_DISPLAY.h}" rx="1.5"></rect>
+            <circle id="gauge" class="gauge" cx="${at("gauge").x}"
+                    cy="${at("gauge").y}" r="6"></circle>
 
             ${this._config.show_title
-              ? '<text id="title" class="title" x="18" y="32"></text>' : ""}
+              ? `<text id="title" class="title at-start" x="${at("title").x}"
+                       y="${at("title").y}"></text>` : ""}
 
             <g id="node-filtration" class="node">
-              <line class="guide" x1="211" y1="122" x2="211" y2="132"></line>
-              <text class="node-label" x="211" y="102"></text>
-              <text class="node-value" x="211" y="116"></text>
+              <line class="guide" x1="${at("filtration").x}" y1="${at("filtration").y + 20}"
+                    x2="${at("filtration").x}" y2="${at("filtration").y + 30}"></line>
+              <text class="node-label" x="${at("filtration").x}" y="${at("filtration").y}"></text>
+              <text class="node-value" x="${at("filtration").x}"
+                    y="${at("filtration").y + 14}"></text>
             </g>
 
             <!-- Anchoring is a class, not the text-anchor attribute: the
                  stylesheet sets it too, and a stylesheet beats a
                  presentation attribute every time. -->
             <g id="node-heat" class="node">
-              <line class="guide" x1="437" y1="188" x2="429" y2="188"></line>
-              <text class="node-label at-start" x="443" y="184"></text>
-              <text class="node-value at-start" x="443" y="198"></text>
+              <line class="guide" x1="${at("heat").x - 6}" y1="${at("heat").y + 4}"
+                    x2="${at("heat").x - 14}" y2="${at("heat").y + 4}"></line>
+              <text class="node-label at-start" x="${at("heat").x}" y="${at("heat").y}"></text>
+              <text class="node-value at-start" x="${at("heat").x}"
+                    y="${at("heat").y + 14}"></text>
             </g>
 
             <g id="node-light" class="node">
-              <text class="node-label" x="230" y="334"></text>
-              <text class="node-value" x="230" y="348"></text>
+              <text class="node-label" x="${at("light").x}" y="${at("light").y}"></text>
+              <text class="node-value" x="${at("light").x}" y="${at("light").y + 14}"></text>
             </g>
 
             <g id="node-temp" class="node">
-              <text class="node-label at-start" x="26" y="344"></text>
-              <text class="temp-value at-start" x="26" y="372"></text>
+              <text class="node-label at-start" x="${at("temperature").x}"
+                    y="${at("temperature").y}"></text>
+              <text class="temp-value at-start" x="${at("temperature").x}"
+                    y="${at("temperature").y + 28}"></text>
             </g>
           </svg>
         </div>
@@ -599,6 +856,8 @@ class PoolSceneCard extends HTMLElement {
       night: pick("#night-tint"),
       lamp: pick("#lamp"),
       surface: pick("#surface"),
+      flow: pick("#flow"),
+      legBack: pick("#leg-back"),
       swirl: pick("#swirl"),
       fan: pick("#fan"),
       heat: pick("#heat"),
@@ -642,6 +901,10 @@ class PoolSceneCard extends HTMLElement {
 
     nodes.swirl.classList.toggle("on", running);
     nodes.surface.classList.toggle("on", running);
+    nodes.flow.classList.toggle("running", running);
+    /* Water on its way back from a heat pump that is working is the warm
+       one, and the only thing on the scene whose colour says so. */
+    nodes.legBack.classList.toggle("warm", running && warming);
 
     nodes.fan.classList.toggle("on", warming);
     nodes.heat.classList.toggle("on", warming && heating.action !== "cooling");
@@ -728,6 +991,32 @@ class PoolSceneCard extends HTMLElement {
       .sky-fade{fill:url(#sky-fade);opacity:calc(.42 + var(--night) * .34)}
       .deck-fade{fill:url(#deck-fade);opacity:calc(.5 + var(--night) * .3)}
       .vignette{fill:url(#vignette);opacity:calc(.55 + var(--night) * .3)}
+
+      /* --- out to the machines and back ----------------------------- */
+      .leg{
+        fill:none;
+        stroke:transparent;
+        stroke-width:2.4;
+        stroke-linecap:round;
+        transition:stroke .4s ease;
+      }
+      #flow.running .leg{
+        stroke:#5ee7ff;
+        stroke-dasharray:12 20;
+        animation:stream 1.35s linear infinite;
+        /* A dark hairline first so the stroke survives the pale concrete,
+           then the glow, which is what carries it on the dark water. */
+        filter:drop-shadow(0 0 .6px rgba(2,10,25,.95))
+               drop-shadow(0 0 2.5px rgba(94,231,255,.55))
+               drop-shadow(0 0 7px rgba(94,231,255,.35));
+      }
+      #flow.running .leg.warm{
+        stroke:#ffb066;
+        filter:drop-shadow(0 0 .6px rgba(2,10,25,.95))
+               drop-shadow(0 0 2.5px rgba(255,176,102,.6))
+               drop-shadow(0 0 8px rgba(255,143,60,.4));
+      }
+      @keyframes stream{to{stroke-dashoffset:-32}}
 
       /* --- the filter turning water over ---------------------------- */
       #swirl{opacity:0;transition:opacity .4s ease}
@@ -854,6 +1143,7 @@ class PoolSceneCard extends HTMLElement {
       .node:not(.active) .node-value{opacity:.72}
 
       /* Off screen, none of this is worth a frame. */
+      :host(.offscreen) .leg,
       :host(.offscreen) .swirl-ring,
       :host(.offscreen) .ripple,
       :host(.offscreen) .fan-spin,
@@ -863,7 +1153,9 @@ class PoolSceneCard extends HTMLElement {
 
       /* Everything above still reads as on or off without the motion. */
       @media (prefers-reduced-motion:reduce){
-        .swirl-ring,.ripple,.fan-spin,.heat-wave,.gauge,.lamp-glow{animation:none !important}
+        .leg,.swirl-ring,.ripple,.fan-spin,.heat-wave,.gauge,.lamp-glow{
+          animation:none !important;
+        }
         #surface.on .ripple{opacity:.45;rx:14;ry:6}
         #heat.on .heat-wave{opacity:.55}
         .gauge.on{opacity:.55}
@@ -952,8 +1244,28 @@ class PoolSceneCardEditor extends HTMLElement {
       this._form = document.createElement("ha-form");
       this._form.addEventListener("value-changed", event => this._valueChanged(event));
       this.appendChild(this._form);
+      /* Built once and kept: rebuilding the row on every keystroke in the
+         form would take the open dialog with it. */
+      this._openButton = document.createElement("button");
+      this._openButton.type = "button";
+      this._openButton.className = "pms-open-positions";
+      this._openButton.addEventListener("click", () => this._openPositions());
+      const row = document.createElement("div");
+      row.className = "pms-open-row";
+      row.innerHTML = `<style>
+        .pms-open-row{margin-top:16px}
+        .pms-open-positions{
+          font:inherit;font-size:.9rem;font-weight:500;cursor:pointer;
+          padding:9px 16px;border-radius:999px;
+          border:1px solid var(--divider-color,rgba(127,127,127,.35));
+          background:transparent;color:var(--primary-color,#44739E);
+        }
+      </style>`;
+      row.appendChild(this._openButton);
+      this.appendChild(row);
     }
     const text = editorText(this._hass);
+    this._openButton.textContent = text.pos_open;
     this._form.hass = this._hass;
     this._form.data = this._formData();
     this._form.schema = this._schema();
@@ -968,8 +1280,14 @@ class PoolSceneCardEditor extends HTMLElement {
   _valueChanged(event) {
     event.stopPropagation();
     const value = Object.assign({}, event.detail.value);
-    /* Only what differs from the defaults is written: a card the user never
-       touched should have a two-line config, not a form dump. */
+    this._emit(this._fromForm(value));
+  }
+
+  /* Only what differs from the defaults is written: a card the user never
+     touched should have a two-line config, not a form dump. What the visual
+     editor put there is carried across — it is not on this form, and
+     rebuilding the config from the form alone would drop it. */
+  _fromForm(value) {
     const config = { type: (this._config && this._config.type) || "custom:pool-scene-card" };
     if (value.entry) config.entry = value.entry;
     if (value.title) config.title = value.title;
@@ -978,8 +1296,280 @@ class PoolSceneCardEditor extends HTMLElement {
     if (value.show_temperature === false) config.show_temperature = false;
     if (value.night && value.night !== "auto") config.night = value.night;
     if (value.background) config.background = value.background;
+    if (this._config.water) config.water = this._config.water;
+    const positions = this._config.positions || {};
+    if (Object.keys(positions).length) config.positions = positions;
+    return config;
+  }
+
+  _emit(config) {
     this._config = Object.assign({}, DEFAULTS, config);
     fireEvent(this, "config-changed", { config: config });
+  }
+
+  /* ---------------- the visual editor ---------------- */
+
+  /* Everything on the scene is placed for the photo that ships with the
+     integration. Point the card at your own and all of it is in the wrong
+     place, so the way to fix it has to be dragging, not typing pairs of
+     numbers into a form. */
+  _openPositions() {
+    if (this._modal) return;
+    const text = editorText(this._hass);
+    const modal = document.createElement("div");
+    modal.className = "pms-pe";
+    modal.innerHTML = `${this._positionStyles()}
+      <div class="pms-pe-sheet" role="dialog" aria-modal="true">
+        <header>
+          <div>
+            <p class="kicker">${this._escape(text.pos_kicker)}</p>
+            <h3>${this._escape(text.pos_open)}</h3>
+          </div>
+          <div class="acts">
+            <button type="button" data-reset>${this._escape(text.pos_reset)}</button>
+            <button type="button" data-close class="primary">${
+              this._escape(text.pos_done)}</button>
+          </div>
+        </header>
+        <div class="stage">
+          <svg viewBox="0 0 600 400" data-stage>
+            <image href="${this._escape(this._config.background || SCENE_URL)}"
+                   x="0" y="0" width="600" height="400"
+                   preserveAspectRatio="xMidYMid slice"></image>
+            <rect class="scrim" x="0" y="0" width="600" height="400"></rect>
+            <g data-handles>${this._handles()}</g>
+          </svg>
+        </div>
+        <p class="hint">${this._escape(text.pos_hint)}</p>
+      </div>`;
+
+    const svg = modal.querySelector("[data-stage]");
+    svg.addEventListener("pointerdown", event => this._dragStart(event, svg));
+    svg.addEventListener("pointermove", event => this._dragMove(event, svg));
+    svg.addEventListener("pointerup", event => this._dragEnd(event));
+    svg.addEventListener("pointercancel", event => this._dragEnd(event));
+    modal.querySelector("[data-close]").addEventListener("click", () => this._closePositions());
+    modal.querySelector("[data-reset]").addEventListener("click", () => {
+      this._config = Object.assign({}, this._config, { positions: {} });
+      this._emit(this._fromForm(this._formData()));
+      this._redrawHandles();
+    });
+    /* Clicking the backdrop is the other way out of a dialog */
+    modal.addEventListener("pointerdown", event => {
+      if (event.target === modal) this._closePositions();
+    });
+
+    this.appendChild(modal);
+    this._modal = modal;
+  }
+
+  _closePositions() {
+    if (!this._modal) return;
+    this._modal.remove();
+    this._modal = null;
+    this._drag = null;
+  }
+
+  _at(key) {
+    return placement(this._config.positions, key);
+  }
+
+  /* One handle per row of LAYOUT, so nothing can be on the scene and not be
+     draggable — the table is what both of them read. The legs are drawn as
+     ghosts rather than handles: each one is tied to two anchors that have
+     handles of their own, so it follows whichever of them moves. */
+  _handles() {
+    const text = editorText(this._hass);
+    const name = key => this._escape(text["pos_" + key] || key);
+    const ghosts = LEGS.map(leg =>
+      `<path class="ghost" data-ghost="${leg.key}"
+             d="${legPath(this._at(leg.from), this._at(leg.to))}"></path>`).join("");
+    const handles = LAYOUT_GROUPS.map(group => Object.keys(LAYOUT)
+      .filter(key => LAYOUT[key].group === group)
+      .map(key => {
+        const spec = LAYOUT[key];
+        const at = this._at(key);
+        return `<g class="handle ${spec.kind} ${spec.group}" data-handle="${key}"
+                   transform="translate(${at.x} ${at.y})">
+            <circle class="hit" r="15"></circle>
+            ${spec.kind === "text"
+              ? '<rect class="plate" x="-9" y="-9" width="18" height="18" rx="4"></rect>'
+              : '<circle class="ring" r="8"></circle>'}
+            <circle class="pip" r="2"></circle>
+            <text class="cap" y="20">${name(key)}</text>
+          </g>`;
+      }).join("")).join("");
+    return ghosts + handles;
+  }
+
+  _redrawHandles() {
+    const layer = this._modal && this._modal.querySelector("[data-handles]");
+    if (layer) layer.innerHTML = this._handles();
+  }
+
+  /* Pointer coordinates in the 600x400 space the scene is drawn in. */
+  _stagePoint(event, svg) {
+    const matrix = svg.getScreenCTM && svg.getScreenCTM();
+    if (svg.createSVGPoint && matrix) {
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      return point.matrixTransform(matrix.inverse());
+    }
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * 600,
+      y: ((event.clientY - rect.top) / rect.height) * 400,
+    };
+  }
+
+  _dragStart(event, svg) {
+    const handle = event.target.closest && event.target.closest("[data-handle]");
+    if (!handle) return;
+    event.preventDefault();
+    if (handle.setPointerCapture) handle.setPointerCapture(event.pointerId);
+    const key = handle.dataset.handle;
+    this._drag = {
+      key, handle,
+      start: this._stagePoint(event, svg),
+      from: Object.assign({}, this._at(key)),
+    };
+    handle.classList.add("active");
+    svg.classList.add("dragging");
+  }
+
+  _dragMove(event, svg) {
+    if (!this._drag) return;
+    event.preventDefault();
+    const point = this._stagePoint(event, svg);
+    const dx = point.x - this._drag.start.x;
+    const dy = point.y - this._drag.start.y;
+    const { key, from, handle } = this._drag;
+    const at = Object.assign({}, from);
+    /* Off the edge of the picture there is nothing to line up with, so a
+       handle stops at it rather than being lost past the frame. */
+    const clampX = value => Math.max(0, Math.min(600, round(value)));
+    const clampY = value => Math.max(0, Math.min(400, round(value)));
+    at.x = clampX(from.x + dx);
+    at.y = clampY(from.y + dy);
+
+    const positions = Object.assign({}, this._config.positions);
+    positions[key] = at;
+    this._config = Object.assign({}, this._config, { positions });
+
+    handle.setAttribute("transform", `translate(${at.x} ${at.y})`);
+    /* A leg is two anchors: whichever end just moved, redraw the curve. */
+    LEGS.filter(leg => leg.from === key || leg.to === key).forEach(leg => {
+      const ghost = svg.querySelector(`[data-ghost="${leg.key}"]`);
+      if (ghost) ghost.setAttribute("d", legPath(this._at(leg.from), this._at(leg.to)));
+    });
+    /* The card behind the dialog is a live preview — repaint it as the
+       handle moves, and let the debounce keep the storage writes down. */
+    this._emitSoon();
+  }
+
+  _dragEnd(event) {
+    if (!this._drag) return;
+    const { handle } = this._drag;
+    handle.classList.remove("active");
+    if (handle.releasePointerCapture) handle.releasePointerCapture(event.pointerId);
+    const svg = this._modal && this._modal.querySelector("[data-stage]");
+    if (svg) svg.classList.remove("dragging");
+    this._drag = null;
+    if (this._emitTimer) clearTimeout(this._emitTimer);
+    this._emitTimer = null;
+    this._emit(this._fromForm(this._formData()));
+  }
+
+  _emitSoon() {
+    if (this._emitTimer) return;
+    this._emitTimer = setTimeout(() => {
+      this._emitTimer = null;
+      this._emit(this._fromForm(this._formData()));
+    }, 120);
+  }
+
+  _escape(text) {
+    return String(text === undefined || text === null ? "" : text)
+      .replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[character]));
+  }
+
+  _positionStyles() {
+    return `<style>
+      .pms-pe{
+        position:fixed;inset:0;z-index:9999;
+        display:flex;align-items:center;justify-content:center;padding:16px;
+        background:rgba(4,10,20,.62);
+      }
+      .pms-pe *{box-sizing:border-box}
+      .pms-pe-sheet{
+        width:min(860px,100%);max-height:100%;overflow:auto;
+        background:var(--card-background-color,#fff);
+        color:var(--primary-text-color,#212121);
+        border-radius:14px;padding:16px;
+        box-shadow:0 24px 60px rgba(2,8,20,.5);
+      }
+      .pms-pe header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+      .pms-pe header > div:first-child{flex:1;min-width:0}
+      .pms-pe .kicker{
+        margin:0;font-size:.7rem;font-weight:600;letter-spacing:.09em;
+        text-transform:uppercase;color:var(--secondary-text-color,#8a8f94);
+      }
+      .pms-pe h3{margin:2px 0 0;font-size:1.05rem;font-weight:600}
+      .pms-pe .acts{display:flex;gap:8px;flex:none}
+      .pms-pe button{
+        font:inherit;font-size:.86rem;font-weight:500;cursor:pointer;
+        padding:7px 14px;border-radius:999px;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));
+        background:transparent;color:inherit;
+      }
+      .pms-pe button.primary{
+        background:var(--primary-color,#44739E);border-color:transparent;
+        color:var(--text-primary-color,#fff);
+      }
+      .pms-pe .stage{
+        border-radius:10px;overflow:hidden;
+        border:1px solid var(--divider-color,rgba(127,127,127,.35));
+      }
+      .pms-pe svg{display:block;width:100%;height:auto;touch-action:none}
+      .pms-pe svg.dragging{cursor:grabbing}
+      .pms-pe .scrim{fill:#04142c;opacity:.34}
+      .pms-pe .handle{cursor:grab}
+      .pms-pe svg.dragging .handle{cursor:grabbing}
+      .pms-pe .hit{fill:transparent}
+      .pms-pe .ring{
+        fill:rgba(94,231,255,.16);stroke:#5ee7ff;stroke-width:1.6;
+      }
+      .pms-pe .plate{
+        fill:rgba(94,231,255,.16);stroke:#5ee7ff;stroke-width:1.6;
+      }
+      .pms-pe .pip{fill:#eaf9ff}
+      /* A leg's handle is the colour of the leg it belongs to */
+      .pms-pe .flow .ring{fill:rgba(255,176,102,.18);stroke:#ffb066}
+      .pms-pe .ghost{
+        fill:none;stroke:#ffb066;stroke-width:1.6;stroke-dasharray:6 6;opacity:.9;
+      }
+      /* Sixteen names at once turned the picture into a wall of words, and
+         the ones round the heat pump sat on top of each other. The shapes
+         say where things are; the name is for the one under the pointer. */
+      .pms-pe .cap{
+        font-family:inherit;font-size:8.5px;font-weight:600;text-anchor:middle;
+        fill:#f2fbff;paint-order:stroke;stroke:rgba(2,10,25,.9);stroke-width:3;
+        opacity:0;pointer-events:none;transition:opacity .12s ease;
+      }
+      .pms-pe .handle:hover .cap{opacity:1}
+      .pms-pe .handle:hover .ring,.pms-pe .handle:hover .plate{
+        fill:rgba(94,231,255,.42);stroke-width:2.2;
+      }
+      .pms-pe .flow:hover .ring{fill:rgba(255,176,102,.45)}
+      /* The one being dragged keeps its name up while the pointer runs off it */
+      .pms-pe .handle.active .cap{opacity:1}
+      .pms-pe .hint{
+        margin:10px 2px 0;font-size:.82rem;color:var(--secondary-text-color,#8a8f94);
+      }
+    </style>`;
   }
 }
 
