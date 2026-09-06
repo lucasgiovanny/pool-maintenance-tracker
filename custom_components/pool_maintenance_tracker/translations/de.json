@@ -20,22 +20,11 @@
         }
       },
       "settings": {
-        "title": "Seite und Erinnerungen",
+        "title": "Seitensprache",
         "data": {
-          "language": "Sprache der Seite",
-          "notify_service": "Ziel für Benachrichtigungen",
-          "filter_days": "Erinnerung Filterreinigung (Tage)",
-          "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
-          "cell_days": "Erinnerung Zellenreinigung (Tage)",
-          "chemistry_days": "Erinnerung Stabilisator- und Härtetest (Tage)"
-        },
-        "data_description": {
-          "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung."
+          "language": "Sprache der Seite"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Gib einen Dienst wie notify.mobile_app_meinhandy an, oder lass das Feld leer."
     }
   },
   "options": {
@@ -47,8 +36,7 @@
           "people": "Personen auf der Seite",
           "sensors": "Verknüpfte Sensoren",
           "equipment": "Geräte",
-          "reminders": "Erinnerungen",
-          "page": "Seite und Benachrichtigungen",
+          "page": "Seite",
           "security": "Sicherheit"
         }
       },
@@ -81,15 +69,14 @@
       },
       "sensors": {
         "title": "Verknüpfte Sensoren",
-        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen. Mit einem verknüpften Drucksensor folgt der Filterwäsche-Alarm dem Druckanstieg gegenüber dem sauberen Filter statt dem festen Intervall. Der Referenzwert wird bei der nächsten protokollierten Wäsche automatisch erfasst.",
+        "description": "Verknüpfe vorhandene Sensoren (z. B. von einer smarten Sonde oder einer anderen Pool-Integration). Ihre aktuellen Werte erscheinen auf der Seite neben den manuellen Messungen, und mit jedem Eintrag wird ein Schnappschuss gespeichert. Feld leer lassen, um die Verknüpfung zu lösen.",
         "data": {
           "ph_source": "pH-Sensor",
           "chlorine_source": "Sensor für freies Chlor",
           "salt_source": "Salzsensor",
           "temperature_source": "Wassertemperatursensor",
           "linked_mode": "Verhalten der verknüpften Sensoren",
-          "report_sensors": "Zusätzliche Entitäten im Status-Tab",
-          "filter_pressure_source": "Filtermanometer"
+          "report_sensors": "Zusätzliche Entitäten im Status-Tab"
         }
       },
       "equipment": {
@@ -126,31 +113,15 @@
           "filtration_state_entity": "Leer lassen, um den Zustand aus den Zeiten selbst zu lesen."
         }
       },
-      "reminders": {
-        "title": "Erinnerungen",
-        "data": {
-          "filter_days": "Erinnerung Filterreinigung (Tage)",
-          "probe_days": "Erinnerung pH-Sonden-Kalibrierung (Tage)",
-          "cell_days": "Erinnerung Zellenreinigung (Tage)",
-          "reminder_time": "Zeit der täglichen Prüfung (HH:MM)",
-          "filter_pressure_rise": "Filter bei diesem Druckanstieg waschen (%)",
-          "chemistry_days": "Erinnerung Stabilisator- und Härtetest (Tage)"
-        }
-      },
       "page": {
-        "title": "Seite und Benachrichtigungen",
+        "title": "Seite",
         "data": {
           "language": "Sprache der Seite",
-          "notify_service": "Ziel für Benachrichtigungen",
-          "report_enabled": "\"Status\"-Tab auf der Seite",
-          "kiosk_enabled": "Wand-Dashboard-Seite"
+          "report_enabled": "\"Status\"-Tab auf der Seite"
         },
         "data_description": {
-          "notify_service": "Zum Beispiel notify.mobile_app_meinhandy. Leer lassen, um keine eingebauten Benachrichtigungen zu erhalten – die Überfällig-Binärsensoren und das Wartungsereignis stehen weiterhin für eigene Automatisierungen zur Verfügung.",
-          "report_enabled": "Fügt der öffentlichen Seite einen schreibgeschützten Bericht-Tab hinzu: aktuelle Werte, Aufgabenstatus und letzte Einträge. Sichtbar für alle mit der Seiten-URL.",
-          "kiosk_enabled": "Ein dunkles Nur-Anzeige-Dashboard für einen Bildschirm am Pool (7\" Querformat oder größer): Wasserwerte, Geräte und ein Countdown bis zur nächsten Zeitplanänderung. Ohne Touch und Navigation. Die URL steht in den Attributen der QR-Code-Entität."
-        },
-        "description": "Wähle einen notify-Dienst (etwa dein Telefon über die Companion-App) oder eine notify-Entität. Leer lassen heißt: die Integration sendet nichts — die Fälligkeits-Binärsensoren und das Wartungsereignis bleiben für eigene Automationen verfügbar."
+          "report_enabled": "Fügt der öffentlichen Seite einen schreibgeschützten Bericht-Tab hinzu: aktuelle Werte, wann jede Aufgabe zuletzt erledigt wurde und letzte Einträge. Sichtbar für alle mit der Seiten-URL."
+        }
       },
       "security": {
         "title": "Sicherheit",
@@ -159,9 +130,6 @@
           "regenerate_token": "Zugriffstoken erneuern"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Gib einen Dienst wie notify.mobile_app_meinhandy an, oder lass das Feld leer."
     }
   },
   "selector": {
@@ -321,20 +289,6 @@
         "name": "Wassertemperatur"
       }
     },
-    "binary_sensor": {
-      "filter_wash_due": {
-        "name": "Filterreinigung überfällig"
-      },
-      "cell_clean_due": {
-        "name": "Zellenreinigung überfällig"
-      },
-      "probe_calibration_due": {
-        "name": "Sonden-Kalibrierung überfällig"
-      },
-      "chemistry_test_due": {
-        "name": "Stabilisator- und Härtetest überfällig"
-      }
-    },
     "switch": {
       "maintenance_mode": {
         "name": "Wartungsmodus"
@@ -393,12 +347,6 @@
           "description": "Der Pool, dessen Protokoll exportiert wird."
         }
       }
-    }
-  },
-  "issues": {
-    "missing_entity": {
-      "title": "{pool}: eine konfigurierte Entität fehlt",
-      "description": "Die Entität `{entity_id}` ist für den Pool **{pool}** konfiguriert, existiert aber nicht mehr — entfernt, umbenannt, oder ihre Integration ist weg. Die Dashboards zeigen sie einfach nicht mehr an. Wähle unter den **Konfigurieren**-Optionen des Pools einen Ersatz (oder leere das Feld)."
     }
   },
   "exceptions": {

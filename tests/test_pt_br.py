@@ -18,7 +18,7 @@ from custom_components.pool_maintenance_tracker.const import (
     URL_PAGE,
 )
 
-from .conftest import TEST_TOKEN, setup_entry
+from .conftest import TEST_TOKEN
 
 
 def extract_config(html: str) -> dict:
@@ -35,39 +35,6 @@ async def test_native_translations_exist_for_pt_br(hass):
     assert data["config"]["step"]["user"]["title"] == "Adicionar uma piscina"
     # Brazilian voice, not just a copy of pt
     assert "Você pode" in data["config"]["step"]["user"]["data_description"]["pool_type"]
-
-
-async def test_card_language_pt_br_gets_its_own_bundle(hass, salt_entry, hass_ws_client):
-    await setup_entry(hass, salt_entry)
-    client = await hass_ws_client(hass)
-    await client.send_json(
-        {
-            "id": 1,
-            "type": f"{DOMAIN}/status",
-            "entry_id": salt_entry.entry_id,
-            "language": "pt-BR",
-        }
-    )
-    result = await client.receive_json()
-    assert result["success"]
-    assert result["result"]["language"] == "pt-br"
-    assert result["result"]["strings"]["save"] == "Salvar registro"
-
-
-async def test_unknown_region_falls_back_to_its_base(hass, salt_entry, hass_ws_client):
-    """en-GB is not a bundle we ship; en is."""
-    await setup_entry(hass, salt_entry)
-    client = await hass_ws_client(hass)
-    await client.send_json(
-        {
-            "id": 1,
-            "type": f"{DOMAIN}/status",
-            "entry_id": salt_entry.entry_id,
-            "language": "en-GB",
-        }
-    )
-    result = await client.receive_json()
-    assert result["result"]["language"] == "en"
 
 
 async def test_page_can_speak_pt_br(hass, salt_entry, hass_client_no_auth):

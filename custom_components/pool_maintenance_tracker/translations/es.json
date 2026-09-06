@@ -20,22 +20,11 @@
         }
       },
       "settings": {
-        "title": "Página y recordatorios",
+        "title": "Idioma de la página",
         "data": {
-          "language": "Idioma de la página",
-          "notify_service": "Destino de las notificaciones",
-          "filter_days": "Recordatorio de lavado del filtro (días)",
-          "probe_days": "Recordatorio de calibración de la sonda de pH (días)",
-          "cell_days": "Recordatorio de limpieza de la célula (días)",
-          "chemistry_days": "Recordatorio del test de estabilizante y dureza (días)"
-        },
-        "data_description": {
-          "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones."
+          "language": "Idioma de la página"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Indica un servicio como notify.mobile_app_mimovil, o déjalo vacío."
     }
   },
   "options": {
@@ -47,8 +36,7 @@
           "people": "Personas en la página",
           "sensors": "Sensores vinculados",
           "equipment": "Equipamiento",
-          "reminders": "Recordatorios",
-          "page": "Página y notificaciones",
+          "page": "Página",
           "security": "Seguridad"
         }
       },
@@ -81,15 +69,14 @@
       },
       "sensors": {
         "title": "Sensores vinculados",
-        "description": "Vincula sensores existentes (por ejemplo de una sonda inteligente u otra integración de piscina). Sus valores actuales se muestran en la página junto a las lecturas manuales y se guarda un snapshot con cada registro. Deja un campo vacío para desvincularlo. Con un sensor de presión enlazado, el aviso de lavado del filtro sigue la subida de presión sobre el filtro limpio en lugar del intervalo fijo. La referencia se captura automáticamente en el próximo lavado registrado.",
+        "description": "Vincula sensores existentes (por ejemplo de una sonda inteligente u otra integración de piscina). Sus valores actuales se muestran en la página junto a las lecturas manuales y se guarda un snapshot con cada registro. Deja un campo vacío para desvincularlo.",
         "data": {
           "ph_source": "Sensor de pH",
           "chlorine_source": "Sensor de cloro libre",
           "salt_source": "Sensor de sal",
           "temperature_source": "Sensor de temperatura del agua",
           "linked_mode": "Comportamiento de los sensores vinculados",
-          "report_sensors": "Entidades extra en la pestaña Estado",
-          "filter_pressure_source": "Manómetro del filtro"
+          "report_sensors": "Entidades extra en la pestaña Estado"
         }
       },
       "equipment": {
@@ -126,31 +113,15 @@
           "filtration_state_entity": "Déjalo vacío para leer el estado a partir de las propias horas."
         }
       },
-      "reminders": {
-        "title": "Recordatorios",
-        "data": {
-          "filter_days": "Recordatorio de lavado del filtro (días)",
-          "probe_days": "Recordatorio de calibración de la sonda de pH (días)",
-          "cell_days": "Recordatorio de limpieza de la célula (días)",
-          "reminder_time": "Hora de la comprobación diaria (HH:MM)",
-          "filter_pressure_rise": "Lavar el filtro con esta subida de presión (%)",
-          "chemistry_days": "Recordatorio del test de estabilizante y dureza (días)"
-        }
-      },
       "page": {
-        "title": "Página y notificaciones",
+        "title": "Página",
         "data": {
           "language": "Idioma de la página",
-          "notify_service": "Destino de las notificaciones",
-          "report_enabled": "Pestaña \"Estado\" en la página",
-          "kiosk_enabled": "Página de panel de pared"
+          "report_enabled": "Pestaña \"Estado\" en la página"
         },
         "data_description": {
-          "notify_service": "Por ejemplo notify.mobile_app_mimovil. Déjalo vacío para que la integración no envíe notificaciones: los sensores binarios de retraso y el evento de mantenimiento siguen disponibles para tus propias automatizaciones.",
-          "report_enabled": "Añade una pestaña de informe (solo lectura) a la página pública: valores actuales, estado de las tareas y registros recientes. Visible para quien tenga la URL.",
-          "kiosk_enabled": "Un panel oscuro, solo de visualización, para una pantalla junto a la piscina (7\" horizontal o mayor): lecturas del agua, equipamiento y cuenta atrás para el próximo cambio del horario. Sin táctil ni navegación. La URL está en los atributos de la entidad del código QR."
-        },
-        "description": "Elige un servicio notify (por ejemplo tu móvil, de la app companion) o una entidad notify. Déjalo vacío y la integración no envía nada — los binary sensors de retraso y el evento de mantenimiento siguen disponibles para tus automatizaciones."
+          "report_enabled": "Añade una pestaña de informe (solo lectura) a la página pública: valores actuales, cuándo se hizo cada tarea por última vez y registros recientes. Visible para quien tenga la URL."
+        }
       },
       "security": {
         "title": "Seguridad",
@@ -159,9 +130,6 @@
           "regenerate_token": "Regenerar token de acceso"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Indica un servicio como notify.mobile_app_mimovil, o déjalo vacío."
     }
   },
   "selector": {
@@ -321,20 +289,6 @@
         "name": "Temperatura del agua"
       }
     },
-    "binary_sensor": {
-      "filter_wash_due": {
-        "name": "Lavado del filtro atrasado"
-      },
-      "cell_clean_due": {
-        "name": "Limpieza de la célula atrasada"
-      },
-      "probe_calibration_due": {
-        "name": "Calibración de la sonda atrasada"
-      },
-      "chemistry_test_due": {
-        "name": "Test de estabilizante y dureza atrasado"
-      }
-    },
     "switch": {
       "maintenance_mode": {
         "name": "Modo mantenimiento"
@@ -393,12 +347,6 @@
           "description": "La piscina cuyo registro exportar."
         }
       }
-    }
-  },
-  "issues": {
-    "missing_entity": {
-      "title": "{pool}: falta una entidad configurada",
-      "description": "La entidad `{entity_id}` está configurada para la piscina **{pool}**, pero ya no existe — fue eliminada, renombrada, o su integración desapareció. Los paneles simplemente dejan de mostrarla. Elige una sustituta (o limpia el campo) en las opciones **Configurar** de la piscina."
     }
   },
   "exceptions": {

@@ -53,10 +53,6 @@ class PoolTracker:
         self.last_record: dict[str, Any] | None = None
         self.records: list[dict[str, Any]] = []
         self.notes: list[dict[str, Any]] = []
-        self.reminders_last_notified: dict[str, str] = {}
-        # Derived facts that are neither a reading nor a timestamp — today
-        # just the filter's clean pressure and the verdict drawn from it.
-        self.metrics: dict[str, Any] = {}
         # Maintenance mode: a flag, when it was last flipped, and by whom.
         # It survives restarts on purpose — a technician who raised it and
         # went home should not have it dropped by a Home Assistant update.
@@ -83,8 +79,6 @@ class PoolTracker:
         self.last_record = data.get("last_record")
         self.records = data.get("records", [])
         self.notes = data.get("notes", [])
-        self.reminders_last_notified = data.get("reminders_last_notified", {})
-        self.metrics = data.get("metrics", {})
         self.maintenance_mode = bool(data.get("maintenance_mode", False))
         self.maintenance_mode_at = data.get("maintenance_mode_at")
         self.maintenance_mode_by = data.get("maintenance_mode_by")
@@ -113,8 +107,6 @@ class PoolTracker:
             "last_record": self.last_record,
             "records": self.records,
             "notes": self.notes,
-            "reminders_last_notified": self.reminders_last_notified,
-            "metrics": self.metrics,
             "maintenance_mode": self.maintenance_mode,
             "maintenance_mode_at": self.maintenance_mode_at,
             "maintenance_mode_by": self.maintenance_mode_by,
@@ -127,10 +119,6 @@ class PoolTracker:
     def get_timestamp(self, key: str) -> datetime | None:
         raw = self.timestamps.get(key)
         return dt_util.parse_datetime(raw) if raw else None
-
-    @property
-    def installed_at_dt(self) -> datetime:
-        return dt_util.parse_datetime(self.installed_at) or dt_util.utcnow()
 
     @property
     def combined_chlorine(self) -> float | None:

@@ -28,7 +28,7 @@ async def test_chlorine_pool_creates_reduced_set(hass, chlorine_entry):
     assert keys == active_entity_keys(chlorine_entry.options)
     assert "chlorinator_mode" not in keys
     assert "salt_added" not in keys
-    assert "cell_clean_due" not in keys
+    assert "last_cell_clean" not in keys
 
 
 async def test_number_set_value_writes_through_tracker(hass, salt_entry):

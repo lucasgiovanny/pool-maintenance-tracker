@@ -38,10 +38,6 @@ DEFAULT_REPORT_ENABLED: Final = True
 # Extra entities (any integration) displayed on the report tab
 CONF_REPORT_SENSORS: Final = "report_sensors"
 
-# Display-only dashboard for a wall screen next to the pool
-CONF_KIOSK_ENABLED: Final = "kiosk_enabled"
-DEFAULT_KIOSK_ENABLED: Final = True
-
 # Maintenance mode: a flag raised while somebody works on the pool. Nothing
 # in here acts on it — it exists so that automations can (stop the pump,
 # mute an alarm, skip a schedule), and so that whoever is standing at the
@@ -159,12 +155,6 @@ LINKED_MODE_MANUAL: Final = "manual_only"
 LINKED_MODE_ON_RECORD: Final = "fill_on_record"
 LINKED_MODE_MIRROR: Final = "mirror"
 LINKED_MODES: Final = [LINKED_MODE_MANUAL, LINKED_MODE_ON_RECORD, LINKED_MODE_MIRROR]
-CONF_NOTIFY_SERVICE: Final = "notify_service"
-CONF_FILTER_DAYS: Final = "filter_days"
-CONF_PROBE_DAYS: Final = "probe_days"
-CONF_CELL_DAYS: Final = "cell_days"
-CONF_CHEMISTRY_DAYS: Final = "chemistry_days"
-CONF_REMINDER_TIME: Final = "reminder_time"
 
 POOL_TYPE_SALT: Final = "salt"
 POOL_TYPE_CHLORINE: Final = "chlorine"
@@ -177,11 +167,6 @@ POOL_TYPES: Final = [POOL_TYPE_SALT, POOL_TYPE_CHLORINE, POOL_TYPE_OTHER]
 # name HA loads for a pt-BR install.
 LANGUAGES: Final = ["en", "pt", "pt-br", "es", "fr", "de", "it"]
 DEFAULT_LANGUAGE: Final = "en"
-DEFAULT_FILTER_DAYS: Final = 30
-DEFAULT_PROBE_DAYS: Final = 60
-DEFAULT_CELL_DAYS: Final = 90
-DEFAULT_CHEMISTRY_DAYS: Final = 30
-DEFAULT_REMINDER_TIME: Final = "10:00"
 
 # Pool volume in m³ — enables the salt-dose hint and nothing else
 CONF_POOL_VOLUME: Final = "pool_volume"
@@ -206,18 +191,6 @@ IDEAL_CYANURIC_SALT: Final = (60.0, 80.0)
 # eyes. The two readings only subtract into something meaningful when they
 # came from the same test session.
 COMBINED_CHLORINE_WINDOW_HOURS: Final = 6
-
-# Filter pressure: a sensor beats a calendar. When one is linked and a clean
-# baseline was captured, the filter wash alert follows the pressure rise
-# instead of the fixed interval.
-CONF_FILTER_PRESSURE_SOURCE: Final = "filter_pressure_source"
-CONF_FILTER_PRESSURE_RISE: Final = "filter_pressure_rise"
-DEFAULT_FILTER_PRESSURE_RISE: Final = 25  # percent over the clean baseline
-# Below this the pump is almost certainly off, so the reading means nothing
-MIN_MEANINGFUL_PRESSURE: Final = 0.1
-METRIC_CLEAN_PRESSURE: Final = "filter_clean_pressure"
-METRIC_CLEAN_PRESSURE_AT: Final = "filter_clean_pressure_at"
-METRIC_PRESSURE_DUE: Final = "filter_pressure_due"
 
 # Value keys (tracker "values" bucket)
 KEY_PH: Final = "ph"
@@ -262,12 +235,6 @@ CHLORINATOR_MODES: Final = ["smart", "manual", "boost"]
 # "empty" and "none" are real situations: a drum that ran dry, and a pool
 # running without one at all (removed for maintenance, or never fitted).
 ACID_TANK_LEVELS: Final = ["full", "three_quarters", "half", "quarter", "empty", "none"]
-ACID_LEVEL_NONE: Final = "none"
-# Levels worth telling somebody about. "none" is not one of them: there is
-# nothing to refill, so nagging about it would be noise.
-# "none" is not a refill problem — it is a pool whose pH is not being
-# dosed at all, which is worth saying once in different words.
-ACID_ALERT_LEVELS: Final = ("quarter", "empty", ACID_LEVEL_NONE)
 CLEANING_TYPES: Final = ["vacuum", "waterline", "baskets"]
 
 # Validation ranges: key -> (min, max, step)
@@ -342,15 +309,11 @@ URL_LOG: Final = "/api/pool_maintenance_tracker/{token}/log"
 URL_HISTORY: Final = "/api/pool_maintenance_tracker/{token}/history"
 URL_MANUAL: Final = "/api/pool_maintenance_tracker/{token}/manual"
 URL_STATE: Final = "/api/pool_maintenance_tracker/{token}/state"
-URL_KIOSK: Final = "/api/pool_maintenance_tracker/{token}/kiosk"
 URL_MODE: Final = "/api/pool_maintenance_tracker/{token}/mode"
 URL_EXPORT: Final = "/api/pool_maintenance_tracker/{token}/export"
 HISTORY_PERIODS: Final = (7, 30, 180)
 
 TECHNICIAN_PERSON: Final = "technician"
-
-# Re-notify damper for overdue reminders
-RENOTIFY_DAYS: Final = 3
 
 
 def schedule_mode(options: Mapping[str, Any]) -> str:

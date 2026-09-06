@@ -42,7 +42,7 @@
     },
     "filter_wash": {
       "title": "Filter gereinigt",
-      "hint": "Erfasst die Reinigung. Das Datum wird gespeichert und das System erinnert an die nächste."
+      "hint": "Erfasst die Reinigung. Das Datum wird gespeichert, damit die letzte Wäsche nachvollziehbar bleibt."
     },
     "cell_clean": {
       "title": "Elektrolysezelle gereinigt",
@@ -110,12 +110,10 @@
     "current": "Aktueller Zustand",
     "tasks": "Regelmäßige Aufgaben",
     "history": "Letzte Einträge",
-    "overdue": "Überfällig",
     "never": "Nie erfasst",
     "today": "Heute",
     "day_ago": "vor 1 Tag",
     "days_ago": "vor {days} Tagen",
-    "every_days": "alle {days} Tage",
     "empty_history": "Noch keine Einträge.",
     "values": {
       "ph": "pH",
@@ -145,10 +143,8 @@
     "just_now": "gerade eben",
     "ago_minutes": "vor {n} min",
     "ago_hours": "vor {n} h",
-    "next_due": "nächste {date}",
     "schedule_off": "schaltet aus am {date} um {time}",
     "schedule_on": "schaltet ein am {date} um {time}",
-    "alert_acid": "Säurebehälter {level}",
     "in_time": "in {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtration",
@@ -160,9 +156,6 @@
       "ideal": "ideal"
     },
     "actual_today": "lief heute {h} h",
-    "filter_pressure": "Filterdruck",
-    "pressure_rise": "+{p}% seit der Wäsche",
-    "alert_acid_missing": "Kein Säurebehälter — der pH-Wert wird nicht dosiert",
     "export_csv": "Protokoll herunterladen (CSV)"
   },
   "notes": {
@@ -193,34 +186,8 @@
       "Tippe an, was du gemacht hast, und trage die Messwerte ein.",
       "Speichere den Eintrag."
     ],
-    "report_hint": "Der Status-Tab zeigt den Poolzustand, anstehende Wartungen und den Verlauf.",
+    "report_hint": "Der Status-Tab zeigt den Poolzustand, wann jede Aufgabe zuletzt erledigt wurde und den Verlauf.",
     "print": "Drucken"
-  },
-  "kiosk": {
-    "connected": "Home Assistant verbunden",
-    "offline": "Keine Verbindung",
-    "manual": "manuell",
-    "attention": "Braucht Aufmerksamkeit",
-    "visits": "Letzte Einsätze",
-    "register": "Besuch eintragen",
-    "register_hint": "Code scannen oder NFC-Tag antippen, um ihn am Handy zu öffnen",
-    "filtration_cycle": "Filterzyklus",
-    "temp_7d": "Temperatur · 7 Tage",
-    "maintenance": "Wartung",
-    "delta_24h": "{delta} °C in den letzten 24 h",
-    "heating_active": "Heizung aktiv",
-    "until": "bis {time}",
-    "chlorinator": "Elektrolyseur",
-    "salt": "Salz",
-    "never_short": "Nie",
-    "days_short": "vor {days} T",
-    "minutes_short": "vor {n} min",
-    "hours_short": "vor {n} h",
-    "overdue_days": "{days} Tage überfällig",
-    "never_recorded": "nie erfasst",
-    "no_visits": "Noch keine Einsätze.",
-    "overdue_count": "überfällig",
-    "blocks_total": "{n} Blöcke · {h} h"
   },
   "roles": {
     "pool_system": "System",
@@ -257,11 +224,6 @@
     "started": "Wartungsmodus ist an",
     "started_text": "Das Haussystem weiß, dass jemand am Pool arbeitet.",
     "ok": "OK"
-  },
-  "card": {
-    "turns_on": "Schaltet ein in",
-    "turns_off": "Schaltet aus in",
-    "no_schedule": "Kein Zeitplan verknüpft"
   },
   "impact_salt": "≈ +{delta} g/L in {volume} m³"
 }

@@ -42,7 +42,7 @@
     },
     "filter_wash": {
       "title": "Filtro lavado",
-      "hint": "Registra el lavado. La fecha queda guardada y el sistema avisa cuando toque el próximo."
+      "hint": "Registra el lavado. La fecha queda guardada, para saber cuándo fue el último."
     },
     "cell_clean": {
       "title": "Célula del clorador limpiada",
@@ -110,12 +110,10 @@
     "current": "Estado actual",
     "tasks": "Tareas periódicas",
     "history": "Registros recientes",
-    "overdue": "Atrasado",
     "never": "Nunca registrado",
     "today": "Hoy",
     "day_ago": "hace 1 día",
     "days_ago": "hace {days} días",
-    "every_days": "cada {days} días",
     "empty_history": "Aún no hay registros.",
     "values": {
       "ph": "pH",
@@ -145,10 +143,8 @@
     "just_now": "ahora mismo",
     "ago_minutes": "hace {n} min",
     "ago_hours": "hace {n} h",
-    "next_due": "próxima {date}",
     "schedule_off": "se apaga {date} a las {time}",
     "schedule_on": "se enciende {date} a las {time}",
-    "alert_acid": "Depósito de ácido {level}",
     "in_time": "en {t}",
     "ideal_band": "ideal {min}–{max}",
     "filtration": "Filtración",
@@ -160,9 +156,6 @@
       "ideal": "ideal"
     },
     "actual_today": "funcionó {h} h hoy",
-    "filter_pressure": "Presión del filtro",
-    "pressure_rise": "+{p}% desde el lavado",
-    "alert_acid_missing": "Sin depósito de ácido — el pH no se está dosificando",
     "export_csv": "Descargar el registro (CSV)"
   },
   "notes": {
@@ -193,34 +186,8 @@
       "Toca lo que hiciste y rellena los valores medidos.",
       "Guarda el registro."
     ],
-    "report_hint": "La pestaña Estado muestra el estado de la piscina, los próximos mantenimientos y el historial.",
+    "report_hint": "La pestaña Estado muestra el estado de la piscina, cuándo se hizo cada tarea por última vez y el historial.",
     "print": "Imprimir"
-  },
-  "kiosk": {
-    "connected": "Home Assistant conectado",
-    "offline": "Sin conexión",
-    "manual": "manual",
-    "attention": "Necesita atención",
-    "visits": "Últimas intervenciones",
-    "register": "Registrar visita",
-    "register_hint": "Escanea el código o acerca la etiqueta NFC para abrirlo en el móvil",
-    "filtration_cycle": "Ciclo de filtración",
-    "temp_7d": "Temperatura · 7 días",
-    "maintenance": "mantenimiento",
-    "delta_24h": "{delta} °C en las últimas 24 h",
-    "heating_active": "calentamiento activo",
-    "until": "hasta las {time}",
-    "chlorinator": "Clorador",
-    "salt": "Sal",
-    "never_short": "Nunca",
-    "days_short": "hace {days} d",
-    "minutes_short": "hace {n} min",
-    "hours_short": "hace {n} h",
-    "overdue_days": "atrasado {days} días",
-    "never_recorded": "sin registro",
-    "no_visits": "Aún no hay intervenciones.",
-    "overdue_count": "atrasadas",
-    "blocks_total": "{n} bloques · {h} h"
   },
   "roles": {
     "pool_system": "Sistema",
@@ -257,11 +224,6 @@
     "started": "Modo mantenimiento activado",
     "started_text": "El sistema de la casa sabe que alguien está trabajando en la piscina.",
     "ok": "OK"
-  },
-  "card": {
-    "turns_on": "Se enciende en",
-    "turns_off": "Se apaga en",
-    "no_schedule": "Sin horario asociado"
   },
   "impact_salt": "≈ +{delta} g/L en {volume} m³"
 }

@@ -20,22 +20,11 @@
         }
       },
       "settings": {
-        "title": "Page et rappels",
+        "title": "Langue de la page",
         "data": {
-          "language": "Langue de la page",
-          "notify_service": "Destination des notifications",
-          "filter_days": "Rappel de lavage du filtre (jours)",
-          "probe_days": "Rappel d'étalonnage de la sonde pH (jours)",
-          "cell_days": "Rappel de nettoyage de la cellule (jours)",
-          "chemistry_days": "Rappel du test stabilisant et dureté (jours)"
-        },
-        "data_description": {
-          "notify_service": "Par exemple notify.mobile_app_montelephone. Laissez vide pour désactiver les notifications intégrées : les capteurs binaires de retard et l'événement d'entretien restent disponibles pour vos propres automatisations."
+          "language": "Langue de la page"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Indiquez un service comme notify.mobile_app_montelephone, ou laissez vide."
     }
   },
   "options": {
@@ -47,8 +36,7 @@
           "people": "Personnes sur la page",
           "sensors": "Capteurs liés",
           "equipment": "Équipement",
-          "reminders": "Rappels",
-          "page": "Page et notifications",
+          "page": "Page",
           "security": "Sécurité"
         }
       },
@@ -81,15 +69,14 @@
       },
       "sensors": {
         "title": "Capteurs liés",
-        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier. Avec un capteur de pression lié, l'alerte de lavage du filtre suit la hausse de pression par rapport au filtre propre au lieu de l'intervalle fixe. La référence est capturée automatiquement au prochain lavage enregistré.",
+        "description": "Liez des capteurs existants (par exemple d'une sonde connectée ou d'une autre intégration piscine). Leurs valeurs actuelles s'affichent sur la page à côté des mesures manuelles et un instantané est enregistré avec chaque saisie. Laissez un champ vide pour délier.",
         "data": {
           "ph_source": "Capteur de pH",
           "chlorine_source": "Capteur de chlore libre",
           "salt_source": "Capteur de sel",
           "temperature_source": "Capteur de température de l'eau",
           "linked_mode": "Comportement des capteurs liés",
-          "report_sensors": "Entités supplémentaires dans l'onglet État",
-          "filter_pressure_source": "Manomètre du filtre"
+          "report_sensors": "Entités supplémentaires dans l'onglet État"
         }
       },
       "equipment": {
@@ -126,31 +113,15 @@
           "filtration_state_entity": "Laissez vide pour déduire l'état des heures elles-mêmes."
         }
       },
-      "reminders": {
-        "title": "Rappels",
-        "data": {
-          "filter_days": "Rappel de lavage du filtre (jours)",
-          "probe_days": "Rappel d'étalonnage de la sonde pH (jours)",
-          "cell_days": "Rappel de nettoyage de la cellule (jours)",
-          "reminder_time": "Heure de la vérification quotidienne (HH:MM)",
-          "filter_pressure_rise": "Laver le filtre à cette hausse de pression (%)",
-          "chemistry_days": "Rappel du test stabilisant et dureté (jours)"
-        }
-      },
       "page": {
-        "title": "Page et notifications",
+        "title": "Page",
         "data": {
           "language": "Langue de la page",
-          "notify_service": "Destination des notifications",
-          "report_enabled": "Onglet « État » sur la page",
-          "kiosk_enabled": "Page tableau de bord mural"
+          "report_enabled": "Onglet « État » sur la page"
         },
         "data_description": {
-          "notify_service": "Par exemple notify.mobile_app_montelephone. Laissez vide pour désactiver les notifications intégrées : les capteurs binaires de retard et l'événement d'entretien restent disponibles pour vos propres automatisations.",
-          "report_enabled": "Ajoute un onglet rapport (lecture seule) à la page publique : valeurs actuelles, état des tâches et dernières saisies. Visible par quiconque a l'URL.",
-          "kiosk_enabled": "Un tableau de bord sombre, en affichage seul, pour un écran près de la piscine (7\" paysage ou plus) : mesures de l'eau, équipement et compte à rebours avant le prochain changement d'horaire. Sans tactile ni navigation. L'URL se trouve dans les attributs de l'entité du code QR."
-        },
-        "description": "Choisissez un service notify (votre téléphone via l'app companion, par exemple) ou une entité notify. Laissez vide et l'intégration n'envoie rien — les binary sensors de retard et l'événement de maintenance restent disponibles pour vos automatisations."
+          "report_enabled": "Ajoute un onglet rapport (lecture seule) à la page publique : valeurs actuelles, date de la dernière fois que chaque tâche a été faite et dernières saisies. Visible par quiconque a l'URL."
+        }
       },
       "security": {
         "title": "Sécurité",
@@ -159,9 +130,6 @@
           "regenerate_token": "Régénérer le jeton d'accès"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Indiquez un service comme notify.mobile_app_montelephone, ou laissez vide."
     }
   },
   "selector": {
@@ -321,20 +289,6 @@
         "name": "Température de l'eau"
       }
     },
-    "binary_sensor": {
-      "filter_wash_due": {
-        "name": "Lavage du filtre en retard"
-      },
-      "cell_clean_due": {
-        "name": "Nettoyage de la cellule en retard"
-      },
-      "probe_calibration_due": {
-        "name": "Étalonnage de la sonde en retard"
-      },
-      "chemistry_test_due": {
-        "name": "Test stabilisant et dureté en retard"
-      }
-    },
     "switch": {
       "maintenance_mode": {
         "name": "Mode maintenance"
@@ -393,12 +347,6 @@
           "description": "La piscine dont exporter le journal."
         }
       }
-    }
-  },
-  "issues": {
-    "missing_entity": {
-      "title": "{pool} : une entité configurée est manquante",
-      "description": "L'entité `{entity_id}` est configurée pour la piscine **{pool}**, mais elle n'existe plus — supprimée, renommée, ou son intégration a disparu. Les tableaux de bord cessent simplement de l'afficher. Choisissez une remplaçante (ou videz le champ) dans les options **Configurer** de la piscine."
     }
   },
   "exceptions": {

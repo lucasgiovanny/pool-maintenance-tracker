@@ -42,7 +42,7 @@
     },
     "filter_wash": {
       "title": "Filtre lavé",
-      "hint": "Enregistre le lavage. La date est conservée et le système prévient quand le prochain est dû."
+      "hint": "Enregistre le lavage. La date est conservée, pour savoir quand a eu lieu le dernier."
     },
     "cell_clean": {
       "title": "Cellule de l'électrolyseur nettoyée",
@@ -110,12 +110,10 @@
     "current": "État actuel",
     "tasks": "Tâches périodiques",
     "history": "Dernières saisies",
-    "overdue": "En retard",
     "never": "Jamais enregistré",
     "today": "Aujourd'hui",
     "day_ago": "il y a 1 jour",
     "days_ago": "il y a {days} jours",
-    "every_days": "tous les {days} jours",
     "empty_history": "Aucune saisie pour l'instant.",
     "values": {
       "ph": "pH",
@@ -145,10 +143,8 @@
     "just_now": "à l'instant",
     "ago_minutes": "il y a {n} min",
     "ago_hours": "il y a {n} h",
-    "next_due": "prochaine {date}",
     "schedule_off": "s'éteint le {date} à {time}",
     "schedule_on": "s'allume le {date} à {time}",
-    "alert_acid": "Bidon d'acide {level}",
     "in_time": "dans {t}",
     "ideal_band": "idéal {min}–{max}",
     "filtration": "Filtration",
@@ -160,9 +156,6 @@
       "ideal": "idéal"
     },
     "actual_today": "a tourné {h} h aujourd'hui",
-    "filter_pressure": "Pression du filtre",
-    "pressure_rise": "+{p}% depuis le lavage",
-    "alert_acid_missing": "Pas de bidon d'acide — le pH n'est pas dosé",
     "export_csv": "Télécharger le journal (CSV)"
   },
   "notes": {
@@ -193,34 +186,8 @@
       "Touchez ce que vous avez fait et saisissez les valeurs mesurées.",
       "Enregistrez la saisie."
     ],
-    "report_hint": "L'onglet État montre l'état de la piscine, les prochains entretiens et l'historique.",
+    "report_hint": "L'onglet État montre l'état de la piscine, la date du dernier entretien de chaque tâche et l'historique.",
     "print": "Imprimer"
-  },
-  "kiosk": {
-    "connected": "Home Assistant connecté",
-    "offline": "Pas de connexion",
-    "manual": "manuel",
-    "attention": "Nécessite attention",
-    "visits": "Dernières interventions",
-    "register": "Enregistrer une visite",
-    "register_hint": "Scannez le code ou approchez le tag NFC pour l'ouvrir sur le téléphone",
-    "filtration_cycle": "Cycle de filtration",
-    "temp_7d": "Température · 7 jours",
-    "maintenance": "entretien",
-    "delta_24h": "{delta} °C ces dernières 24 h",
-    "heating_active": "chauffage actif",
-    "until": "jusqu'à {time}",
-    "chlorinator": "Électrolyseur",
-    "salt": "Sel",
-    "never_short": "Jamais",
-    "days_short": "il y a {days} j",
-    "minutes_short": "il y a {n} min",
-    "hours_short": "il y a {n} h",
-    "overdue_days": "{days} jours de retard",
-    "never_recorded": "aucun enregistrement",
-    "no_visits": "Aucune intervention pour l'instant.",
-    "overdue_count": "en retard",
-    "blocks_total": "{n} plages · {h} h"
   },
   "roles": {
     "pool_system": "Système",
@@ -257,11 +224,6 @@
     "started": "Mode maintenance activé",
     "started_text": "Le système de la maison sait que quelqu'un travaille sur la piscine.",
     "ok": "OK"
-  },
-  "card": {
-    "turns_on": "S'allume dans",
-    "turns_off": "S'éteint dans",
-    "no_schedule": "Aucun horaire associé"
   },
   "impact_salt": "≈ +{delta} g/L dans {volume} m³"
 }

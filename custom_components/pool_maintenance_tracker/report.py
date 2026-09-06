@@ -1,8 +1,8 @@
 """Building what every surface shows: the report, the history, the roles.
 
 Pure data assembly — no aiohttp, no tokens, no rate limiting. The views in
-``http.py``, the websocket API behind the card, and the kiosk all call in
-here, which is what keeps the three surfaces telling the same story.
+``http.py`` call in here, which is what keeps the page's tabs telling the
+same story.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
-from . import filter_pressure, maintenance
+from . import maintenance
 from .const import (
     CONF_FILTRATION_OFF_TIME_ENTITY,
     CONF_FILTRATION_ON_TIME_ENTITY,
@@ -62,7 +62,7 @@ from .const import (
     maintenance_values,
     schedule_mode,
 )
-from .modules import enabled_reminders, enabled_timestamp_keys, enabled_value_keys
+from .modules import enabled_timestamp_keys, enabled_value_keys
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -385,9 +385,6 @@ def _times_schedule_item(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, A
         "next_change": next_change.isoformat() if next_change else None,
         "week": week,
         "last_changed": state.last_changed.isoformat() if state else None,
-        # The card redraws when a watched entity moves, and moving the hours
-        # changes this tile as surely as the pump switching on does.
-        "sources": [entity for entity in (on_entity, off_entity, state_entity) if entity],
     }
 
 
@@ -588,7 +585,7 @@ async def _actual_hours_today(
 
     Schedules get overridden by hand, so what the pump really did is worth
     saying next to what it was asked to do. The answer is cached: the page
-    and the kiosk both poll, and this costs a recorder query.
+    polls, and this costs a recorder query.
     """
     role = roles.get("pump") or roles.get("pool_system")
     if not role or not _recorder_ready(hass):
@@ -624,7 +621,7 @@ async def _filtration_hours(
 
 ACTUAL_HOURS_CACHE = "actual_filtration_hours"
 
-ACTUAL_HOURS_TTL = 300  # seconds — the page polls every 60, the kiosk every 30
+ACTUAL_HOURS_TTL = 300  # seconds — the page polls every 60
 
 REPORT_TASK_ORDER = (
     "water_test",
@@ -640,32 +637,14 @@ REPORT_TASK_ORDER = (
 
 async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
     """Snapshot of the pool state for the page's report tab."""
-    runtime = entry.runtime_data
-    tracker = runtime.tracker
-    now = dt_util.utcnow()
+    tracker = entry.runtime_data.tracker
 
-    reminders_by_key = {spec.timestamp_key: spec for spec in enabled_reminders(entry.options)}
-    tasks = []
     enabled_ts = enabled_timestamp_keys(entry.options)
-    for ts_key in REPORT_TASK_ORDER:
-        if ts_key not in enabled_ts:
-            continue
-        spec = reminders_by_key.get(ts_key)
-        interval = int(entry.options.get(spec.conf_key, spec.default_days)) if spec else None
-        next_due = (
-            (runtime.reminders.overdue_since(ts_key) + timedelta(days=interval)).isoformat()
-            if interval is not None
-            else None
-        )
-        tasks.append(
-            {
-                "key": ts_key,
-                "last": tracker.timestamps.get(ts_key),
-                "interval_days": interval,
-                "next": next_due,
-                "due": (runtime.reminders.is_overdue(ts_key, interval, now) if spec else False),
-            }
-        )
+    tasks = [
+        {"key": ts_key, "last": tracker.timestamps.get(ts_key)}
+        for ts_key in REPORT_TASK_ORDER
+        if ts_key in enabled_ts
+    ]
 
     allowed = enabled_value_keys(entry.options)
     values = {key: value for key, value in tracker.values.items() if key in allowed}
@@ -694,8 +673,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
             extra.append(item)
 
     live = _live_values(hass, entry)
-    entity_ids = _entity_ids(hass, entry)
-    current = _current_readings(tracker, values, live, entity_ids)
+    current = _current_readings(tracker, values, live, _entity_ids(hass, entry))
 
     return {
         "values": values,
@@ -706,10 +684,7 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "ranges": _ideal_ranges(entry),
         "volume": entry.options.get(CONF_POOL_VOLUME),
         "filtration": await _filtration_hours(hass, entry, roles),
-        "filter_pressure": filter_pressure.snapshot(hass, entry, tracker),
         "maintenance_mode": _maintenance_mode(entry),
-        # What a visit can ask for, so the card can offer the same sheet the
-        # page does instead of only flipping the flag.
         "maintenance_equipment": _maintenance_equipment(hass, entry),
         "tasks": tasks,
         "last_maintenance": tracker.timestamps.get(TS_ANY),
@@ -717,7 +692,6 @@ async def _build_report(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, An
         "notes": list(reversed(tracker.notes)),
         "extra": extra,
         "roles": roles,
-        "entity_ids": entity_ids,
     }
 
 

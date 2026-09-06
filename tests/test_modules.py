@@ -74,14 +74,14 @@ def test_active_entity_keys_salt():
     assert "last_maintenance" in keys
     assert "last_salt_added" in keys
     assert "chlorinator_mode" in keys
-    assert "filter_wash_due" in keys
-    assert "cell_clean_due" in keys
-    assert "probe_calibration_due" in keys
+    assert "last_filter_wash" in keys
+    assert "last_cell_clean" in keys
+    assert "last_probe_calibration" in keys
 
 
 def test_active_entity_keys_prune_on_disable():
     keys = active_entity_keys({CONF_MODULES: ["filter"]})
     assert "chlorinator_mode" not in keys
     assert "salt_level" not in keys
-    assert "cell_clean_due" not in keys
-    assert "filter_wash_due" in keys
+    assert "last_cell_clean" not in keys
+    assert "last_filter_wash" in keys

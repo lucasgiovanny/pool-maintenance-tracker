@@ -4,13 +4,10 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.pool_maintenance_tracker.const import (
-    CONF_CELL_DAYS,
-    CONF_FILTER_DAYS,
+    CONF_LANGUAGE,
     CONF_MODULES,
-    CONF_NOTIFY_SERVICE,
     CONF_POOL_VOLUME,
-    CONF_PROBE_DAYS,
-    CONF_REMINDER_TIME,
+    CONF_REPORT_ENABLED,
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TOKEN,
@@ -129,28 +126,6 @@ async def test_sensors_options_step(hass, salt_entry):
     assert "report_sensors" not in salt_entry.options
 
 
-async def test_reminder_options_update(hass, salt_entry):
-    await setup_entry(hass, salt_entry)
-
-    result = await hass.config_entries.options.async_init(salt_entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "reminders"}
-    )
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {
-            CONF_FILTER_DAYS: 10,
-            CONF_PROBE_DAYS: 20,
-            CONF_CELL_DAYS: 30,
-            CONF_REMINDER_TIME: "08:30",
-        },
-    )
-    assert result["type"] is FlowResultType.MENU
-    await hass.async_block_till_done()
-    assert salt_entry.options[CONF_FILTER_DAYS] == 10
-    assert salt_entry.options[CONF_REMINDER_TIME] == "08:30"
-
-
 async def test_menu_returns_after_each_step(hass, salt_entry):
     """Two sections can be edited without reopening Configure."""
     await setup_entry(hass, salt_entry)
@@ -158,17 +133,9 @@ async def test_menu_returns_after_each_step(hass, salt_entry):
     result = await hass.config_entries.options.async_init(salt_entry.entry_id)
     flow_id = result["flow_id"]
 
+    result = await hass.config_entries.options.async_configure(flow_id, {"next_step_id": "page"})
     result = await hass.config_entries.options.async_configure(
-        flow_id, {"next_step_id": "reminders"}
-    )
-    result = await hass.config_entries.options.async_configure(
-        flow_id,
-        {
-            CONF_FILTER_DAYS: 12,
-            CONF_PROBE_DAYS: 20,
-            CONF_CELL_DAYS: 30,
-            CONF_REMINDER_TIME: "09:00",
-        },
+        flow_id, {CONF_LANGUAGE: "en", CONF_REPORT_ENABLED: True}
     )
     assert result["type"] is FlowResultType.MENU
 
@@ -179,7 +146,7 @@ async def test_menu_returns_after_each_step(hass, salt_entry):
     assert result["type"] is FlowResultType.MENU
     await hass.async_block_till_done()
 
-    assert salt_entry.options[CONF_FILTER_DAYS] == 12
+    assert salt_entry.options[CONF_LANGUAGE] == "en"
     assert salt_entry.options[CONF_MODULES] == ["filter"]
 
 
@@ -214,54 +181,10 @@ async def test_pool_options_step(hass, salt_entry):
     assert CONF_POOL_VOLUME not in salt_entry.options
 
 
-async def test_notify_dropdown_lists_services_and_entities(hass, salt_entry):
-    """Notify exists twice over; an entity picker would hide half of it."""
-    hass.services.async_register("notify", "mobile_app_lucas", lambda call: None)
-    hass.states.async_set("notify.kitchen_speaker", "unknown", {"friendly_name": "Kitchen"})
+async def test_menu_has_no_reminders_section(hass, salt_entry):
+    """Nothing fires on its own any more, so there is nothing to schedule."""
     await setup_entry(hass, salt_entry)
 
     result = await hass.config_entries.options.async_init(salt_entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "page"}
-    )
-    schema = result["data_schema"].schema
-    marker = next(key for key in schema if str(key) == CONF_NOTIFY_SERVICE)
-    options = schema[marker].config["options"]
-    assert "notify.mobile_app_lucas" in options
-    assert "notify.kitchen_speaker" in options
-    # the verb for entities is not a target
-    assert "notify.send_message" not in options
-
-
-async def test_a_notify_entity_is_called_with_send_message(hass, salt_entry):
-    """Legacy services take a title; entities only if they support one."""
-    calls = []
-    hass.services.async_register(
-        "notify", "send_message", lambda call: calls.append(dict(call.data))
-    )
-    hass.states.async_set("notify.kitchen_speaker", "unknown", {"supported_features": 0})
-    salt_entry.add_to_hass(hass)
-    hass.config_entries.async_update_entry(
-        salt_entry, options={**salt_entry.options, CONF_NOTIFY_SERVICE: "notify.kitchen_speaker"}
-    )
-    assert await hass.config_entries.async_setup(salt_entry.entry_id)
-    await hass.async_block_till_done()
-
-    await salt_entry.runtime_data.reminders.async_notify("Filter is overdue")
-    await hass.async_block_till_done()
-
-    assert calls == [{"entity_id": "notify.kitchen_speaker", "message": "Filter is overdue"}]
-
-
-async def test_a_legacy_notify_service_still_gets_a_title(hass, salt_entry):
-    calls = []
-    hass.services.async_register(
-        "notify", "test_target", lambda call: calls.append(dict(call.data))
-    )
-    await setup_entry(hass, salt_entry)
-
-    await salt_entry.runtime_data.reminders.async_notify("Filter is overdue")
-    await hass.async_block_till_done()
-
-    assert calls[0]["message"] == "Filter is overdue"
-    assert "Piscina" in calls[0]["title"]
+    assert result["type"] is FlowResultType.MENU
+    assert "reminders" not in result["menu_options"]

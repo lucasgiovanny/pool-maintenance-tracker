@@ -7,15 +7,9 @@ from homeassistant.const import CONF_NAME
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.pool_maintenance_tracker.const import (
-    CONF_CELL_DAYS,
-    CONF_CHEMISTRY_DAYS,
-    CONF_FILTER_DAYS,
     CONF_LANGUAGE,
     CONF_MODULES,
-    CONF_NOTIFY_SERVICE,
     CONF_POOL_TYPE,
-    CONF_PROBE_DAYS,
-    CONF_REMINDER_TIME,
     CONF_TOKEN,
     DOMAIN,
     POOL_TYPE_CHLORINE,
@@ -35,21 +29,12 @@ SALT_OPTIONS = {
         "cleaning",
     ],
     CONF_LANGUAGE: "pt",
-    CONF_NOTIFY_SERVICE: "notify.test_target",
-    CONF_FILTER_DAYS: 30,
-    CONF_PROBE_DAYS: 60,
-    CONF_CELL_DAYS: 90,
-    CONF_CHEMISTRY_DAYS: 30,
-    CONF_REMINDER_TIME: "10:00",
 }
 
 CHLORINE_OPTIONS = {
     CONF_POOL_TYPE: POOL_TYPE_CHLORINE,
     CONF_MODULES: ["filter", "cleaning"],
     CONF_LANGUAGE: "en",
-    CONF_NOTIFY_SERVICE: "",
-    CONF_FILTER_DAYS: 30,
-    CONF_REMINDER_TIME: "10:00",
 }
 
 

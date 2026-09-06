@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .entity import PoolBaseEntity, kiosk_url, page_url
+from .entity import PoolBaseEntity, page_url
 
 # Everything is pushed from the tracker; nothing here polls.
 PARALLEL_UPDATES = 0
@@ -49,10 +49,7 @@ class PoolQrCodeImage(PoolBaseEntity, ImageEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return {
-            "url": page_url(self.hass, self.entry),
-            "kiosk_url": kiosk_url(self.hass, self.entry),
-        }
+        return {"url": page_url(self.hass, self.entry)}
 
     async def async_image(self) -> bytes | None:
         url = page_url(self.hass, self.entry)

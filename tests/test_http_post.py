@@ -228,7 +228,8 @@ async def test_mirror_mode_follows_sensor(hass, salt_entry):
     assert tracker.values["water_temperature"] == 26.3
 
 
-async def test_acid_alert_notification(hass, salt_entry, hass_client_no_auth):
+async def test_a_logged_acid_level_notifies_nobody(hass, salt_entry, hass_client_no_auth):
+    """The tracker records the level; telling somebody is an automation's job."""
     notifications = []
 
     async def record_notify(call):
@@ -242,11 +243,5 @@ async def test_acid_alert_notification(hass, salt_entry, hass_client_no_auth):
     response = await client.post(LOG_URL, json={"acid": {"level": "quarter"}})
     assert response.status == 200
     await hass.async_block_till_done()
-    assert len(notifications) == 1
-    assert "1/4" in notifications[0]["message"]
-
-    # posting quarter again does not re-alert
-    response = await client.post(LOG_URL, json={"acid": {"level": "quarter"}})
-    assert response.status == 200
-    await hass.async_block_till_done()
-    assert len(notifications) == 1
+    assert notifications == []
+    assert hass.states.get("select.piscina_acid_tank_level").state == "quarter"

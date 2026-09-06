@@ -6,8 +6,7 @@
 
 <p align="center">
   A Home Assistant integration that tracks pool maintenance through a public,
-  mobile-first web page — opened from a QR code or NFC tag in your pool's machine room —
-  plus a dashboard card and a wall dashboard for the screen next to the pool.
+  mobile-first web page — opened from a QR code or NFC tag in your pool's machine room.
   <br><br>
   <a href="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/ci.yml"><img src="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/validate.yml"><img src="https://github.com/lucasgiovanny/pool-maintenance-tracker/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
@@ -20,8 +19,7 @@
 Whoever maintains the pool — you, family, or an external technician — scans a tag,
 taps what they did (washed the filter, added salt, measured pH…), and hits save.
 No Home Assistant login, no app. The integration turns those submissions into
-native HA entities, keeps a persistent maintenance log, and reminds you when
-periodic tasks are overdue.
+native HA entities and keeps a persistent maintenance log.
 
 ## How it works
 
@@ -33,12 +31,11 @@ periodic tasks are overdue.
    and time (defaults to now), taps the maintenance tiles, fills in readings,
    and submits — works fine on mobile data.
 4. The integration validates the submission, updates the entities, fires an
-   event for your automations, appends to the log, and sends notifications
-   when something needs attention.
+   event for your automations, and appends to the log.
 
-The pool is then visible in three places: the **web page** (for whoever is
-standing at the pool), a **dashboard card** inside Home Assistant, and an
-optional **wall dashboard** for a screen in the machine room.
+It records; it never nags. Nothing here notifies anybody or decides that
+something is overdue — the entities and the record event are there, and what
+to do about them is an automation you write.
 
 ## The web page
 
@@ -53,10 +50,9 @@ you actually have. It has up to three tabs.
 and an optional note.
 
 **Status** (optional, on by default) — gives whoever maintains the pool, even
-without HA access, a read-only overview: current values, periodic tasks with
-their next due date and overdue badges, your equipment, the notes diary and the
-recent maintenance history. Toggle it under **Configure → Page and
-notifications**.
+without HA access, a read-only overview: current values, when each periodic
+task was last done, your equipment, the notes diary and the recent maintenance
+history. Toggle it under **Configure → Page**.
 
 **History** — charts the pool over time (7 days / 30 days / 6 months):
 
@@ -73,20 +69,18 @@ self-contained page.
 
 A maintenance visit: *somebody is working on this pool right now*, this is what
 the equipment should do while they are, and this is when it ends. It is on by
-default and lives in four places — as `switch.<pool>_maintenance_mode` in Home
-Assistant, as a toggle at the top of the maintenance page (so the technician
-can start a visit from their phone, no HA account needed), on the dashboard
-card, and as a header pill on the wall dashboard, which states it either way:
-quiet when off, amber when on. Don't want any of it? Turn it off under
-**Configure → Pool → Maintenance mode switch** and the entity and every toggle
-go away with it.
+default and lives in two places — as `switch.<pool>_maintenance_mode` in Home
+Assistant, and as a toggle at the top of the maintenance page, so the
+technician can start a visit from their phone with no HA account. Don't want
+any of it? Turn it off under **Configure → Pool → Maintenance mode switch**
+and the entity and every toggle go away with it.
 
 #### The visit: what should happen, and for how long
 
 Working on a pool usually means the equipment has to be somewhere in
 particular — the system off while the filter is open, the heat pump on for a
-while. So the toggle opens a sheet instead of just flipping — the same sheet
-on the maintenance page and on the dashboard card:
+while. So the toggle on the maintenance page opens a sheet instead of just
+flipping:
 
 - **one row per piece of equipment** you assigned under **Configure →
   Equipment**, with its state right now and three choices: *no change*, *turn
@@ -97,9 +91,7 @@ on the maintenance page and on the dashboard card:
   minutes. One hour is pre-picked.
 
 Tap *Start maintenance* and it happens, there and then, and the page tells the
-technician what moved. On the card the switch does the same: it asks before
-starting a visit, ends one in a single tap, and tapping a running visit reopens
-the sheet to give it longer or change its mind about the heat pump. **The window does not switch anything off when it runs
+technician what moved. **The window does not switch anything off when it runs
 out** — it ends the visit, and ending the visit is what puts the equipment back
 where it was found. Politely: only what the visit changed, and only while our
 change is still standing. If you moved something yourself in the meantime,
@@ -117,8 +109,8 @@ roles: the page sends `pool_system`, never an entity id.
 #### For your automations
 
 Nothing here decides what a maintenance visit *means* beyond the equipment
-plan, so the flag is still yours to build on — mute a water alarm, hold back
-reminders, tell somebody the pool is being worked on. Four attributes:
+plan, so the flag is still yours to build on — mute a water alarm, skip a
+schedule, tell somebody the pool is being worked on. Four attributes:
 `since`, `set_by` (the name from the page, empty when flipped inside Home
 Assistant), `until`, and `equipment` — the plan, which outlives the flag on
 purpose so an automation reacting to the visit *ending* can still see what it
@@ -126,9 +118,8 @@ changed. See [Automations](#automations).
 
 Starting a timed visit from anywhere else in Home Assistant needs the
 **`pool_maintenance_tracker.start_maintenance`** action, because
-`switch.turn_on` cannot carry a window or a plan. It is what the card's own
-sheet calls, and it is what a dashboard button or an NFC tag by the gate
-should call too.
+`switch.turn_on` cannot carry a window or a plan. It is what a dashboard
+button or an NFC tag by the gate should call.
 
 ### Notes
 
@@ -139,8 +130,8 @@ the latest 50, append-only.
 
 ## Reading the water, not just recording it
 
-Three small pieces of guidance, shown identically on the page, the card and the
-wall dashboard — none of them ever commands your equipment.
+Three small pieces of guidance on the page — none of them ever commands your
+equipment, and none of them ever tells you off.
 
 **Ideal bands.** Every reading is judged against a target range, so a value
 reads as *pH 8.4 — high* instead of a number you have to remember the meaning
@@ -154,7 +145,7 @@ bands also appear under each field while you type.
 **Combined chlorine.** Log free and total chlorine from the same strip and the
 integration derives the chloramine figure (total − free) — the smell, the
 stinging eyes — as `sensor.<pool>_combined_chlorine`. It is reported, not
-judged: no band, no threshold, no alert telling you to shock the water. The
+judged: no band, no threshold, nothing telling you to shock the water. The
 subtraction only happens when the two readings came from the same test session;
 total from today minus free from last week would be noise with a unit, so the
 sensor says *unknown* instead.
@@ -170,258 +161,10 @@ on/off time entities, whichever this pool has
 ([both are supported](#the-filtration-schedule)).
 
 **What it actually ran** — with a pump or pool-system entity configured, the
-surfaces also show how long the filtration really ran today, taken from the
-recorder. Schedules get overridden by hand; this is what happened. On the page
-it is a progress bar against the scheduled hours, which turns green once they
-are met and keeps a tick where the plan was when the pump runs past it.
-
-### Alerts
-
-Everything the integration flags, on the page's alert bar, the wall
-dashboard's *Needs attention* box and the card:
-
-| Alert | When |
-|---|---|
-| Filter wash overdue | Past its interval — or, with a pressure gauge linked, past its pressure rise |
-| Chlorinator cell cleaning overdue | Past its interval |
-| pH probe calibration overdue | Past its interval |
-| Stabilizer & hardness test overdue | Past its interval (the slow readings: cyanuric acid, calcium hardness) |
-| Acid tank low | At ¼ or empty |
-| No acid tank | The level is set to *no tank* — nothing to refill, but the pH is no longer being dosed |
-
-The overdue ones also have a `binary_sensor` each and, if you set a
-`notify.*` service, a daily notification (re-sent at most every three days).
-The acid tank notifies once, when a logged record changes the level — never
-repeatedly.
-
-Each of these says what is happening, and stops there. An interval you set has
-run out; a tank you logged is empty; a filter's pressure is up on where it was
-when clean. What to do about it is yours to decide.
-
-### Filter pressure
-
-A filter does not clog on a schedule. Link a pressure sensor under
-**Configure → Linked sensors → Filter pressure gauge** and the filter wash
-alert follows the pressure instead of the calendar: due when it rises more
-than 25 % (configurable) over the pressure the filter showed when clean.
-
-The clean baseline needs no extra question — it is captured automatically the
-next time somebody logs a filter wash, since that reading *is* the clean
-pressure. Readings taken with the pump off are ignored on both sides, because
-a stopped pump drops the gauge to zero and that means nothing.
-
-Until a baseline exists, and for anyone without a gauge, the fixed interval
-keeps working exactly as before. The `filter_wash_due` binary sensor says
-which rule decided in its `criterion` attribute (`pressure` or `interval`),
-along with the current pressure and the rise.
-
-## Dashboard card
-
-The integration ships two Lovelace cards — this one and the [scene
-card](#scene-card) — and registers them for you: in storage mode it manages
-their entries in **Settings → Dashboards → Resources**, kept pointed at the
-current version (with YAML-managed resources it falls back to the frontend's
-extra-js list). If you ever see *Custom element doesn't exist*, hard-refresh
-the browser. Add the card from the picker ("Pool Maintenance Tracker") or with
-a manual card:
-
-```yaml
-type: custom:pool-maintenance-card
-```
-
-<p align="center">
-  <img src="assets/card-screenshot.png" alt="The dashboard card: temperature, schedule countdown, equipment toggles and maintenance tasks" width="420">
-</p>
-
-The card updates live: it subscribes over the websocket, so a record logged
-at the pool, an edited value or the maintenance flag land on the dashboard
-within a heartbeat — no polling, no reload.
-
-The card composes itself. It shows everything your pool is configured with,
-in a fixed order that reads top-down like a pool check: what needs attention,
-the water right now (temperature beside the readings), the equipment, the
-filtration plan (countdown and today's cycle bar), and the task history last.
-There is nothing to sort: drag-ordering shipped in three shapes in one day and
-produced layout puzzles instead of dashboards, so where things go is the card's
-business. (`items`/`show_*` keys in old configs stay ignored.)
-
-What you *can* say is "not this one". **Items shown** in the editor lists
-everything this pool offers, every box ticked, and unticking one drops it —
-including the **header**, so a card that sits under another one about the same
-pool need not repeat its name and icon. The config stores only what you removed:
-
-```yaml
-type: custom:pool-maintenance-card
-hidden:
-  - header
-  - task:cleaning
-  - value:salt_level
-```
-
-Hiding is per item, not per section, and it does not silence anything: hide the
-filter-wash row and an overdue filter still shows up in the alerts, because the
-alerts are their own item. A card with nothing hidden has no `hidden` key at
-all, which is the default — everything shows.
-
-The other options are display preferences: the pool, an optional title, the
-**layout** (list or tiles), **Show icons** (an icon set on the entity itself
-wins over the built-in choice), and **only overdue tasks**.
-
-There is also a **layout** choice: *List* (the default, compact rows for a
-column of cards) or *Tiles*, which spreads every item into kiosk-style minis —
-made for a dashboard built from this card alone, as a lightweight take on the
-wall dashboard inside Home Assistant. In tiles, the water temperature becomes
-a wide hero tile and, when a filtration schedule is configured, today's cycle
-renders as a full-width 24-hour bar with a "now" marker — the same two anchors
-the wall dashboard leads with. In tiles the outer card dissolves: each mini
-takes the theme's own card surface on the dashboard's transparent background,
-so it reads as native HA cards, dark or light.
-
-Whatever theme is on, the card wears it. The accent on toggles, chips, icons
-and the cycle bar is the theme's own primary color, a toggle takes the color
-the theme paints its switches with, and corners and borders come from the same
-`ha-card` tokens Home Assistant hands its own cards — put a square theme on and
-this card squares off with the rest of the dashboard.
-
-You can also override the title and pick the pool when you have several.
-Tapping a row opens the usual more-info dialog — for a water reading, of
-whichever entity the number on screen came from, the linked probe or the manual
-one, so the history you get is the history you were looking at. The toggles
-switch your equipment — except where a switch would be a lie: a heat pump on a
-`climate` or `water_heater` entity takes a mode and a target, so its tile shows
-a lamp rather than a toggle, says whether it is heating or cooling and what it
-is aiming for, and hands a tap to Home Assistant's own dialog. The card speaks
-the **Home Assistant UI language** of whoever is looking at it, independently of
-the language you chose for the public page.
-
-## Scene card
-
-The card above tells you what is on. This one shows it. It draws your pool as
-a picture and animates the three things that are either happening or not:
-water turning over in the filter, heat coming off the heat pump, and the lamp
-lit under the surface.
-
-```yaml
-type: custom:pool-scene-card
-```
-
-<p align="center">
-  <img src="assets/scene-card-day.png" alt="The scene card by day: filtration running along the plumbing, heat rising off the heat pump" width="460">
-  <img src="assets/scene-card-night.png" alt="The same card after dark: the pool light lit under the water" width="460">
-</p>
-
-There is nothing to configure. It reads the same [equipment
-roles](#equipment-roles) the rest of the integration uses, so a pool that is
-already set up needs no entities picked here:
-
-| What you see | Where it comes from |
-| --- | --- |
-| Water turning over inside the filter, the circuit running, ripples at the skimmer and the jet | **Pump**, or the **filtration schedule**, or the **system** switch — whichever your pool has, in that order |
-| Fan spinning, heat rising off the unit | **Heat pump**. On a `climate` or `water_heater` entity, `hvac_action` decides: a unit that is on but has reached its target shows as on without producing heat |
-| Glow under the water | **Pool light** |
-| The reading at the bottom | Water temperature — the manual one or the linked probe, whichever measured last, same as the other card |
-
-A role you have not assigned simply is not drawn, label and all.
-
-Each machine that is working shows it on itself: the filter churns, the heat
-pump's fan turns and gives off heat.
-
-Around them runs the **circuit**, the way the water actually goes: out of the
-pool at the skimmer, onto the pad and along the low front pipe, up past the
-pump and over the top pipe into the filter, down its valve stack and along the
-back pipe to the heat pump, then out under it and back into the pool at the
-jet. It follows the pipework in the photo — the bends are where the pipe
-bends — and the two runs between the pool and the pad are the only stretch
-drawn rather than traced, because in life they are buried under the decking.
-Both ends ripple the water while it is moving.
-
-**Cold in, warm out.** Everything up to the heat pump is blue whatever it is
-doing. Only the leg leaving it turns orange, and only while the unit is
-actually heating — a heat pump that is on but has reached its target adds no
-heat, and the water leaves it no warmer than it went in.
-
-After sunset the scene fades to evening on its own, tracking `sun.sun` and
-the light it still has: the picture dims and desaturates, the lit panels come
-up, and the lamp takes over the water. It stops at dusk rather than pitch
-dark, because the photo was taken at noon and no amount of overlay makes
-midday shadows read as midnight. **Lighting** in the editor pins it to *always
-day* or *always night* for a screen that wants one look.
-
-The other options are display preferences: the pool, an optional title, and
-whether to show the title, the labels and the temperature.
-
-### Your own photo, and moving things around
-
-**Background image** takes any URL Home Assistant can serve — your own pool,
-drawn in a 600×400 box, so a 3:2 photo fits exactly. Everything the card draws
-on top is placed for the picture that ships with the integration, which means
-on your photo all of it is in the wrong place. **Edit visually** in the editor
-is how you fix that: the picture with a handle on every piece, dragged where
-it belongs.
-
-<p align="center">
-  <img src="assets/scene-card-editor.png" alt="The visual position editor: a handle on every piece of the scene, with the two lines shown as dashed ghosts" width="620">
-</p>
-
-There are twenty-two of them — the title, the four labels, the filter's churn,
-the fan, the heat, the two lit displays and the pressure gauge, the lamp, the
-skimmer, the jet, the circuit's turn at each machine, and the six small marks
-that are the bends keeping it on the pipework. Hover one for its name; drag it
-anywhere on the picture. The circuit is a chain: every handle it passes
-through shapes it, so moving the jet takes the leg arriving there with it.
-**Reset all** puts everything back.
-
-Positions are saved as they are dragged, and only what you moved is written:
-
-```yaml
-type: custom:pool-scene-card
-background: /local/my-pool.jpg
-positions:
-  lamp: {x: 268, y: 291}
-  jet: {x: 500, y: 260}
-```
-
-One thing the editor cannot drag is the outline of the water, which is what
-the lamp's glow is clipped to — a glow spilling onto the decking is obvious
-immediately. It is a path rather than a point, so for a custom photo it goes
-in the config by hand:
-
-```yaml
-water: "M 0 331 L 465 270 L 600 309 L 600 351 L 350 400 L 0 400 Z"
-```
-
-It is a display and only a display: nothing on it is clickable and it commands
-nothing — for switching things on, use the card above. Animations pause while
-the card is scrolled out of view, and a browser set to reduce motion gets the
-same scene with everything still and legible.
-
-## Wall dashboard (kiosk)
-
-Got a small screen next to the pool? The integration also serves a **dark,
-display-only dashboard** designed for a 7-inch landscape screen (and up).
-
-<p align="center">
-  <img src="assets/kiosk-screenshot.png" alt="The wall dashboard: water temperature, equipment, periodic tasks, 7-day chart, recent visits and a QR code" width="820">
-</p>
-
-- **Left** — the water temperature with its 24-hour change and a *heating
-  active* flag, mini cards for the chlorinator, system, heat pump and salt, and
-  **today's filtration cycle** as a 24-hour bar with a live "now" marker and
-  the hours the pump has actually run today. Readings out of
-  their ideal band are coloured.
-- **Middle** — a **Needs attention** box, the periodic tasks in two columns
-  with status dots, and a **7-day temperature chart** with markers on the days
-  maintenance was logged.
-- **Right** — the last visits (who, when, what) and a **QR card** so anyone can
-  log a visit from their phone.
-- **Header** — the clock, the connection status, and the [maintenance
-  mode](#maintenance-mode) pill, which states it either way: quiet when off,
-  amber when on, with the technician's name and when the visit ends.
-
-No touch targets, no navigation, no scrolling — just point a browser at it in
-kiosk mode. It refreshes itself every 30 seconds and keeps the last good data
-if the network drops. Find its URL in the `kiosk_url` attribute of the QR code
-entity; turn it off under **Configure → Page and notifications**.
+page also shows how long the filtration really ran today, taken from the
+recorder. Schedules get overridden by hand; this is what happened. It is a
+progress bar against the scheduled hours, which turns green once they are met
+and keeps a tick where the plan was when the pump runs past it.
 
 ## Installation
 
@@ -455,30 +198,17 @@ Go to **Settings → Devices & services → Add integration → Pool Maintenance
 
    | Module | Adds |
    |---|---|
-   | Extended water chemistry | Total chlorine, cyanuric acid and calcium hardness readings, the derived combined-chlorine sensor, and a monthly test reminder — for pools tested with 6/7-way strips |
+   | Extended water chemistry | Total chlorine, cyanuric acid and calcium hardness readings, and the derived combined-chlorine sensor — for pools tested with 6/7-way strips |
    | Salt chlorinator | Chlorinator output/mode, salt readings, salt refills, cell-cleaning tracking |
-   | pH doser acid tank | Acid tank level + refill tracking, low-level alert (levels include *empty* and *no tank*, for a drum that ran dry or was taken away) |
-   | Filter | Filter wash tracking + reminder |
-   | pH probe | Probe calibration tracking + reminder |
+   | pH doser acid tank | Acid tank level + refill tracking (levels include *empty* and *no tank*, for a drum that ran dry or was taken away) |
+   | Filter | Filter wash tracking |
+   | pH probe | Probe calibration tracking |
    | Cleaning tasks | Vacuum / waterline / basket logging |
 
    Water testing (pH, free chlorine, total alkalinity, temperature) and the
    maintenance log are always on.
-3. **Page and reminders** — page language (English, Portuguese — European
-   and Brazilian, Spanish,
-   French, German, Italian), an optional notification target, and reminder
-   periods (defaults: filter 30 days, pH probe 60 days, chlorinator cell
-   90 days, stabilizer & hardness test 30 days).
-
-   The notification target is a dropdown of what your Home Assistant can
-   actually reach: both the legacy `notify.*` **services** (which is how the
-   companion app pushes to a phone) and the newer notify **entities**, which
-   are called with `notify.send_message`. Picking only entities would hide the
-   half most people want.
-
-   Notifications are entirely optional: leave it empty and the integration
-   sends nothing — the "due" binary sensors and the maintenance event remain
-   available to drive your own automations instead.
+3. **Page language** — English, Portuguese (European and Brazilian), Spanish,
+   French, German or Italian.
 
 Everything can be changed later via **Configure** on the integration — including
 disabling modules (their entities are removed) and regenerating the access token.
@@ -501,16 +231,10 @@ them under **Configure → People on the page**.
 
 ### Equipment roles
 
-Under **Configure → Equipment** you point the dashboards at the entities that
-play a known role — pool system switch, heat pump, filtration schedule, filter
-pump, pool light, cover — instead of leaving them to guess. Roles get a fixed
-place on the page, on the card, on the wall dashboard and in the history
-charts.
-
-If a configured entity later disappears — renamed, removed, its integration
-gone — the integration raises a **repair issue** naming it and where it was
-configured, instead of silently dropping the row from the dashboards. The
-issue clears itself the moment the entity comes back.
+Under **Configure → Equipment** you point the page at the entities that play a
+known role — pool system switch, heat pump, filtration schedule, filter pump,
+pool light, cover — instead of leaving it to guess. Roles get a fixed place on
+the Status tab and in the history charts.
 
 Anything else you want to show can be added under **Configure → Linked sensors
 → Extra entities**: any entity from any integration (a power sensor, another
@@ -536,9 +260,9 @@ asks which one this pool has, and the next screen collects it:
   themselves; fill it in and the controller wins, because only it knows about
   a manual override.
 
-Either way you get the same thing everywhere: the weekly grid on the Status
-tab, today's cycle bar on the card and the wall dashboard, the countdown to
-the next change, and today's hours next to the hours actually run. A cycle that
+Either way you get the same thing: the weekly grid on the Status tab, today's
+cycle bar, the countdown to the next change, and today's hours next to the
+hours actually run. A cycle that
 runs through midnight — 22:00 to 06:00 — is one run of eight hours, not two
 broken halves.
 
@@ -550,7 +274,7 @@ pool integration? Link those entities under **Configure → Linked sensors**
 
 - the maintenance page shows the live probe values right next to the manual
   readings, so whoever is testing can compare on the spot;
-- the current value on every surface is whichever of the two was **measured
+- the current value shown is whichever of the two was **measured
   most recently** — a probe reading now beats last week's manual entry, and a
   manual reading taken this morning beats a probe that has not updated since.
   Back-dating a record puts it in the past, so it does not override a live
@@ -574,8 +298,7 @@ After setup, the pool device provides:
 
 - `image.<pool>_page_qr_code` — a QR code of the page URL. Open it, print it,
   or scan it straight from the dashboard. Its `url` attribute holds the full
-  URL, ready to copy into an NFC-writing app, and `kiosk_url` points at the
-  wall dashboard.
+  URL, ready to copy into an NFC-writing app.
 - A **Visit** link on the device page that opens the maintenance page directly.
 
 There is also a **printable machine-room manual**: the link at the bottom of
@@ -615,7 +338,6 @@ Created per pool (depending on enabled modules):
   probe calibration, acid refill, cleaning, and last maintenance of any kind —
   all driven by the date picked on the page, so back-dated work is recorded on
   the right day
-- **Binary sensors**: filter wash due, cell cleaning due, probe calibration due
 - **`switch.<pool>_maintenance_mode`**: the [maintenance
   mode](#maintenance-mode) flag, with `since`, `set_by`, `until` and
   `equipment` attributes (can be switched off in the options)
@@ -779,7 +501,7 @@ replaced with server time (the page lets you back-date up to 6 days).
 
 ## Security notes
 
-- Endpoints accept only `GET` (page, wall dashboard, maintenance state) and
+- Endpoints accept only `GET` (page, maintenance state) and
   `POST` (log, maintenance mode). With the Status tab enabled, anyone holding
   the page URL can also *read* the declared pool state, the entities you chose
   and recent records, and *add notes* — disable the tab in the options if you

@@ -12,11 +12,8 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from .const import (
-    CONF_KIOSK_ENABLED,
     CONF_TOKEN,
-    DEFAULT_KIOSK_ENABLED,
     DOMAIN,
-    URL_KIOSK,
     URL_PAGE,
     signal_updated,
 )
@@ -37,13 +34,6 @@ def _public_url(hass: HomeAssistant, path: str) -> str | None:
 def page_url(hass: HomeAssistant, entry: PoolConfigEntry) -> str | None:
     """Full public URL of the maintenance page, or None if no URL is set up."""
     return _public_url(hass, URL_PAGE.format(token=entry.data[CONF_TOKEN]))
-
-
-def kiosk_url(hass: HomeAssistant, entry: PoolConfigEntry) -> str | None:
-    """Full URL of the wall dashboard, or None when it is disabled."""
-    if not entry.options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED):
-        return None
-    return _public_url(hass, URL_KIOSK.format(token=entry.data[CONF_TOKEN]))
 
 
 class PoolBaseEntity(Entity):

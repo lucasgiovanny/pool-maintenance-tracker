@@ -42,7 +42,7 @@
     },
     "filter_wash": {
       "title": "Filtro lavato",
-      "hint": "Registra il lavaggio. La data viene salvata e il sistema avvisa quando serve il prossimo."
+      "hint": "Registra il lavaggio. La data viene salvata, così sai quando è stato l'ultimo."
     },
     "cell_clean": {
       "title": "Cella del clorinatore pulita",
@@ -110,12 +110,10 @@
     "current": "Stato attuale",
     "tasks": "Attività periodiche",
     "history": "Registrazioni recenti",
-    "overdue": "In ritardo",
     "never": "Mai registrato",
     "today": "Oggi",
     "day_ago": "1 giorno fa",
     "days_ago": "{days} giorni fa",
-    "every_days": "ogni {days} giorni",
     "empty_history": "Ancora nessuna registrazione.",
     "values": {
       "ph": "pH",
@@ -145,10 +143,8 @@
     "just_now": "proprio ora",
     "ago_minutes": "{n} min fa",
     "ago_hours": "{n} h fa",
-    "next_due": "prossima {date}",
     "schedule_off": "si spegne il {date} alle {time}",
     "schedule_on": "si accende il {date} alle {time}",
-    "alert_acid": "Serbatoio dell'acido {level}",
     "in_time": "tra {t}",
     "ideal_band": "ideale {min}–{max}",
     "filtration": "Filtrazione",
@@ -160,9 +156,6 @@
       "ideal": "ideale"
     },
     "actual_today": "ha girato {h} h oggi",
-    "filter_pressure": "Pressione del filtro",
-    "pressure_rise": "+{p}% dal lavaggio",
-    "alert_acid_missing": "Nessun serbatoio dell'acido — il pH non viene dosato",
     "export_csv": "Scarica il registro (CSV)"
   },
   "notes": {
@@ -193,34 +186,8 @@
       "Tocca ciò che hai fatto e inserisci i valori misurati.",
       "Salva la registrazione."
     ],
-    "report_hint": "La scheda Stato mostra lo stato della piscina, le prossime manutenzioni e lo storico.",
+    "report_hint": "La scheda Stato mostra lo stato della piscina, quando ogni attività è stata fatta l'ultima volta e lo storico.",
     "print": "Stampa"
-  },
-  "kiosk": {
-    "connected": "Home Assistant connesso",
-    "offline": "Nessuna connessione",
-    "manual": "manuale",
-    "attention": "Richiede attenzione",
-    "visits": "Ultimi interventi",
-    "register": "Registra visita",
-    "register_hint": "Scansiona il codice o avvicina il tag NFC per aprirlo sul telefono",
-    "filtration_cycle": "Ciclo di filtrazione",
-    "temp_7d": "Temperatura · 7 giorni",
-    "maintenance": "manutenzione",
-    "delta_24h": "{delta} °C nelle ultime 24 h",
-    "heating_active": "riscaldamento attivo",
-    "until": "fino alle {time}",
-    "chlorinator": "Clorinatore",
-    "salt": "Sale",
-    "never_short": "Mai",
-    "days_short": "{days} g fa",
-    "minutes_short": "{n} min fa",
-    "hours_short": "{n} h fa",
-    "overdue_days": "in ritardo di {days} giorni",
-    "never_recorded": "nessuna registrazione",
-    "no_visits": "Ancora nessun intervento.",
-    "overdue_count": "in ritardo",
-    "blocks_total": "{n} blocchi · {h} h"
   },
   "roles": {
     "pool_system": "Sistema",
@@ -257,11 +224,6 @@
     "started": "Modalità manutenzione attiva",
     "started_text": "Il sistema di casa sa che qualcuno sta lavorando sulla piscina.",
     "ok": "OK"
-  },
-  "card": {
-    "turns_on": "Si accende tra",
-    "turns_off": "Si spegne tra",
-    "no_schedule": "Nessun orario associato"
   },
   "impact_salt": "≈ +{delta} g/L in {volume} m³"
 }

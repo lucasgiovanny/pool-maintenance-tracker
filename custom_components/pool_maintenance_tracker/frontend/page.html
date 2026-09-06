@@ -106,7 +106,6 @@
   .badge{
     display:inline-block;border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:700;
   }
-  .badge.due{background:#FBE9D0;color:#8A5200}
   .badge.ok{background:#DCF3E9;color:#14684A}
   .badge.neutral{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
   .badge.info{background:#E8F6F7;color:var(--deep);border:1px solid var(--aqua)}
@@ -263,14 +262,6 @@
   .rid{font-size:.62rem;color:var(--muted);font-family:ui-monospace,Menlo,monospace;
     margin-top:5px;word-break:break-all}
 
-  .alerts{margin-top:16px}
-  .alert{
-    display:flex;align-items:flex-start;gap:9px;background:#FBE9D0;border:1px solid var(--warn);
-    border-radius:12px;padding:11px 14px;margin-bottom:8px;
-    font-size:.85rem;font-weight:600;color:#8A5200;line-height:1.4;
-  }
-  .alert svg{width:17px;height:17px;stroke:#8A5200;fill:none;stroke-width:2.2;stroke-linecap:round;flex:none;margin-top:1px}
-
   /* Maintenance mode: a flag for the home system, flipped from here. It
      turns amber when on, because leaving it on by accident is the one
      mistake worth shouting about. */
@@ -408,8 +399,6 @@
 </header>
 
 <main>
-  <div class="alerts" id="alerts"></div>
-
   <div class="mode" id="mode" style="display:none">
     <div class="mode-text">
       <strong id="mode-title"></strong>
@@ -618,13 +607,12 @@ function decimal(value){
   const number = Number(value);
   return isNaN(number) ? String(value) : String(Math.round(number * 100) / 100);
 }
-/* Levels worth an alert. A pool running without a drum is a decision,
-   not a fault, so it stays quiet. */
-const ACID_ALERT_LEVELS = ["quarter", "empty", "none"];
+/* A tank running low is worth seeing at a glance. A pool running without
+   one at all is a decision, not a fault, so it stays neutral. */
 function acidClass(level){
-  if (ACID_ALERT_LEVELS.includes(level)) return "due";
-  if (level === "full") return "ok";
   if (level === "none") return "neutral";
+  if (level === "quarter" || level === "empty") return "low";
+  if (level === "full") return "ok";
   return "info";
 }
 function formatValue(key, value){
@@ -764,19 +752,7 @@ function renderReport(){
         value.appendChild(el("span", "badge " + cls, S.acid_levels[level] || level));
         value.appendChild(document.createTextNode(" "));
       }
-      value.appendChild(document.createTextNode(daysAgoText(task.last) + " "));
-      if (task.interval_days) {
-        const byPressure = task.key === "filter_wash"
-          && (report.filter_pressure || {}).due !== null
-          && (report.filter_pressure || {}).due !== undefined;
-        const badge = el("span", "badge " + (task.due ? "due" : "ok"),
-          task.due
-            ? S.report.overdue
-            : (task.next && !byPressure
-                ? S.report.next_due.replace("{date}", shortDate(task.next))
-                : S.report.every_days.replace("{days}", task.interval_days)));
-        value.appendChild(badge);
-      }
+      value.appendChild(document.createTextNode(daysAgoText(task.last)));
       row.appendChild(value);
       tasksBody.appendChild(row);
     });
@@ -805,27 +781,6 @@ function renderReport(){
     row.appendChild(holder);
     extraBody.appendChild(row);
   });
-  /* The filter's pressure: what actually decides whether it needs washing */
-  const pressure = report.filter_pressure;
-  if (pressure && pressure.value !== null && pressure.value !== undefined) {
-    equipAny = true;
-    const row = el("div", "kv");
-    row.appendChild(el("span", "k", S.report.filter_pressure));
-    const holder = el("span", "v");
-    if (pressure.due) {
-      holder.appendChild(el("span", "badge due", S.report.overdue));
-      holder.appendChild(document.createTextNode(" "));
-    }
-    holder.appendChild(document.createTextNode(
-      decimal(pressure.value) + (pressure.unit ? " " + pressure.unit : "")));
-    if (pressure.rise_percent !== null && pressure.rise_percent !== undefined) {
-      holder.appendChild(el("small", null,
-        " " + S.report.pressure_rise.replace("{p}", pressure.rise_percent)));
-    }
-    row.appendChild(holder);
-    extraBody.appendChild(row);
-  }
-
   /* Entities with a named role come first, in a stable order */
   const ROLE_ORDER = ["pool_system", "heat_pump", "pump", "filtration_schedule",
                       "pool_light", "cover"];
@@ -990,38 +945,6 @@ function recordElement(record){
   if (record.id) body.appendChild(el("div", "rid", "id " + record.id));
   return item;
 }
-
-/* Persistent alerts above the tabs: overdue tasks + low acid */
-function renderAlerts(){
-  const box = document.getElementById("alerts");
-  box.innerHTML = "";
-  box.style.display = "";
-  if (!CFG.report) { box.style.display = "none"; return; }
-  const report = CFG.report;
-  const messages = [];
-  (report.tasks || []).forEach(task => {
-    if (task.due) {
-      messages.push((S.tiles[task.key] || S.report.values[task.key] || task.key) +
-        " — " + S.report.overdue.toLowerCase());
-    }
-  });
-  const acid = report.values ? report.values.acid_tank_level : undefined;
-  if (acid === "none") {
-    messages.push(S.report.alert_acid_missing);
-  } else if (ACID_ALERT_LEVELS.includes(acid)) {
-    messages.push(S.report.alert_acid.replace("{level}",
-      (S.acid_levels[acid] || "").toLowerCase()));
-  }
-  if (!messages.length) { box.style.display = "none"; return; }
-  messages.forEach(message => {
-    const alert = el("div", "alert");
-    alert.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/>' +
-      '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
-    alert.appendChild(document.createTextNode(message));
-    box.appendChild(alert);
-  });
-}
-renderAlerts();
 
 /* ---------- maintenance mode ---------- */
 /* A visit: what the technician wants the equipment to do while they work,
@@ -1327,7 +1250,6 @@ async function refreshState(){
       CFG.live = data.live || {};
       CFG.report = data.report;
       if (data.maintenance_mode) CFG.maintenance_mode = data.maintenance_mode;
-      renderAlerts();
       renderMode();
       renderReport();
     }

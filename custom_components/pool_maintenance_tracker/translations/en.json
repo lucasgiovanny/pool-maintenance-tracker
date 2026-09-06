@@ -20,22 +20,11 @@
         }
       },
       "settings": {
-        "title": "Page and reminders",
+        "title": "Page language",
         "data": {
-          "language": "Page language",
-          "notify_service": "Notification target",
-          "filter_days": "Filter wash reminder (days)",
-          "probe_days": "pH probe calibration reminder (days)",
-          "cell_days": "Cell cleaning reminder (days)",
-          "chemistry_days": "Stabilizer & hardness test reminder (days)"
-        },
-        "data_description": {
-          "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations."
+          "language": "Page language"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Enter a service like notify.mobile_app_myphone, or leave it empty."
     }
   },
   "options": {
@@ -47,8 +36,7 @@
           "people": "People on the page",
           "sensors": "Linked sensors",
           "equipment": "Equipment",
-          "reminders": "Reminders",
-          "page": "Page and notifications",
+          "page": "Page",
           "security": "Security"
         }
       },
@@ -81,15 +69,14 @@
       },
       "sensors": {
         "title": "Linked sensors",
-        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it. With a pressure sensor linked, the filter wash alert follows the pressure rise over the clean baseline instead of the fixed interval. The baseline is captured automatically the next time a filter wash is logged.",
+        "description": "Link existing sensors (e.g. from a smart probe or another pool integration) to this pool. Their current values are shown on the maintenance page next to the manual readings, and a snapshot is stored with every record. Leave a field empty to unlink it.",
         "data": {
           "ph_source": "pH sensor",
           "chlorine_source": "Free chlorine sensor",
           "salt_source": "Salt sensor",
           "temperature_source": "Water temperature sensor",
           "linked_mode": "Linked sensor behavior",
-          "report_sensors": "Extra entities on the Status tab",
-          "filter_pressure_source": "Filter pressure gauge"
+          "report_sensors": "Extra entities on the Status tab"
         }
       },
       "equipment": {
@@ -126,31 +113,15 @@
           "filtration_state_entity": "Leave empty to read the state off the hours themselves."
         }
       },
-      "reminders": {
-        "title": "Reminders",
-        "data": {
-          "filter_days": "Filter wash reminder (days)",
-          "probe_days": "pH probe calibration reminder (days)",
-          "cell_days": "Cell cleaning reminder (days)",
-          "reminder_time": "Daily check time (HH:MM)",
-          "filter_pressure_rise": "Wash the filter at this pressure rise (%)",
-          "chemistry_days": "Stabilizer & hardness test reminder (days)"
-        }
-      },
       "page": {
-        "title": "Page and notifications",
+        "title": "Page",
         "data": {
           "language": "Page language",
-          "notify_service": "Notification target",
-          "report_enabled": "\"Status\" tab on the page",
-          "kiosk_enabled": "Wall dashboard page"
+          "report_enabled": "\"Status\" tab on the page"
         },
         "data_description": {
-          "notify_service": "For example notify.mobile_app_myphone. Leave empty for no built-in notifications — the \"due\" binary sensors and the maintenance event stay available for your own automations.",
-          "report_enabled": "Adds a read-only report tab to the public page: current values, task status and recent records. Anyone with the page URL can see it.",
-          "kiosk_enabled": "A dark, display-only dashboard for a screen next to the pool (7\" landscape and up): water readings, equipment and a countdown to the next schedule change. No touch or navigation. Find its URL in the QR code entity's attributes."
-        },
-        "description": "Pick a notify service (like your phone from the companion app) or a notify entity. Leave it empty and the integration sends nothing — the *due* binary sensors and the maintenance event are still there for your own automations."
+          "report_enabled": "Adds a read-only report tab to the public page: current values, when each task was last done and recent records. Anyone with the page URL can see it."
+        }
       },
       "security": {
         "title": "Security",
@@ -159,9 +130,6 @@
           "regenerate_token": "Regenerate access token"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Enter a service like notify.mobile_app_myphone, or leave it empty."
     }
   },
   "selector": {
@@ -321,20 +289,6 @@
         "name": "Water temperature"
       }
     },
-    "binary_sensor": {
-      "filter_wash_due": {
-        "name": "Filter wash due"
-      },
-      "cell_clean_due": {
-        "name": "Cell cleaning due"
-      },
-      "probe_calibration_due": {
-        "name": "pH probe calibration due"
-      },
-      "chemistry_test_due": {
-        "name": "Stabilizer & hardness test due"
-      }
-    },
     "switch": {
       "maintenance_mode": {
         "name": "Maintenance mode"
@@ -393,12 +347,6 @@
           "description": "The pool whose log to export."
         }
       }
-    }
-  },
-  "issues": {
-    "missing_entity": {
-      "title": "{pool}: a configured entity is missing",
-      "description": "The entity `{entity_id}` is configured for the pool **{pool}**, but it no longer exists — removed, renamed, or its integration is gone. The dashboards simply stop showing it. Pick a replacement (or clear the field) under the pool's **Configure** options."
     }
   },
   "exceptions": {

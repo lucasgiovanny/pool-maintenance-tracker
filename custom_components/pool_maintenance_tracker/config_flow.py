@@ -13,7 +13,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     BooleanSelector,
     EntitySelector,
@@ -29,46 +29,30 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
-    CONF_CELL_DAYS,
-    CONF_CHEMISTRY_DAYS,
     CONF_COVER_ENTITY,
-    CONF_FILTER_DAYS,
-    CONF_FILTER_PRESSURE_RISE,
-    CONF_FILTER_PRESSURE_SOURCE,
     CONF_FILTRATION_OFF_TIME_ENTITY,
     CONF_FILTRATION_ON_TIME_ENTITY,
     CONF_FILTRATION_SCHEDULE_ENTITY,
     CONF_FILTRATION_SCHEDULE_MODE,
     CONF_FILTRATION_STATE_ENTITY,
     CONF_HEAT_PUMP_ENTITY,
-    CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_MAINTENANCE_MODE,
     CONF_MODULES,
-    CONF_NOTIFY_SERVICE,
     CONF_PEOPLE,
     CONF_POOL_LIGHT_ENTITY,
     CONF_POOL_SYSTEM_ENTITY,
     CONF_POOL_TYPE,
     CONF_POOL_VOLUME,
-    CONF_PROBE_DAYS,
     CONF_PUMP_ENTITY,
-    CONF_REMINDER_TIME,
     CONF_REPORT_ENABLED,
     CONF_REPORT_SENSORS,
     CONF_SALT_TARGET_MAX,
     CONF_SALT_TARGET_MIN,
     CONF_TOKEN,
-    DEFAULT_CELL_DAYS,
-    DEFAULT_CHEMISTRY_DAYS,
-    DEFAULT_FILTER_DAYS,
-    DEFAULT_FILTER_PRESSURE_RISE,
-    DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
     DEFAULT_MAINTENANCE_MODE,
-    DEFAULT_PROBE_DAYS,
-    DEFAULT_REMINDER_TIME,
     DEFAULT_REPORT_ENABLED,
     DEFAULT_SALT_TARGET_MAX,
     DEFAULT_SALT_TARGET_MIN,
@@ -89,25 +73,9 @@ from .const import (
     SCHEDULE_TIME_KEYS,
     schedule_mode,
 )
-from .modules import (
-    MODULE_FILTER,
-    MODULE_PH_PROBE,
-    MODULE_SALT_CHLORINATOR,
-    MODULE_WATER_CHEMISTRY,
-    OPTIONAL_MODULE_KEYS,
-    POOL_TYPE_PRESETS,
-)
+from .modules import OPTIONAL_MODULE_KEYS, POOL_TYPE_PRESETS
 
 CONF_REGENERATE_TOKEN = "regenerate_token"
-NOTIFY_DOMAIN = "notify"
-
-REMINDER_DAY_FIELDS: tuple[tuple[str, str, int], ...] = (
-    # (module key, options key, default)
-    (MODULE_FILTER.key, CONF_FILTER_DAYS, DEFAULT_FILTER_DAYS),
-    (MODULE_PH_PROBE.key, CONF_PROBE_DAYS, DEFAULT_PROBE_DAYS),
-    (MODULE_SALT_CHLORINATOR.key, CONF_CELL_DAYS, DEFAULT_CELL_DAYS),
-    (MODULE_WATER_CHEMISTRY.key, CONF_CHEMISTRY_DAYS, DEFAULT_CHEMISTRY_DAYS),
-)
 
 
 def _new_token() -> str:
@@ -131,55 +99,6 @@ def _language_selector() -> SelectSelector:
             options=LANGUAGES,
             mode=SelectSelectorMode.DROPDOWN,
             translation_key="language",
-        )
-    )
-
-
-def _reminder_days_schema(modules: list[str], current: dict[str, Any]) -> dict[vol.Marker, Any]:
-    schema: dict[vol.Marker, Any] = {}
-    for module_key, conf_key, default in REMINDER_DAY_FIELDS:
-        if module_key in modules:
-            schema[vol.Required(conf_key, default=current.get(conf_key, default))] = NumberSelector(
-                NumberSelectorConfig(min=1, max=365, step=1, mode=NumberSelectorMode.BOX)
-            )
-    return schema
-
-
-def _validate_notify_service(value: str) -> str | None:
-    """Normalize a notify target; return None when invalid."""
-    service = value.strip()
-    if not service:
-        return ""
-    if service.startswith("notify.") and len(service.split(".")) == 2:
-        return service
-    return None
-
-
-def _notify_selector(hass: HomeAssistant, current: str) -> SelectSelector:
-    """Every way this Home Assistant can send a message, in one dropdown.
-
-    Notify comes in two shapes and both are current: the legacy services
-    (`notify.mobile_app_*`, which is still how the companion app pushes to
-    a phone) and the newer notify entities. An entity picker would quietly
-    hide the first, which is the one most people actually want, so the list
-    is built from both. A custom value stays possible for anything odd.
-    """
-    targets = {
-        f"{NOTIFY_DOMAIN}.{service}"
-        for service in hass.services.async_services_for_domain(NOTIFY_DOMAIN)
-    }
-    # send_message is the verb for notify entities, not a target itself
-    targets.discard(f"{NOTIFY_DOMAIN}.send_message")
-    targets.discard(f"{NOTIFY_DOMAIN}.persistent_notification")
-    targets.update(state.entity_id for state in hass.states.async_all(NOTIFY_DOMAIN))
-    if current:
-        targets.add(current)
-    return SelectSelector(
-        SelectSelectorConfig(
-            options=sorted(targets),
-            mode=SelectSelectorMode.DROPDOWN,
-            custom_value=True,
-            sort=True,
         )
     )
 
@@ -239,29 +158,19 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_settings(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        errors: dict[str, str] = {}
         if user_input is not None:
-            notify_service = _validate_notify_service(user_input.get(CONF_NOTIFY_SERVICE, ""))
-            if notify_service is None:
-                errors[CONF_NOTIFY_SERVICE] = "invalid_notify_service"
-            else:
-                options: dict[str, Any] = {
-                    CONF_POOL_TYPE: self._pool_type,
-                    CONF_MODULES: self._modules,
-                    CONF_LANGUAGE: user_input[CONF_LANGUAGE],
-                    CONF_NOTIFY_SERVICE: notify_service,
-                    CONF_REMINDER_TIME: DEFAULT_REMINDER_TIME,
-                }
-                if self._volume:
-                    options[CONF_POOL_VOLUME] = float(self._volume)
-                for _module_key, conf_key, _default in REMINDER_DAY_FIELDS:
-                    if conf_key in user_input:
-                        options[conf_key] = int(user_input[conf_key])
-                return self.async_create_entry(
-                    title=self._name,
-                    data={CONF_NAME: self._name, CONF_TOKEN: _new_token()},
-                    options=options,
-                )
+            options: dict[str, Any] = {
+                CONF_POOL_TYPE: self._pool_type,
+                CONF_MODULES: self._modules,
+                CONF_LANGUAGE: user_input[CONF_LANGUAGE],
+            }
+            if self._volume:
+                options[CONF_POOL_VOLUME] = float(self._volume)
+            return self.async_create_entry(
+                title=self._name,
+                data={CONF_NAME: self._name, CONF_TOKEN: _new_token()},
+                options=options,
+            )
 
         ha_language = self.hass.config.language.lower()
         default_language = next(
@@ -272,18 +181,11 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
             DEFAULT_LANGUAGE,
         )
-        schema: dict[vol.Marker, Any] = {
-            vol.Required(CONF_LANGUAGE, default=default_language): _language_selector(),
-            vol.Optional(
-                CONF_NOTIFY_SERVICE,
-                description={"suggested_value": user_input.get(CONF_NOTIFY_SERVICE)}
-                if user_input
-                else None,
-            ): _notify_selector(self.hass, ""),
-        }
-        schema.update(_reminder_days_schema(self._modules, {}))
         return self.async_show_form(
-            step_id="settings", data_schema=vol.Schema(schema), errors=errors
+            step_id="settings",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_LANGUAGE, default=default_language): _language_selector()}
+            ),
         )
 
     @staticmethod
@@ -293,7 +195,7 @@ class PoolMaintenanceTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class PoolOptionsFlow(OptionsFlow):
-    """Edit modules, reminders, page settings, or regenerate the token."""
+    """Edit modules, page settings, or regenerate the token."""
 
     @callback
     def _store(self, options: dict[str, Any]) -> None:
@@ -320,7 +222,6 @@ class PoolOptionsFlow(OptionsFlow):
                 "people",
                 "sensors",
                 "equipment",
-                "reminders",
                 "page",
                 "security",
             ],
@@ -511,7 +412,7 @@ class PoolOptionsFlow(OptionsFlow):
         """Link external sensors (e.g. a smart probe) to the pool."""
         options = dict(self.config_entry.options)
         if user_input is not None:
-            for conf_key in (*LINKED_SOURCES.values(), CONF_FILTER_PRESSURE_SOURCE):
+            for conf_key in LINKED_SOURCES.values():
                 if user_input.get(conf_key):
                     options[conf_key] = user_input[conf_key]
                 else:
@@ -531,12 +432,6 @@ class PoolOptionsFlow(OptionsFlow):
                     description={"suggested_value": options.get(conf_key)},
                 )
             ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
-        schema[
-            vol.Optional(
-                CONF_FILTER_PRESSURE_SOURCE,
-                description={"suggested_value": options.get(CONF_FILTER_PRESSURE_SOURCE)},
-            )
-        ] = EntitySelector(EntitySelectorConfig(domain="sensor"))
         schema[
             vol.Optional(
                 CONF_REPORT_SENSORS,
@@ -603,52 +498,12 @@ class PoolOptionsFlow(OptionsFlow):
             ),
         )
 
-    async def async_step_reminders(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        options = dict(self.config_entry.options)
-        if user_input is not None:
-            for _module_key, conf_key, _default in REMINDER_DAY_FIELDS:
-                if conf_key in user_input:
-                    options[conf_key] = int(user_input[conf_key])
-            options[CONF_REMINDER_TIME] = user_input[CONF_REMINDER_TIME]
-            if CONF_FILTER_PRESSURE_RISE in user_input:
-                options[CONF_FILTER_PRESSURE_RISE] = int(user_input[CONF_FILTER_PRESSURE_RISE])
-            return await self._save(options)
-
-        modules = list(options.get(CONF_MODULES, ()))
-        schema: dict[vol.Marker, Any] = {}
-        schema.update(_reminder_days_schema(modules, options))
-        if options.get(CONF_FILTER_PRESSURE_SOURCE):
-            schema[
-                vol.Required(
-                    CONF_FILTER_PRESSURE_RISE,
-                    default=options.get(CONF_FILTER_PRESSURE_RISE, DEFAULT_FILTER_PRESSURE_RISE),
-                )
-            ] = NumberSelector(
-                NumberSelectorConfig(min=5, max=100, step=5, mode=NumberSelectorMode.SLIDER)
-            )
-        schema[
-            vol.Required(
-                CONF_REMINDER_TIME,
-                default=options.get(CONF_REMINDER_TIME, DEFAULT_REMINDER_TIME),
-            )
-        ] = TextSelector()
-        return self.async_show_form(step_id="reminders", data_schema=vol.Schema(schema))
-
     async def async_step_page(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         options = dict(self.config_entry.options)
-        errors: dict[str, str] = {}
         if user_input is not None:
-            notify_service = _validate_notify_service(user_input.get(CONF_NOTIFY_SERVICE, ""))
-            if notify_service is None:
-                errors[CONF_NOTIFY_SERVICE] = "invalid_notify_service"
-            else:
-                options[CONF_LANGUAGE] = user_input[CONF_LANGUAGE]
-                options[CONF_NOTIFY_SERVICE] = notify_service
-                options[CONF_REPORT_ENABLED] = user_input[CONF_REPORT_ENABLED]
-                options[CONF_KIOSK_ENABLED] = user_input[CONF_KIOSK_ENABLED]
-                return await self._save(options)
+            options[CONF_LANGUAGE] = user_input[CONF_LANGUAGE]
+            options[CONF_REPORT_ENABLED] = user_input[CONF_REPORT_ENABLED]
+            return await self._save(options)
 
         return self.async_show_form(
             step_id="page",
@@ -658,21 +513,12 @@ class PoolOptionsFlow(OptionsFlow):
                         CONF_LANGUAGE,
                         default=options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE),
                     ): _language_selector(),
-                    vol.Optional(
-                        CONF_NOTIFY_SERVICE,
-                        description={"suggested_value": options.get(CONF_NOTIFY_SERVICE)},
-                    ): _notify_selector(self.hass, options.get(CONF_NOTIFY_SERVICE, "")),
                     vol.Required(
                         CONF_REPORT_ENABLED,
                         default=options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED),
                     ): BooleanSelector(),
-                    vol.Required(
-                        CONF_KIOSK_ENABLED,
-                        default=options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED),
-                    ): BooleanSelector(),
                 }
             ),
-            errors=errors,
         )
 
     async def async_step_security(

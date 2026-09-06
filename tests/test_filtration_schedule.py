@@ -120,12 +120,6 @@ async def test_the_sensor_is_what_says_it_is_running(
     # down to it — the weekly grid still shows what the cycle would be.
     assert item["next_change"] is None
     assert item["week"] == [[["08:00", "20:00"]]] * 7
-    # Every entity behind the schedule, so the card redraws when one moves
-    assert item["sources"] == [
-        "time.filtration_start",
-        "time.filtration_stop",
-        "binary_sensor.filtration_running",
-    ]
 
 
 async def test_without_a_sensor_the_clock_answers(hass, salt_entry, hass_client_no_auth, freezer):

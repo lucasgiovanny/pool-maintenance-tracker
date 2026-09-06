@@ -20,22 +20,11 @@
         }
       },
       "settings": {
-        "title": "Pagina e promemoria",
+        "title": "Lingua della pagina",
         "data": {
-          "language": "Lingua della pagina",
-          "notify_service": "Destinazione delle notifiche",
-          "filter_days": "Promemoria lavaggio filtro (giorni)",
-          "probe_days": "Promemoria calibrazione sonda pH (giorni)",
-          "cell_days": "Promemoria pulizia cella (giorni)",
-          "chemistry_days": "Promemoria test stabilizzante e durezza (giorni)"
-        },
-        "data_description": {
-          "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni."
+          "language": "Lingua della pagina"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Indica un servizio come notify.mobile_app_miotelefono, oppure lascia vuoto."
     }
   },
   "options": {
@@ -47,8 +36,7 @@
           "people": "Persone nella pagina",
           "sensors": "Sensori collegati",
           "equipment": "Attrezzatura",
-          "reminders": "Promemoria",
-          "page": "Pagina e notifiche",
+          "page": "Pagina",
           "security": "Sicurezza"
         }
       },
@@ -81,15 +69,14 @@
       },
       "sensors": {
         "title": "Sensori collegati",
-        "description": "Collega sensori esistenti (ad esempio di una sonda smart o di un'altra integrazione per piscine). I valori attuali compaiono nella pagina accanto alle letture manuali e con ogni registrazione viene salvato uno snapshot. Lascia un campo vuoto per scollegarlo. Con un sensore di pressione collegato, l'avviso di lavaggio del filtro segue l'aumento di pressione rispetto al filtro pulito invece dell'intervallo fisso. Il riferimento viene catturato automaticamente al prossimo lavaggio registrato.",
+        "description": "Collega sensori esistenti (ad esempio di una sonda smart o di un'altra integrazione per piscine). I valori attuali compaiono nella pagina accanto alle letture manuali e con ogni registrazione viene salvato uno snapshot. Lascia un campo vuoto per scollegarlo.",
         "data": {
           "ph_source": "Sensore pH",
           "chlorine_source": "Sensore cloro libero",
           "salt_source": "Sensore sale",
           "temperature_source": "Sensore temperatura dell'acqua",
           "linked_mode": "Comportamento dei sensori collegati",
-          "report_sensors": "Entità extra nella scheda Stato",
-          "filter_pressure_source": "Manometro del filtro"
+          "report_sensors": "Entità extra nella scheda Stato"
         }
       },
       "equipment": {
@@ -126,31 +113,15 @@
           "filtration_state_entity": "Lascia vuoto per ricavare lo stato dalle ore stesse."
         }
       },
-      "reminders": {
-        "title": "Promemoria",
-        "data": {
-          "filter_days": "Promemoria lavaggio filtro (giorni)",
-          "probe_days": "Promemoria calibrazione sonda pH (giorni)",
-          "cell_days": "Promemoria pulizia cella (giorni)",
-          "reminder_time": "Ora del controllo giornaliero (HH:MM)",
-          "filter_pressure_rise": "Lavare il filtro a questo aumento di pressione (%)",
-          "chemistry_days": "Promemoria test stabilizzante e durezza (giorni)"
-        }
-      },
       "page": {
-        "title": "Pagina e notifiche",
+        "title": "Pagina",
         "data": {
           "language": "Lingua della pagina",
-          "notify_service": "Destinazione delle notifiche",
-          "report_enabled": "Scheda \"Stato\" nella pagina",
-          "kiosk_enabled": "Pagina dashboard da parete"
+          "report_enabled": "Scheda \"Stato\" nella pagina"
         },
         "data_description": {
-          "notify_service": "Ad esempio notify.mobile_app_miotelefono. Lascia vuoto per disattivare le notifiche integrate: i sensori binari di ritardo e l'evento di manutenzione restano disponibili per le tue automazioni.",
-          "report_enabled": "Aggiunge una scheda rapporto (sola lettura) alla pagina pubblica: valori attuali, stato delle attività e registrazioni recenti. Visibile a chiunque abbia l'URL.",
-          "kiosk_enabled": "Una dashboard scura, di sola visualizzazione, per uno schermo vicino alla piscina (7\" orizzontale o più): letture dell'acqua, attrezzatura e conto alla rovescia per il prossimo cambio della programmazione. Senza touch né navigazione. L'URL è negli attributi dell'entità del codice QR."
-        },
-        "description": "Scegli un servizio notify (per esempio il telefono, dall'app companion) o un'entità notify. Lascialo vuoto e l'integrazione non invia nulla — i binary sensor di scadenza e l'evento di manutenzione restano disponibili per le tue automazioni."
+          "report_enabled": "Aggiunge una scheda rapporto (sola lettura) alla pagina pubblica: valori attuali, quando ogni attività è stata fatta l'ultima volta e registrazioni recenti. Visibile a chiunque abbia l'URL."
+        }
       },
       "security": {
         "title": "Sicurezza",
@@ -159,9 +130,6 @@
           "regenerate_token": "Rigenera token di accesso"
         }
       }
-    },
-    "error": {
-      "invalid_notify_service": "Indica un servizio come notify.mobile_app_miotelefono, oppure lascia vuoto."
     }
   },
   "selector": {
@@ -321,20 +289,6 @@
         "name": "Temperatura dell'acqua"
       }
     },
-    "binary_sensor": {
-      "filter_wash_due": {
-        "name": "Lavaggio filtro in ritardo"
-      },
-      "cell_clean_due": {
-        "name": "Pulizia cella in ritardo"
-      },
-      "probe_calibration_due": {
-        "name": "Calibrazione sonda in ritardo"
-      },
-      "chemistry_test_due": {
-        "name": "Test stabilizzante e durezza in ritardo"
-      }
-    },
     "switch": {
       "maintenance_mode": {
         "name": "Modalità manutenzione"
@@ -393,12 +347,6 @@
           "description": "La piscina di cui esportare il registro."
         }
       }
-    }
-  },
-  "issues": {
-    "missing_entity": {
-      "title": "{pool}: manca un'entità configurata",
-      "description": "L'entità `{entity_id}` è configurata per la piscina **{pool}**, ma non esiste più — rimossa, rinominata, o la sua integrazione è sparita. Le dashboard smettono semplicemente di mostrarla. Scegli una sostituta (o svuota il campo) nelle opzioni **Configura** della piscina."
     }
   },
   "exceptions": {

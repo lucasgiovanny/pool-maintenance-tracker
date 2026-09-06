@@ -160,7 +160,7 @@ async def test_page_and_state_expose_the_mode(hass, salt_entry, hass_client_no_a
         "until": None,
         "equipment": {},
     }
-    # the card and the kiosk read it off the report
+    # the status tab reads it off the report
     assert config["report"]["maintenance_mode"]["enabled"] is True
 
     await client.post(MODE_URL, json={"on": True, "person": "Maria"})
@@ -170,35 +170,6 @@ async def test_page_and_state_expose_the_mode(hass, salt_entry, hass_client_no_a
     assert data["maintenance_mode"]["on"] is True
     assert data["maintenance_mode"]["by"] == "Maria"
     assert data["report"]["maintenance_mode"]["on"] is True
-
-
-async def test_kiosk_states_the_mode(hass, salt_entry, hass_client_no_auth):
-    """The wall screen answers "is anybody working on the pool" either way."""
-    from custom_components.pool_maintenance_tracker.const import URL_KIOSK
-
-    from .test_kiosk import extract_config as extract_kiosk_config
-
-    await setup_with_mode(hass, salt_entry)
-    client = await hass_client_no_auth()
-    kiosk_url = URL_KIOSK.format(token=TEST_TOKEN)
-
-    config = extract_kiosk_config(await (await client.get(kiosk_url)).text())
-    assert config["report"]["maintenance_mode"] == {
-        "enabled": True,
-        "on": False,
-        "since": None,
-        "by": None,
-        "until": None,
-        "equipment": {},
-    }
-    assert config["strings"]["maintenance"]["title"]
-
-    await client.post(MODE_URL, json={"on": True, "person": "Técnico"})
-    await hass.async_block_till_done()
-
-    config = extract_kiosk_config(await (await client.get(kiosk_url)).text())
-    assert config["report"]["maintenance_mode"]["on"] is True
-    assert config["report"]["maintenance_mode"]["by"] == "Técnico"
 
 
 async def test_page_reports_the_feature_off(hass, salt_entry, hass_client_no_auth):

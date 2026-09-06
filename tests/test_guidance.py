@@ -1,7 +1,7 @@
 """Ideal bands, pool volume and the filtration suggestion.
 
-These three feed every surface (page, kiosk, card) from the same payload,
-so the tests here work on the page config and the /state endpoint.
+These three feed the page from one payload, so the tests here work on the
+page config and the /state endpoint.
 """
 
 import json
@@ -257,8 +257,10 @@ async def test_a_back_dated_reading_does_not_beat_the_probe(hass, salt_entry, ha
     assert current["water_temperature"]["source"] == "probe"
 
 
-async def test_a_missing_acid_tank_is_its_own_alert(hass, salt_entry, hass_client_no_auth):
-    """Nothing to refill, but the pH is no longer being dosed."""
+async def test_a_missing_acid_tank_is_recorded_like_any_other_level(
+    hass, salt_entry, hass_client_no_auth
+):
+    """A pool running without a drum is a state worth keeping, not a fault."""
     await setup_entry(hass, salt_entry)
     client = await hass_client_no_auth()
     await client.post(
@@ -269,4 +271,3 @@ async def test_a_missing_acid_tank_is_its_own_alert(hass, salt_entry, hass_clien
 
     config = extract_config(await (await client.get(PAGE_URL)).text())
     assert config["report"]["values"]["acid_tank_level"] == "none"
-    assert config["strings"]["report"]["alert_acid_missing"]

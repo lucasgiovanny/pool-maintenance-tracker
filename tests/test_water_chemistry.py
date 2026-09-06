@@ -176,9 +176,7 @@ async def test_chemistry_reaches_report_task_list_and_history(
     assert report["combined_chlorine"] == 1.0
 
     tasks = {task["key"]: task for task in report["tasks"]}
-    assert tasks["chemistry_test"]["interval_days"] == 30
     assert tasks["chemistry_test"]["last"] is not None
-    assert tasks["chemistry_test"]["due"] is False
 
     response = await client.get(f"/api/pool_maintenance_tracker/{TEST_TOKEN}/history?days=7")
     data = await response.json()

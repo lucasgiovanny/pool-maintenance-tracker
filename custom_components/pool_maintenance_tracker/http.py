@@ -33,8 +33,6 @@ from homeassistant.core import HomeAssistant, callback
 
 from . import maintenance
 from .const import (
-    ACID_ALERT_LEVELS,
-    CONF_KIOSK_ENABLED,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
     CONF_PEOPLE,
@@ -45,7 +43,6 @@ from .const import (
     DATA_STRINGS_CACHE,
     DATA_TOKENS,
     DATA_VIEWS_REGISTERED,
-    DEFAULT_KIOSK_ENABLED,
     DEFAULT_LANGUAGE,
     DEFAULT_REPORT_ENABLED,
     DOMAIN,
@@ -61,7 +58,6 @@ from .const import (
     NUMBER_RANGES,
     URL_EXPORT,
     URL_HISTORY,
-    URL_KIOSK,
     URL_LOG,
     URL_MANUAL,
     URL_MODE,
@@ -94,8 +90,6 @@ CONFIG_MARKER = "__POOL_CONFIG__"
 MANUAL_MARKER = "__MANUAL_CONFIG__"
 PAGE_PATH = Path(__file__).parent / "frontend" / "page.html"
 MANUAL_PATH = Path(__file__).parent / "frontend" / "manual.html"
-KIOSK_PATH = Path(__file__).parent / "frontend" / "kiosk.html"
-KIOSK_MARKER = "__KIOSK_CONFIG__"
 STRINGS_DIR = Path(__file__).parent / "frontend" / "strings"
 
 SECURITY_HEADERS = {
@@ -144,7 +138,6 @@ def async_register_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PoolHistoryView())
     hass.http.register_view(PoolManualView())
     hass.http.register_view(PoolStateView())
-    hass.http.register_view(PoolKioskView())
     hass.http.register_view(PoolModeView())
     hass.http.register_view(PoolExportView())
     domain_data[DATA_VIEWS_REGISTERED] = True
@@ -165,10 +158,6 @@ def _limiter(hass: HomeAssistant) -> RateLimiter:
 
 def _report_on(entry: ConfigEntry) -> bool:
     return bool(entry.options.get(CONF_REPORT_ENABLED, DEFAULT_REPORT_ENABLED))
-
-
-def _kiosk_on(entry: ConfigEntry) -> bool:
-    return bool(entry.options.get(CONF_KIOSK_ENABLED, DEFAULT_KIOSK_ENABLED))
 
 
 def _clean_person(raw: Any) -> str:
@@ -214,8 +203,8 @@ async def _load_page_template(hass: HomeAssistant) -> str:
 async def _load_strings(hass: HomeAssistant, language: str) -> dict[str, Any]:
     """String bundle for one language, read from disk once per HA run.
 
-    The page polls every 60 s and the kiosk every 30 s; the bundles only
-    change with the integration itself, so cache them like the template.
+    The page polls every 60 s; the bundles only change with the integration
+    itself, so cache them like the template.
     """
     cache: dict[str, dict[str, Any]] = hass.data[DOMAIN].setdefault(DATA_STRINGS_CACHE, {})
     if (strings := cache.get(language)) is not None:
@@ -353,8 +342,7 @@ class PoolLogView(HomeAssistantView):
         except ValueError:
             return self.json({"ok": False, "error": "invalid_json"}, status_code=400)
 
-        runtime = entry.runtime_data
-        tracker = runtime.tracker
+        tracker = entry.runtime_data.tracker
 
         note_raw = payload.get("note") if isinstance(payload, dict) else None
         note_text = _clean_note(note_raw)
@@ -370,11 +358,6 @@ class PoolLogView(HomeAssistantView):
 
         if note_raw is not None and note_text is None:
             result.ignored.append("note")
-        # Notify on the way down only: repeating "still low" every log is noise
-        acid_alert = (
-            result.values.get(KEY_ACID_TANK_LEVEL) in ACID_ALERT_LEVELS
-            and tracker.values.get(KEY_ACID_TANK_LEVEL) not in ACID_ALERT_LEVELS
-        )
         # Audit trail: what the linked automatic sensors read at log time.
         live = _live_values(hass, entry)
         if snapshot := {key: item["value"] for key, item in live.items()}:
@@ -395,8 +378,6 @@ class PoolLogView(HomeAssistantView):
             tracker.async_add_note(
                 result.record["person"], note_text, created_at=result.record["logged_at"]
             )
-        if acid_alert:
-            await runtime.reminders.async_send_acid_alert(result.values[KEY_ACID_TANK_LEVEL])
 
         _LOGGER.debug(
             "Accepted record for %s from %s (ignored: %s)",
@@ -484,8 +465,7 @@ class PoolStateView(HomeAssistantView):
         entry = _check_token(hass, request, token)
         if isinstance(entry, web.Response):
             return entry
-        # Both the status tab and the kiosk screen live off this endpoint.
-        if not (_report_on(entry) or _kiosk_on(entry)):
+        if not _report_on(entry):
             return web.Response(status=404)
         if not _limiter(hass).allow("state", token, 60, 300):
             return self.json({"ok": False, "error": "rate_limited"}, status_code=429)
@@ -640,45 +620,3 @@ class PoolModeView(HomeAssistantView):
         # from wherever it was dropped, and it gets there first.
         result = await maintenance.async_apply(hass, entry, plan) if on else {}
         return self.json({"ok": True, **_maintenance_mode(entry), **result, "ignored": ignored})
-
-
-class PoolKioskView(HomeAssistantView):
-    """Display-only dashboard for a screen next to the pool."""
-
-    url = URL_KIOSK
-    name = "api:pool_maintenance_tracker:kiosk"
-    requires_auth = False
-
-    async def get(self, request: web.Request, token: str) -> web.Response:
-        hass = request.app[KEY_HASS]
-        entry = _check_token(hass, request, token)
-        if isinstance(entry, web.Response):
-            return entry
-        if not _kiosk_on(entry):
-            return web.Response(status=404)
-
-        language = entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE)
-        import segno
-
-        url = page_url(hass, entry) or URL_PAGE.format(token=token)
-        config = {
-            "pool_name": entry.title,
-            "language": language,
-            "strings": await _load_strings(hass, language),
-            "state_endpoint": URL_STATE.format(token=token),
-            "live": _live_values(hass, entry),
-            "report": await _build_report(hass, entry),
-            "temperature": await _temperature_trend(hass, entry),
-            "qr": await hass.async_add_executor_job(
-                lambda: segno.make(url, error="m").png_data_uri(scale=6, border=2)
-            ),
-        }
-        template = await hass.async_add_executor_job(KIOSK_PATH.read_text, "utf-8")
-        config_json = json.dumps(config, ensure_ascii=False).replace("</", "<\\/")
-        html = template.replace(f'"{KIOSK_MARKER}"', config_json)
-        return web.Response(
-            text=html,
-            content_type="text/html",
-            charset="utf-8",
-            headers=SECURITY_HEADERS,
-        )

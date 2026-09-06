@@ -100,7 +100,7 @@ def record_timestamps(
         )
     ):
         timestamps[TS_WATER_TEST] = logged_at_iso
-    # The slow readings keep their own clock, for the monthly reminder
+    # The slow readings keep their own clock: they are not every-visit work
     if any(key in data for key in (KEY_CYANURIC_ACID, KEY_CALCIUM_HARDNESS)):
         timestamps[TS_CHEMISTRY_TEST] = logged_at_iso
     if KEY_SALT_ADDED in data:

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Syntax-check the frontends and their translations.
+"""Syntax-check the frontend pages and their translations.
 
-The page, kiosk and card are self-contained HTML/JS served as-is, so the
-Python test suite never executes them: a stray duplicate declaration or a
-missing translation key only shows up as a blank screen in front of the
-pool. This runs in CI instead.
+The pages are self-contained HTML/JS served as-is, so the Python test suite
+never executes them: a stray duplicate declaration or a missing translation
+key only shows up as a blank screen in front of the pool. This runs in CI
+instead.
 """
 
 from __future__ import annotations
@@ -22,28 +22,23 @@ FRONTEND = (
     / "pool_maintenance_tracker"
     / "frontend"
 )
-PAGES = ("page.html", "kiosk.html", "manual.html")
-# Every card, and the custom element each one owes Lovelace.
-CARDS = {"card.js": "pool-maintenance-card", "scene-card.js": "pool-scene-card"}
+PAGES = ("page.html", "manual.html")
 LANGUAGES = ("en", "pt", "pt-br", "es", "fr", "de", "it")
 
 SCRIPT_RE = re.compile(r"<script>(.*?)</script>", re.DOTALL)
 # S.a.b — the long way into the string bundle, used from anywhere
-SECTION_RE = re.compile(
-    r"\bS\.(report|kiosk|roles|tiles|units|modes|maintenance|card)\.([a-z_0-9]+)"
-)
+SECTION_RE = re.compile(r"\bS\.(report|roles|tiles|units|modes|maintenance)\.([a-z_0-9]+)")
 # Every page also takes a one-letter shorthand for the section it works in,
 # and the same letter means different things in different files.
 ALIASES = {
-    "kiosk.html": ("K", "kiosk"),
     "manual.html": ("M", "manual"),
     "page.html": ("M", "maintenance"),
 }
 
 
 def check_syntax(errors: list[str]) -> None:
-    """Every inline script and the card must parse under node."""
-    targets: list[tuple[str, str]] = [(name, (FRONTEND / name).read_text()) for name in CARDS]
+    """Every inline script must parse under node."""
+    targets: list[tuple[str, str]] = []
     for name in PAGES:
         text = (FRONTEND / name).read_text()
         for index, body in enumerate(SCRIPT_RE.findall(text)):
@@ -60,54 +55,17 @@ def check_syntax(errors: list[str]) -> None:
             errors.append(f"{label}: {_first_useful_line(result.stderr)}")
 
 
-# Home Assistant loads card.js as an ES module, so it runs in strict mode.
-# Parsing it is not enough: a card that throws on load, or that stops
-# defining its element, shows up in Lovelace as "Custom element doesn't
-# exist" and nowhere else.
-CARD_HARNESS = """
-const defined = [];
-globalThis.HTMLElement = class {};
-globalThis.customElements = { define: (name) => defined.push(name), get: () => undefined };
-globalThis.window = globalThis;
-globalThis.document = { createElement: () => ({ style: {}, classList: { add() {} } }) };
-await import(SPECIFIER);
-if (!defined.includes(ELEMENT)) {
-  console.error(FILE + " did not define " + ELEMENT + " (defined: " + defined + ")");
-  process.exit(1);
-}
-"""
-
-
 def _first_useful_line(stderr: str) -> str:
     """Node prints a banner and a stack; the first real line is the point."""
     for line in stderr.splitlines():
-        if "did not define" in line or "Error" in line:
+        if "Error" in line:
             return line.strip()
-    return "failed to load as a module"
-
-
-def check_card_defines_its_element(errors: list[str]) -> None:
-    """Load each card the way a browser does and check it registers."""
-    for name, element in CARDS.items():
-        with tempfile.TemporaryDirectory() as folder:
-            card = Path(folder) / "card.mjs"
-            card.write_text((FRONTEND / name).read_text())
-            harness = Path(folder) / "harness.mjs"
-            harness.write_text(
-                CARD_HARNESS.replace("SPECIFIER", json.dumps(card.as_uri()))
-                .replace("ELEMENT", json.dumps(element))
-                .replace("FILE", json.dumps(name))
-            )
-            result = subprocess.run(
-                ["node", str(harness)], capture_output=True, text=True, cwd=folder
-            )
-        if result.returncode != 0:
-            errors.append(f"{name}: {_first_useful_line(result.stderr)}")
+    return "failed to parse"
 
 
 def check_strings(errors: list[str]) -> None:
-    """Every key a frontend reads must exist in all six bundles."""
-    sources = {name: (FRONTEND / name).read_text() for name in (*PAGES, *CARDS)}
+    """Every key a page reads must exist in all seven bundles."""
+    sources = {name: (FRONTEND / name).read_text() for name in PAGES}
     for language in LANGUAGES:
         bundle = json.loads((FRONTEND / "strings" / f"{language}.json").read_text())
         for name, text in sources.items():
@@ -178,7 +136,6 @@ def check_translations(errors: list[str]) -> None:
 def main() -> int:
     errors: list[str] = []
     check_syntax(errors)
-    check_card_defines_its_element(errors)
     check_strings(errors)
     check_ids(errors)
     check_translations(errors)

@@ -19,20 +19,16 @@ from homeassistant.core import (
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
 from homeassistant.helpers.typing import ConfigType
 
-from . import filter_pressure, health, maintenance
+from . import maintenance
 from .const import (
-    CATEGORY_FILTER_WASH,
     CONF_LANGUAGE,
     CONF_LINKED_MODE,
-    CONF_POOL_SYSTEM_ENTITY,
-    CONF_PUMP_ENTITY,
     CONF_TOKEN,
     DATA_TOKENS,
     DEFAULT_LANGUAGE,
@@ -42,14 +38,11 @@ from .const import (
     LINKED_SOURCES,
     LINKED_VALUE_KEYS,
     NUMBER_RANGES,
-    signal_record,
 )
 from .http import _load_strings, async_register_views
 from .maintenance import MaintenanceSession
 from .modules import active_entity_keys, enabled_value_keys
-from .reminders import ReminderEngine
 from .tracker import PoolTracker
-from .websocket import async_register_websocket_api
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +50,6 @@ _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 PLATFORMS = [
-    Platform.BINARY_SENSOR,
     Platform.EVENT,
     Platform.IMAGE,
     Platform.NUMBER,
@@ -72,7 +64,6 @@ class PoolRuntimeData:
     """Runtime objects for one pool entry."""
 
     tracker: PoolTracker
-    reminders: ReminderEngine
     session: MaintenanceSession
     # Short-lived answers too expensive to recompute on every poll
     cache: dict[str, Any] = field(default_factory=dict)
@@ -82,17 +73,9 @@ type PoolConfigEntry = ConfigEntry[PoolRuntimeData]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Get the Lovelace card onto the dashboards as early as we can.
-
-    The card URL is injected into the page Home Assistant serves, so a
-    dashboard opened before it is registered never fetches the script and
-    Lovelace reports "Custom element doesn't exist" until that page is
-    reloaded. Component setup runs before any config entry, which is the
-    earliest this integration gets a say.
-    """
+    """Register the actions before any pool is loaded."""
     hass.data.setdefault(DOMAIN, {DATA_TOKENS: {}})
     _async_register_services(hass)
-    await _async_register_frontend(hass)
     return True
 
 
@@ -102,134 +85,56 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> bool
 
     tracker = PoolTracker(hass, entry.entry_id, entry.data[CONF_NAME])
     await tracker.async_load()
-    reminders = ReminderEngine(hass, entry, tracker)
     session = MaintenanceSession(hass, entry, tracker)
-    entry.runtime_data = PoolRuntimeData(tracker=tracker, reminders=reminders, session=session)
+    entry.runtime_data = PoolRuntimeData(tracker=tracker, session=session)
 
     domain_data[DATA_TOKENS][entry.data[CONF_TOKEN]] = entry.entry_id
     async_register_views(hass)
-    await _async_register_frontend(hass)
-    async_register_websocket_api(hass)
+    await _async_drop_card_resources(hass)
     # Warm the string cache in this pool's language: the logbook describer
     # is synchronous and reads it, and the page will want it anyway.
     await _load_strings(hass, entry.options.get(CONF_LANGUAGE, DEFAULT_LANGUAGE))
 
     _async_prune_stale_entities(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    reminders.async_start()
     session.async_start()
 
     if entry.options.get(CONF_LINKED_MODE, LINKED_MODE_MANUAL) == LINKED_MODE_MIRROR:
         _async_setup_linked_mirror(hass, entry, tracker)
-    _async_setup_filter_pressure(hass, entry, tracker)
-    health.async_setup_health(hass, entry)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
 
 
-DATA_FRONTEND_REGISTERED = "frontend_registered"
-CARD_URL = f"/{DOMAIN}/card.js"
-SCENE_CARD_URL = f"/{DOMAIN}/scene-card.js"
-# The photo the scene card draws on, and anything else it grows into.
-SCENE_ASSETS_URL = f"/{DOMAIN}/scene"
-# Every card this integration ships, in the order a dashboard loads them.
-CARD_URLS: Final[tuple[str, ...]] = (CARD_URL, SCENE_CARD_URL)
+DATA_CARDS_DROPPED = "cards_dropped"
+# The Lovelace resources earlier versions registered for the cards they used
+# to ship. The cards are gone; an entry left pointing at them is a 404 on
+# every dashboard load, so this takes back what the integration put there.
+OLD_CARD_URLS: Final[tuple[str, ...]] = (
+    f"/{DOMAIN}/card.js",
+    f"/{DOMAIN}/scene-card.js",
+)
 
 
-async def _async_register_frontend(hass: HomeAssistant) -> None:
-    """Serve the Lovelace cards and get them loaded by the dashboards.
-
-    There are two ways to load a card and they fail differently. The
-    frontend's extra-js list is baked into the app's HTML, which the
-    service worker caches — so whether a given page load sees the card
-    depends on the state of that cache, which is exactly the intermittent
-    "Custom element doesn't exist" its users get. A Lovelace *resource*
-    (what HACS registers) is fetched over the websocket every time a
-    dashboard loads, cache or no cache. So: resource when Lovelace storage
-    is available, extra-js only as the fallback (YAML mode, no Lovelace).
-    """
+async def _async_drop_card_resources(hass: HomeAssistant) -> None:
+    """Remove the card resources this integration used to register."""
     domain_data = hass.data[DOMAIN]
-    if domain_data.get(DATA_FRONTEND_REGISTERED):
+    if domain_data.get(DATA_CARDS_DROPPED):
         return
-    from pathlib import Path
-
-    frontend = Path(__file__).parent / "frontend"
-    try:
-        from homeassistant.components.http import StaticPathConfig
-        from homeassistant.loader import async_get_integration
-    except ImportError:
-        _LOGGER.warning("Home Assistant frontend unavailable; the pool cards were not loaded")
+    domain_data[DATA_CARDS_DROPPED] = True
+    resources = getattr(hass.data.get("lovelace"), "resources", None)
+    if resources is None or not hasattr(resources, "async_delete_item"):
         return
-
-    paths = [
-        StaticPathConfig(CARD_URL, str(frontend / "card.js"), True),
-        StaticPathConfig(SCENE_CARD_URL, str(frontend / "scene-card.js"), True),
-        StaticPathConfig(SCENE_ASSETS_URL, str(frontend / "scene"), True),
-    ]
-    try:
-        await hass.http.async_register_static_paths(paths)
-    except (RuntimeError, ValueError) as err:
-        # Already served from an earlier setup in this session — harmless.
-        _LOGGER.debug("Cards already served under /%s (%s)", DOMAIN, err)
-
-    integration = await async_get_integration(hass, DOMAIN)
-    versioned = [f"{url}?v={integration.version}" for url in CARD_URLS]
-
-    # All or nothing: the fallback has to cover every card, and a partial
-    # Lovelace registration would leave the rest loaded by neither route.
-    if all(
-        [
-            await _async_register_lovelace_resource(hass, base, url)
-            for base, url in zip(CARD_URLS, versioned, strict=True)
-        ]
-    ):
-        domain_data[DATA_FRONTEND_REGISTERED] = True
-        _LOGGER.debug("Cards registered as Lovelace resources: %s", ", ".join(versioned))
-        return
-
-    try:
-        from homeassistant.components.frontend import add_extra_js_url
-
-        for url in versioned:
-            add_extra_js_url(hass, url)
-    except Exception:
-        _LOGGER.warning(
-            "Could not add the cards to the dashboards - the Pool Maintenance cards will "
-            "show 'Custom element does not exist'",
-            exc_info=True,
-        )
-        return
-    domain_data[DATA_FRONTEND_REGISTERED] = True
-    _LOGGER.debug("Cards registered via extra_js_url (Lovelace storage unavailable)")
-
-
-async def _async_register_lovelace_resource(hass: HomeAssistant, base: str, url: str) -> bool:
-    """Point a Lovelace resource entry at the current version of one card.
-
-    One entry per card, updated in place on version changes — including an
-    entry the user once added by hand for the same path. Returns False when
-    Lovelace is absent or its resources are YAML-managed, and the caller
-    falls back.
-    """
-    lovelace = hass.data.get("lovelace")
-    resources = getattr(lovelace, "resources", None)
-    if resources is None or not hasattr(resources, "async_create_item"):
-        return False
     try:
         if not resources.loaded:
             await resources.async_load()
             resources.loaded = True
-        for item in resources.async_items():
-            if str(item.get("url", "")).split("?")[0] == base:
-                if item["url"] != url:
-                    await resources.async_update_item(item["id"], {"url": url})
-                return True
-        await resources.async_create_item({"res_type": "module", "url": url})
+        for item in list(resources.async_items()):
+            if str(item.get("url", "")).split("?")[0] in OLD_CARD_URLS:
+                await resources.async_delete_item(item["id"])
+                _LOGGER.debug("Removed the stale Lovelace resource %s", item["url"])
     except Exception:
-        _LOGGER.warning("Could not manage the Lovelace resource for %s", base, exc_info=True)
-        return False
-    return True
+        _LOGGER.debug("Could not tidy up the old card resources", exc_info=True)
 
 
 SERVICE_DELETE_RECORD = "delete_record"
@@ -351,45 +256,6 @@ def _async_register_services(hass: HomeAssistant) -> None:
 
 
 @callback
-def _async_setup_filter_pressure(
-    hass: HomeAssistant, entry: PoolConfigEntry, tracker: PoolTracker
-) -> None:
-    """Let the filter's pressure gauge drive its wash alert.
-
-    Two hooks: every logged filter wash re-captures the clean baseline, and
-    every pressure reading is judged against it. Both are no-ops without a
-    linked sensor, which is how the fixed interval keeps working for
-    everybody else.
-    """
-
-    @callback
-    def _handle_record(record: dict) -> None:
-        if CATEGORY_FILTER_WASH in record.get("categories", []):
-            filter_pressure.async_capture_baseline(hass, entry, tracker)
-
-    entry.async_on_unload(
-        async_dispatcher_connect(hass, signal_record(entry.entry_id), _handle_record)
-    )
-
-    entity_id = filter_pressure.source_entity(entry)
-    if not entity_id:
-        return
-
-    @callback
-    def _handle_change(event: Event[EventStateChangedData]) -> None:
-        filter_pressure.async_evaluate(hass, entry, tracker)
-
-    # The pump switching on changes what the gauge means, so watch it too.
-    watched = [entity_id]
-    for conf_key in (CONF_PUMP_ENTITY, CONF_POOL_SYSTEM_ENTITY):
-        if role_entity := entry.options.get(conf_key):
-            watched.append(role_entity)
-
-    filter_pressure.async_evaluate(hass, entry, tracker)
-    entry.async_on_unload(async_track_state_change_event(hass, watched, _handle_change))
-
-
-@callback
 def _async_setup_linked_mirror(
     hass: HomeAssistant, entry: PoolConfigEntry, tracker: PoolTracker
 ) -> None:
@@ -432,7 +298,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> boo
     """Unload a pool entry."""
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
-    entry.runtime_data.reminders.async_stop()
     entry.runtime_data.session.async_stop()
     tokens: dict[str, str] = hass.data[DOMAIN][DATA_TOKENS]
     for token, entry_id in list(tokens.items()):
@@ -444,7 +309,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: PoolConfigEntry) -> boo
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Delete the stored state when the entry is removed."""
-    health.async_remove_issues(hass, entry)
     tracker = PoolTracker(hass, entry.entry_id, entry.data.get(CONF_NAME, ""))
     await tracker.async_remove_storage()
 

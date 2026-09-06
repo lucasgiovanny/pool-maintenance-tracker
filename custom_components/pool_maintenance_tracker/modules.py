@@ -1,9 +1,8 @@
 """Module registry and pool-type presets.
 
 Single source of truth consumed by the config flow, entity platforms,
-payload processor, page renderer, and reminder engine. Adding support for
-new equipment means adding one ``PoolModule`` here plus entity descriptions
-and page strings.
+payload processor and page renderer. Adding support for new equipment means
+adding one ``PoolModule`` here plus entity descriptions and page strings.
 """
 
 from __future__ import annotations
@@ -21,17 +20,9 @@ from .const import (
     CATEGORY_PROBE_CALIBRATION,
     CATEGORY_SALT,
     CATEGORY_WATER_TEST,
-    CONF_CELL_DAYS,
-    CONF_CHEMISTRY_DAYS,
-    CONF_FILTER_DAYS,
     CONF_MAINTENANCE_MODE,
     CONF_MODULES,
-    CONF_PROBE_DAYS,
-    DEFAULT_CELL_DAYS,
-    DEFAULT_CHEMISTRY_DAYS,
-    DEFAULT_FILTER_DAYS,
     DEFAULT_MAINTENANCE_MODE,
-    DEFAULT_PROBE_DAYS,
     KEY_ACID_TANK_LEVEL,
     KEY_CALCIUM_HARDNESS,
     KEY_CHLORINATOR_MODE,
@@ -64,15 +55,6 @@ from .const import (
 
 
 @dataclass(frozen=True)
-class ReminderSpec:
-    """A periodic reminder tied to a timestamp key."""
-
-    timestamp_key: str
-    conf_key: str
-    default_days: int
-
-
-@dataclass(frozen=True)
 class PoolModule:
     """A unit of optional pool equipment/functionality."""
 
@@ -81,7 +63,6 @@ class PoolModule:
     value_keys: tuple[str, ...] = ()
     timestamp_keys: tuple[str, ...] = ()
     categories: tuple[str, ...] = ()
-    reminder: ReminderSpec | None = None
     always_on: bool = False
 
 
@@ -105,7 +86,6 @@ MODULE_WATER_CHEMISTRY = PoolModule(
     tiles=(),
     value_keys=(KEY_TOTAL_CHLORINE, KEY_CYANURIC_ACID, KEY_CALCIUM_HARDNESS),
     timestamp_keys=(TS_CHEMISTRY_TEST,),
-    reminder=ReminderSpec(TS_CHEMISTRY_TEST, CONF_CHEMISTRY_DAYS, DEFAULT_CHEMISTRY_DAYS),
 )
 
 MODULE_SALT_CHLORINATOR = PoolModule(
@@ -119,7 +99,6 @@ MODULE_SALT_CHLORINATOR = PoolModule(
     ),
     timestamp_keys=(TS_CELL_CLEAN, TS_SALT_ADDED),
     categories=(CATEGORY_CHLORINATOR, CATEGORY_SALT, CATEGORY_CELL_CLEAN),
-    reminder=ReminderSpec(TS_CELL_CLEAN, CONF_CELL_DAYS, DEFAULT_CELL_DAYS),
 )
 
 MODULE_ACID_TANK = PoolModule(
@@ -135,7 +114,6 @@ MODULE_FILTER = PoolModule(
     tiles=("filter_wash",),
     timestamp_keys=(TS_FILTER_WASH,),
     categories=(CATEGORY_FILTER_WASH,),
-    reminder=ReminderSpec(TS_FILTER_WASH, CONF_FILTER_DAYS, DEFAULT_FILTER_DAYS),
 )
 
 MODULE_PH_PROBE = PoolModule(
@@ -143,7 +121,6 @@ MODULE_PH_PROBE = PoolModule(
     tiles=("probe_calibration",),
     timestamp_keys=(TS_PROBE_CALIBRATION,),
     categories=(CATEGORY_PROBE_CALIBRATION,),
-    reminder=ReminderSpec(TS_PROBE_CALIBRATION, CONF_PROBE_DAYS, DEFAULT_PROBE_DAYS),
 )
 
 MODULE_CLEANING = PoolModule(
@@ -235,10 +212,6 @@ def enabled_tiles(options: Mapping[str, Any]) -> list[str]:
     return [tile for tile in TILE_ORDER if tile in tiles]
 
 
-def enabled_reminders(options: Mapping[str, Any]) -> list[ReminderSpec]:
-    return [module.reminder for module in enabled_modules(options) if module.reminder]
-
-
 def timestamp_sensor_key(timestamp_key: str) -> str:
     """Entity key for the timestamp sensor tracking ``timestamp_key``."""
     return "last_maintenance" if timestamp_key == TS_ANY else f"last_{timestamp_key}"
@@ -260,6 +233,4 @@ def active_entity_keys(options: Mapping[str, Any]) -> set[str]:
         keys.add(KEY_COMBINED_CHLORINE)
     for ts_key in enabled_timestamp_keys(options):
         keys.add(timestamp_sensor_key(ts_key))
-    for reminder in enabled_reminders(options):
-        keys.add(f"{reminder.timestamp_key}_due")
     return keys

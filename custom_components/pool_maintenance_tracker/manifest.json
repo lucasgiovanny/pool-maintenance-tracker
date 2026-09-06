@@ -2,17 +2,14 @@
   "domain": "pool_maintenance_tracker",
   "name": "Pool Maintenance Tracker",
   "after_dependencies": [
-    "recorder",
-    "frontend",
-    "lovelace"
+    "recorder"
   ],
   "codeowners": [
     "@lucasgiovanny"
   ],
   "config_flow": true,
   "dependencies": [
-    "http",
-    "websocket_api"
+    "http"
   ],
   "documentation": "https://github.com/lucasgiovanny/pool-maintenance-tracker",
   "integration_type": "device",
@@ -21,5 +18,5 @@
   "requirements": [
     "segno>=1.6.1"
   ],
-  "version": "0.53.0"
+  "version": "0.54.0"
 }

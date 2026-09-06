@@ -186,16 +186,9 @@ async def test_report_tab_data(hass, salt_entry, hass_client_no_auth):
     task_keys = [task["key"] for task in report["tasks"]]
     assert "filter_wash" in task_keys
     filter_task = next(task for task in report["tasks"] if task["key"] == "filter_wash")
+    # A task row says when it was last done and nothing about when it is owed
     assert filter_task["last"] is not None
-    assert filter_task["interval_days"] == 30
-    assert filter_task["due"] is False
-    # next due = last done + interval
-    from datetime import timedelta
-
-    from homeassistant.util import dt as dt_util
-
-    expected_next = dt_util.parse_datetime(filter_task["last"]) + timedelta(days=30)
-    assert dt_util.parse_datetime(filter_task["next"]) == expected_next
+    assert set(filter_task) == {"key", "last"}
     assert report["records"][0]["person"] == "Lucas"
     assert report["records"][0]["categories"] == ["filter_wash"]
     assert report["records"][0]["id"]
@@ -377,10 +370,8 @@ async def test_state_endpoint_404_when_report_disabled(hass, salt_entry, hass_cl
     from custom_components.pool_maintenance_tracker.const import URL_STATE
 
     salt_entry.add_to_hass(hass)
-    # the kiosk also feeds off /state, so both have to be off
     hass.config_entries.async_update_entry(
-        salt_entry,
-        options={**salt_entry.options, "report_enabled": False, "kiosk_enabled": False},
+        salt_entry, options={**salt_entry.options, "report_enabled": False}
     )
     assert await hass.config_entries.async_setup(salt_entry.entry_id)
     await hass.async_block_till_done()
